@@ -1,0 +1,46 @@
+{
+   "name": "pickme",
+   "version": "0.0.1",
+   "babelMacros": {
+      "twin": {
+         "preset": "emotion"
+      }
+   },
+   "scripts": {
+      "dev": "concurrently \"yarn dev:frontend\" \"yarn dev:backend\"",
+      "dev:frontend": "next",
+      "dev:backend": "mvn -f backend/pom.xml -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 thorntail:run",
+      "build": "concurrently \"yarn build:frontend\" \"yarn build:backend\"",
+      "build:frontend": "next build",
+      "build:backend": "mvn -f backend/pom.xml package",
+      "start": "concurrently \"yarn start:frontend\" \"yarn start:backend\"",
+      "start:frontend": "next start",
+      "start:backend": "java -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 -jar backend/target/pickme_backend-thorntail.jar",
+      "postinstall": "husky install"
+   },
+   "dependencies": {
+      "@emotion/css": "^11.5.0",
+      "@emotion/react": "^11.5.0",
+      "@emotion/server": "^11.4.0",
+      "@emotion/styled": "^11.3.0",
+      "next": "latest",
+      "react": "^17.0.2",
+      "react-dom": "^17.0.2",
+      "react-icons": "^4.3.1"
+   },
+   "devDependencies": {
+      "@babel/core": "^7.16.0",
+      "@babel/preset-react": "^7.16.0",
+      "@emotion/babel-plugin": "^11.3.0",
+      "babel-plugin-macros": "^3.1.0",
+      "concurrently": "^7.0.0",
+      "eslint": "8.6.0",
+      "eslint-config-next": "12.0.7",
+      "eslint-config-prettier": "^8.3.0",
+      "husky": "^7.0.4",
+      "lint-staged": "^12.1.6",
+      "prettier": "^2.5.1",
+      "tailwindcss": "2.2.19",
+      "twin.macro": "^2.8.2"
+   }
+}
