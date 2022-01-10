@@ -1,5 +1,4 @@
 import Head from 'next/head'
-import 'twin.macro'
 
 function Index(props) {
    return (
@@ -7,8 +6,8 @@ function Index(props) {
          <Head>
             <title>Home</title>
          </Head>
-         <div tw="flex justify-center items-center w-screen h-screen">
-            <p tw="text-blue-500 text-5xl">{props.message}</p>
+         <div className="flex justify-center items-center w-screen h-screen">
+            <p className="text-blue-500 text-5xl">{props.message}</p>
          </div>
       </>
    )
