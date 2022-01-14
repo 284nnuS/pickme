@@ -1,11 +1,5 @@
 {
    "name": "pickme",
-   "version": "0.0.1",
-   "babelMacros": {
-      "twin": {
-         "preset": "emotion"
-      }
-   },
    "scripts": {
       "dev": "concurrently \"yarn dev:frontend\" \"yarn dev:backend\"",
       "dev:frontend": "next",
