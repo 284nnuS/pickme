@@ -1,4 +1,4 @@
-package tech.zoomidsoon.pickme_backend;
+package tech.zoomidsoon.pickme_backend.models;
 
 public class Hello {
 	private String message;

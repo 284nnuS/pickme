@@ -1,13 +1,13 @@
 {
    "name": "pickme",
    "scripts": {
-      "dev": "concurrently \"yarn dev:frontend\" \"yarn dev:backend\"",
+      "dev": "run-p dev:frontend dev:backend",
       "dev:frontend": "next",
       "dev:backend": "mvn -f backend/pom.xml -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 thorntail:run",
-      "build": "concurrently \"yarn build:frontend\" \"yarn build:backend\"",
+      "build": "run-p build:frontend build:backend",
       "build:frontend": "next build",
       "build:backend": "mvn -f backend/pom.xml package",
-      "start": "concurrently \"yarn start:frontend\" \"yarn start:backend\"",
+      "start": "run-p start:frontend start:backend",
       "start:frontend": "next start",
       "start:backend": "java -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 -jar backend/target/pickme_backend-thorntail.jar",
       "postinstall": "husky install"
@@ -20,12 +20,12 @@
    },
    "devDependencies": {
       "autoprefixer": "^10.4.2",
-      "concurrently": "^7.0.0",
       "eslint": "8.6.0",
       "eslint-config-next": "12.0.7",
       "eslint-config-prettier": "^8.3.0",
       "husky": "^7.0.4",
       "lint-staged": "^12.1.7",
+      "npm-run-all": "^4.1.5",
       "postcss": "^8.4.5",
       "prettier": "^2.5.1",
       "tailwindcss": "^3.0.12"
