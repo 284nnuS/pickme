@@ -1,7 +1,6 @@
 # PickMe
 
-> Online chatting networking application that provides chatting and making friend service that allows users to find the right person for them
-
+> Online social networking application that provides chatting, making friend service by matching the right person with users based on interests, voice records, and pictures
 ## Requirement
 
 -  NodeJS >= 16
