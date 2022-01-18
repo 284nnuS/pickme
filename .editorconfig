@@ -1,0 +1,6 @@
+root = false
+
+[backend/**/*]
+indent_style = space
+indent_size = 3
+charset = utf-8

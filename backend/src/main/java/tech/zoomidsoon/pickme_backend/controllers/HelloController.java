@@ -10,15 +10,15 @@ import tech.zoomidsoon.pickme_backend.models.Hello;
 
 @Path("/hello")
 public class HelloController {
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response doGet() {
-        return Response.ok(new Hello("Hello world!")).build();
-    }
+   @GET
+   @Produces(MediaType.APPLICATION_JSON)
+   public Response doGet() {
+      return Response.ok(new Hello("Hello world!")).build();
+   }
 
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response doPost(Hello hello) {
-        return Response.ok(hello).build();
-    }
+   @POST
+   @Produces(MediaType.APPLICATION_JSON)
+   public Response doPost(Hello hello) {
+      return Response.ok(hello).build();
+   }
 }
