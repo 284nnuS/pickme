@@ -9,7 +9,7 @@ import javax.ws.rs.core.MediaType;
 import tech.zoomidsoon.pickme_backend.models.Hello;
 
 @Path("/hello")
-public class HelloService {
+public class HelloController {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response doGet() {
