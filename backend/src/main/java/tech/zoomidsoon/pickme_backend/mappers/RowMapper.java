@@ -1,4 +1,4 @@
-package tech.zoomidsoon.pickme_backend.utils;
+package tech.zoomidsoon.pickme_backend.mappers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;

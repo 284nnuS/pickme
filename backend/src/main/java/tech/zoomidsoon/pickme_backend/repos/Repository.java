@@ -1,15 +1,21 @@
 package tech.zoomidsoon.pickme_backend.repos;
 
 import java.util.List;
+import java.sql.ResultSet;
+import java.sql.Connection;
 
-public interface Repository<T, C> {
-	T create(T entity);
+public interface Repository<E> {
+   E create(E entity);
 
-	List<T> read(C criteria);
+   List<E> read(Criteria criteria);
 
-	T update(T entity);
+   E update(E entity);
 
-	T delete(T entity);
+   E delete(E entity);
 
-	List<T> readAll();
+   List<E> readAll();
+
+   public static interface Criteria {
+      ResultSet query(Connection conn);
+   }
 }
