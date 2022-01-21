@@ -1,10 +1,11 @@
 # PickMe
 
 > Online social networking application that provides chatting, making friend service by matching the right person with users based on interests, voice records, and pictures
+
 ## Requirement
 
 -  NodeJS >= 16
--  JDK >= 11
+-  JDK == 11
 -  Yarn
 -  Maven
 
