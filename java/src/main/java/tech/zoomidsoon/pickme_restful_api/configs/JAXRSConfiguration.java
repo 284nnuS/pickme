@@ -1,4 +1,4 @@
-package tech.zoomidsoon.pickme_backend.configs;
+package tech.zoomidsoon.pickme_restful_api.configs;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;

@@ -1,24 +1,35 @@
 {
    "name": "pickme",
    "scripts": {
-      "dev": "run-p dev:frontend dev:backend",
-      "dev:frontend": "next",
-      "dev:backend": "mvn -f backend/pom.xml -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 thorntail:run",
-      "build": "run-p build:frontend build:backend",
-      "build:frontend": "next build",
-      "build:backend": "mvn -f backend/pom.xml package",
-      "start": "run-p start:frontend start:backend",
-      "start:frontend": "next start",
-      "start:backend": "java -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 -jar backend/target/pickme_backend-thorntail.jar",
+      "dev": "run-p dev:server dev:java",
+      "dev:server": "ts-node --project tsconfig.server.json server/index.ts",
+      "dev:java": "mvn -f java/pom.xml -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 thorntail:run",
+      "build": "run-p build:server build:next build:java",
+      "build:server": "tsc --project tsconfig.server.json",
+      "build:next": "next build",
+      "build:java": "mvn -f java/pom.xml package",
+      "start": "run-p start:server start:java",
+      "start:server": "node dist/index.js",
+      "start:java": "java -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 -jar java/target/pickme_restful_api-thorntail.jar",
       "postinstall": "husky install"
    },
    "dependencies": {
+      "cookie-parser": "^1.4.6",
+      "express": "^4.17.2",
+      "helmet": "^5.0.1",
+      "http-proxy-middleware": "^2.0.1",
       "next": "12.0.8",
+      "next-auth": "^4.1.2",
       "react": "^17.0.2",
       "react-dom": "^17.0.2",
-      "react-icons": "^4.3.1"
+      "react-icons": "^4.3.1",
+      "socket.io": "^4.4.1",
+      "socket.io-client": "^4.4.1"
    },
    "devDependencies": {
+      "@babel/core": "^7.16.10",
+      "@types/express": "^4.17.13",
+      "@types/react": "^17.0.38",
       "autoprefixer": "^10.4.2",
       "eslint": "8.6.0",
       "eslint-config-next": "12.0.8",
@@ -28,6 +39,9 @@
       "npm-run-all": "^4.1.5",
       "postcss": "^8.4.5",
       "prettier": "^2.5.1",
-      "tailwindcss": "^3.0.15"
+      "shelljs": "^0.8.5",
+      "tailwindcss": "^3.0.15",
+      "ts-node": "^10.4.0",
+      "typescript": "^4.5.5"
    }
 }

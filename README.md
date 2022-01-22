@@ -4,7 +4,7 @@
 
 ## Requirement
 
--  NodeJS >= 16
+-  NodeJS == 16
 -  JDK == 11
 -  Yarn
 -  Maven
