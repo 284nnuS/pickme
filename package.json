@@ -9,13 +9,11 @@
       "build:next": "next build",
       "build:java": "mvn -f java/pom.xml package",
       "start": "run-p start:server start:java",
-      "start:server": "node dist/index.js",
+      "start:server": "pm2-runtime dist/server/index.js",
       "start:java": "java -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 -jar java/target/pickme_restful_api-thorntail.jar",
       "postinstall": "husky install"
    },
    "dependencies": {
-      "@types/body-parser": "^1.19.2",
-      "@types/cookie-parser": "^1.4.2",
       "body-parser": "^1.19.1",
       "cookie-parser": "^1.4.6",
       "express": "^4.17.2",
@@ -31,8 +29,13 @@
    },
    "devDependencies": {
       "@babel/core": "^7.16.10",
+      "@types/body-parser": "^1.19.2",
+      "@types/cookie-parser": "^1.4.2",
       "@types/express": "^4.17.13",
+      "@types/node": "^17.0.10",
       "@types/react": "^17.0.38",
+      "@typescript-eslint/eslint-plugin": "^5.10.0",
+      "@typescript-eslint/parser": "^5.10.0",
       "autoprefixer": "^10.4.2",
       "eslint": "8.6.0",
       "eslint-config-next": "12.0.8",

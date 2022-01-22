@@ -16,12 +16,15 @@ const nextApp = next({ dev })
 const server = http.createServer(app)
 const nextHandler: NextApiHandler = nextApp.getRequestHandler()
 
+process.env['NEXTAUTH_URL'] = process.env.NEXT_PUBLIC_URL
+
 app.use(
    helmet({
-      contentSecurityPolicy: false,
+      contentSecurityPolicy: !dev,
    }),
 )
-app.use(bodyParser())
+app.use(bodyParser.urlencoded())
+app.use(bodyParser.json())
 app.use(cookieParser())
 app.use(auth)
 app.use(filter)
@@ -32,7 +35,7 @@ nextApp.prepare().then(async () => {
    app.all(
       '/api/restful/*',
       createProxyMiddleware({
-         target: 'http://localhost:3001',
+         target: process.env.JAVA_SERVER_URL,
          changeOrigin: true,
          pathRewrite: { '^/api/restful': '' },
       }),
@@ -41,6 +44,6 @@ nextApp.prepare().then(async () => {
    app.all('/*', (req: any, res: any) => nextHandler(req, res))
 
    server.listen(port, () => {
-      console.log(`> Ready on http://localhost:${port}`)
+      console.log(`> Listening on ${port}`)
    })
 })

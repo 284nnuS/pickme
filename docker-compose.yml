@@ -1,0 +1,37 @@
+services:
+    nextjs:
+        build: /.
+        networks:
+            - internal
+        environment:
+            - PORT=3000
+            - JAVA_SERVER_URL=http://java_server:3001
+        env_file:
+          - configs/nextjs.env
+        ports:
+            - 3000:3000
+    java_server:
+        build: java/.
+        networks:
+            - internal
+        environment:
+            - PORT=3001
+            - DB_HOSTNAME=database
+        env_file:
+            - configs/java.env
+    database:
+        image: mysql:8.0.28
+        networks:
+            - internal
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+        env_file:
+            - configs/db.env
+        volumes:
+            - database_data:/var/lib/mysql
+        ports:
+            - 3306:3306
+volumes:
+    database_data:
+networks:
+    internal:

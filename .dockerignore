@@ -1,0 +1,5 @@
+/java/
+/node_modules/
+/.next/
+/.husky/
+/dist/

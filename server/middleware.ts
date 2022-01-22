@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { Request, Response } from 'express'
-import { needAuthentication } from '../configs/security'
+import { needAuthentication } from './security'
 import { getToken } from 'next-auth/jwt'
 import { NextApiRequest, NextApiResponse } from 'next'
 import NextAuth from 'next-auth'
@@ -38,10 +38,6 @@ export async function auth(req: Request, res: Response, next: () => void) {
          },
          async session({ session, user, token }) {
             return session
-         },
-         async jwt({ token, user, account, profile, isNewUser }) {
-            console.log(isNewUser)
-            return token
          },
       },
       secret: process.env.SECRET_KEY,
