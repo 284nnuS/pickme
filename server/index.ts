@@ -2,9 +2,10 @@ import http from 'http'
 import next, { NextApiHandler } from 'next'
 import express, { Express } from 'express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
-import middleware from './middleware'
+import { auth, filter } from './middleware'
 import helmet from 'helmet'
 import attach from './websocket'
+import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 
 const dev = process.env.NODE_ENV !== 'production'
@@ -20,8 +21,10 @@ app.use(
       contentSecurityPolicy: false,
    }),
 )
+app.use(bodyParser())
 app.use(cookieParser())
-app.use(middleware)
+app.use(auth)
+app.use(filter)
 
 attach(server)
 
