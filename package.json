@@ -1,8 +1,9 @@
 {
    "name": "pickme",
    "scripts": {
+      "env": "dotenv -e configs/java.env configs/nextjs.env configs/db.env",
       "dev": "run-p dev:server dev:java",
-      "dev:server": "ts-node --project server.tsconfig.json server/index.ts",
+      "dev:server": "env-cmd -f configs/nextjs.env ts-node --project server.tsconfig.json server/index.ts",
       "dev:java": "mvn -f java/pom.xml -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 thorntail:run",
       "build": "run-p build:server build:next build:java",
       "build:server": "tsc --project server.tsconfig.json",
@@ -21,6 +22,7 @@
       "http-proxy-middleware": "^2.0.1",
       "next": "12.0.8",
       "next-auth": "^4.1.2",
+      "node-cache": "^5.1.2",
       "react": "^17.0.2",
       "react-dom": "^17.0.2",
       "react-icons": "^4.3.1",
@@ -37,6 +39,7 @@
       "@typescript-eslint/eslint-plugin": "^5.10.0",
       "@typescript-eslint/parser": "^5.10.0",
       "autoprefixer": "^10.4.2",
+      "env-cmd": "^10.1.0",
       "eslint": "8.6.0",
       "eslint-config-next": "12.0.8",
       "eslint-config-prettier": "^8.3.0",
@@ -45,7 +48,6 @@
       "npm-run-all": "^4.1.5",
       "postcss": "^8.4.5",
       "prettier": "^2.5.1",
-      "shelljs": "^0.8.5",
       "tailwindcss": "^3.0.15",
       "ts-node": "^10.4.0",
       "typescript": "^4.5.5"

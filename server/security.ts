@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { Request, Response } from 'express'
-import { needAuthentication } from './security'
+import { NextFunction, Request, Response } from 'express'
+import { cache } from '../shared/cache'
 import { getToken } from 'next-auth/jwt'
 import { NextApiRequest, NextApiResponse } from 'next'
 import NextAuth from 'next-auth'
@@ -8,7 +8,7 @@ import GoogleProvider from 'next-auth/providers/google'
 
 const baseUrl = '/api/auth/'
 
-export async function auth(req: Request, res: Response, next: () => void) {
+export async function nextAuth(req: Request, res: Response, next: NextFunction) {
    if (!req.url.startsWith(baseUrl)) {
       return next()
    }
@@ -44,15 +44,34 @@ export async function auth(req: Request, res: Response, next: () => void) {
    })
 }
 
-export async function filter(req: Request, res: Response, next: () => void) {
+export async function authorize(req: Request, res: Response, next: NextFunction) {
    const token = await getToken({ req: req as unknown as NextApiRequest, secret: process.env.SECRET_KEY })
 
-   if (!token) {
-      for (const rgx of needAuthentication)
-         if (req.url.match(rgx)) {
-            res.redirect('/')
-            return
-         }
+   if (!token) return next()
+
+   //Get User Role
+   const getRole = (email: string): string => {
+      return 'user'
    }
+
+   res.locals.token = token
+   res.locals.userRole = cache(getRole, token.email)
+
    next()
+}
+
+export function permit(...roles: string[]): (req: Request, res: Response, next: NextFunction) => void {
+   return (req: Request, res: Response, next: NextFunction) => {
+      if (!res.locals.token) {
+         //Unauthenticated
+         res.redirect('/auth/signIn')
+         return
+      }
+      if (!roles.includes(res.locals.userRole)) {
+         //Unauthorized
+         res.status(403).send()
+         return
+      }
+      next()
+   }
 }
