@@ -2,10 +2,10 @@
    "name": "pickme",
    "scripts": {
       "dev": "run-p dev:server dev:java",
-      "dev:server": "ts-node --project tsconfig.server.json server/index.ts",
+      "dev:server": "ts-node --project server.tsconfig.json server/index.ts",
       "dev:java": "mvn -f java/pom.xml -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 thorntail:run",
       "build": "run-p build:server build:next build:java",
-      "build:server": "tsc --project tsconfig.server.json",
+      "build:server": "tsc --project server.tsconfig.json",
       "build:next": "next build",
       "build:java": "mvn -f java/pom.xml package",
       "start": "run-p start:server start:java",

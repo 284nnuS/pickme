@@ -1,6 +1,6 @@
 services:
     nextjs:
-        build: /.
+        build: .
         networks:
             - internal
         environment:
@@ -11,7 +11,7 @@ services:
         ports:
             - 3000:3000
     java_server:
-        build: java/.
+        build: java/
         networks:
             - internal
         environment:
@@ -24,7 +24,7 @@ services:
         networks:
             - internal
         environment:
-            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=DATABASE
         env_file:
             - configs/db.env
         volumes:

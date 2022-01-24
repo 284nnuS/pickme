@@ -34,10 +34,8 @@ yarn
 ├── shared -> Shared between server-side and client-side
 └── src/
 ├── pages/
-│ ├── admin -> Admin pages
 │ ├── app -> Web application pages
 │ ├── auth -> Auth pages
-│ └── moderator -> Moderator pages
 ├── components -> React components
 └── styles -> CSS
 ```

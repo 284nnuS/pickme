@@ -23,6 +23,7 @@ COPY --from=builder --chown=appuser:appgroup /app/.next ./.next
 COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/next.config.js ./next.config.js
 
 USER appuser
 EXPOSE 3000
