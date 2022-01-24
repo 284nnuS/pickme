@@ -1,9 +1,8 @@
 {
    "name": "pickme",
    "scripts": {
-      "env": "dotenv -e configs/java.env configs/nextjs.env configs/db.env",
       "dev": "run-p dev:server dev:java",
-      "dev:server": "env-cmd -f configs/nextjs.env ts-node --project server.tsconfig.json server/index.ts",
+      "dev:server": "env-cmd --silent -f configs/nextjs.env ts-node --project server.tsconfig.json server/index.ts",
       "dev:java": "mvn -f java/pom.xml -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 thorntail:run",
       "build": "run-p build:server build:next build:java",
       "build:server": "tsc --project server.tsconfig.json",

@@ -20,7 +20,7 @@ app.use(
       contentSecurityPolicy: !dev,
    }),
 )
-
+app.use(express.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(cookieParser())
 app.use(nextAuth)
