@@ -55,7 +55,7 @@ All .env files put in configs folder
 -  java.env
    -  DB_HOSTNAME (default: "localhost")
    -  DB_NAME (default: "DATABASE")
-   -  DB_USERNAME (default: "localhost")
+   -  DB_USERNAME (default: "root")
    -  DB_PASSWORD
 -  db.env
    -  MYSQL_ROOT_PASSWORD
