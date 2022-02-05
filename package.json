@@ -11,8 +11,9 @@
       "start": "run-p start:server start:java",
       "start:server": "pm2-runtime dist/server/index.js",
       "start:java": "java -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 -jar java/target/pickme_restful_api-thorntail.jar",
-      "postinstall": "husky install",
-      "test:java": "env-cmd --silent -f configs/java.env mvn -f java/pom.xml clean test"
+      "test": "run-s test:java",
+      "test:java": "env-cmd --silent -f configs/java.env mvn -f java/pom.xml clean test",
+      "postinstall": "husky install"
    },
    "dependencies": {
       "body-parser": "^1.19.1",
