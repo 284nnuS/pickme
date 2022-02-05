@@ -1,6 +1,7 @@
 services:
     nextjs:
         build: .
+        container_name: pickme-nextjs
         networks:
             - internal
         environment:
@@ -12,6 +13,7 @@ services:
             - 3000:3000
     java_server:
         build: java/
+        container_name: pickme-java-server
         networks:
             - internal
         environment:
@@ -21,6 +23,7 @@ services:
             - configs/java.env
     database:
         image: mysql:8.0.28
+        container_name: pickme-database
         networks:
             - internal
         environment:
