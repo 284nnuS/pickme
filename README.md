@@ -45,8 +45,24 @@ yarn
 All .env files put in configs folder
 
 -  nextjs.env
+
+   -  GOOGLE_CLIENT_ID
+   -  GOOGLE_CLIENT_SECRET
+   -  SECRET_KEY
+   -  NEXT_PUBLIC_URL (\*)
+   -  NEXTAUTH_URL (\*)
+
 -  java.env
+   -  DB_HOSTNAME (default: "localhost")
+   -  DB_NAME (default: "DATABASE")
+   -  DB_USERNAME (default: "localhost")
+   -  DB_PASSWORD
 -  db.env
+   -  MYSQL_ROOT_PASSWORD
+
+### Note:
+
+-  (\*) Both have the same value
 
 ## Start development
 
