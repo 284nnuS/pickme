@@ -7,7 +7,7 @@ import java.sql.SQLException;
 
 public class DBContext {
 	private static final String hostname = Env.get("DB_HOSTNAME", "localhost");
-	private static final int port = 3306;
+	private static final int port = Integer.parseInt(Env.get("DB_PORT", "3306"));
 	private static final String dbName = Env.get("DB_NAME", "DATABASE");
 	private static final String username = Env.get("DB_USERNAME", "root");
 	private static final String password = System.getenv("DB_PASSWORD");
