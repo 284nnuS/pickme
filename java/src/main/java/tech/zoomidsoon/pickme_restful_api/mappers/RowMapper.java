@@ -42,3 +42,10 @@ public abstract class RowMapper<T> {
 	// Return true to store the object of previous rows to list else continue
 	abstract boolean mapRow(ResultSet rs, T obj, boolean first, boolean isNew) throws SQLException;
 }
+
+// A 1 true true false
+// A 2 false false false
+// A 3 false false false
+// A 4 false false false
+// B 1 false true true
+// B 1 false true false
