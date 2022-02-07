@@ -6,15 +6,17 @@ import lombok.*;
 
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
 public class User {
 	private String username;
-
-	public User(String username) {
-		this.username = username;
-	}
-
+	private String email;
+	private String role;
+	private char gender;
+	private String bio;
+    private  String avatar;
    
+
 }

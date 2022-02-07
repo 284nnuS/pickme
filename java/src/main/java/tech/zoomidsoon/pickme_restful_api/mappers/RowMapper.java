@@ -15,7 +15,7 @@ public abstract class RowMapper<T> {
 		boolean isNew = true;
 
 		while (rs.next()) {
-			if (isNew = mapRow(rs, obj, first, isNew)) {
+			if (isNew == mapRow(rs, obj, first, isNew)) {
 				result.add(obj);
 				obj = newGenericInstance(cls);
 				if (!rs.previous()) // Rollback previous row so when call next(), it won't change index
