@@ -3,7 +3,7 @@ import { SessionProvider } from 'next-auth/react'
 import { useEffect } from 'react'
 
 const App = ({ Component, pageProps: { session, ...pageProps } }) => {
-   useEffect(() => import('@themesberg/flowbite'))
+   useEffect(() => import('flowbite'))
 
    return (
       <>

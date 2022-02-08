@@ -5,7 +5,8 @@
       "module": "commonjs",
       "outDir": "dist",
       "noEmit": false,
-      "rootDir": "./"
+      "rootDir": "./",
+      "typeRoots": ["types"]
    },
    "include": ["server"]
 }

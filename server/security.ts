@@ -2,9 +2,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { getToken, JWT } from 'next-auth/jwt'
 import { NextApiRequest, NextApiResponse } from 'next'
-import NextAuth, { getServerSession } from 'next-auth'
+import NextAuth, { Account, getServerSession, Profile, Session, User } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import { Account, Profile, Session, User } from 'next-auth/core/types'
 
 const baseUrl = '/api/auth/'
 
