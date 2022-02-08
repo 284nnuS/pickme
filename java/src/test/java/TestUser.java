@@ -1,17 +1,13 @@
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.*;
 
 import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import org.junit.jupiter.api.Test;
 
 import tech.zoomidsoon.pickme_restful_api.mappers.UserRowMapper;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 import tech.zoomidsoon.pickme_restful_api.utils.Utils;
+
 import utils.MockResultSet;
 
 class TestUser {
@@ -50,6 +46,7 @@ class TestUser {
 		UserRowMapper urm = new UserRowMapper();
 		List<User> users = urm.processResultSet(rs, User.class);
 
-		assertTrue(examples.size() == users.size() && users.containsAll(examples) && examples.containsAll(users));
+		Assertions
+				.assertTrue(examples.size() == users.size() && users.containsAll(examples) && examples.containsAll(users));
 	}
 }

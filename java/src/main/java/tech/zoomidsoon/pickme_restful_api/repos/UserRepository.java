@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import lombok.*;
+
 import tech.zoomidsoon.pickme_restful_api.mappers.UserRowMapper;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
@@ -90,8 +92,8 @@ public class UserRepository implements Repository<User> {
 		return null;
 	}
 
+	@NoArgsConstructor
 	public static class FindById implements Criteria {
-
 		private String userId;
 
 		@Override
@@ -107,21 +109,18 @@ public class UserRepository implements Repository<User> {
 		}
 	}
 
+	@NoArgsConstructor
 	public static class FindByName implements Criteria {
-
 		@Override
 		public ResultSet query(Connection conn) {
-			// TODO Auto-generated method stub
 			return null;
 		}
-
 	}
 
+	@NoArgsConstructor
 	public static class FindByEmail implements Criteria {
-
 		@Override
 		public ResultSet query(Connection conn) {
-			// TODO Auto-generated method stub
 			return null;
 		}
 	}
