@@ -14,7 +14,27 @@ public class UserRepository implements Repository<User> {
 
 	@Override
 	public User create(User entity) {
-		// TODO Auto-generated method stub
+		try {
+			try (Connection connection = DBContext.getConnection()) {
+
+				try (PreparedStatement stmt = connection.prepareStatement("insert into tbluse (userid,role,email,name,gender,avatar,bio) values (?,?,?,?,?,?,?)")) {
+					stmt.setString(1,entity.getUserId());
+					stmt.setString(2,entity.getRole());
+					stmt.setString(3,entity.getEmail());
+					stmt.setString(4, entity.getName());
+					stmt.setString(5,Character.toString(entity.getGender()));
+					stmt.setString(6, entity.getAvatar());
+					stmt.setString(7,entity.getBio());
+					
+					ResultSet rs = stmt.executeQuery();
+					
+					return entity;
+				}
+			} catch (SQLException e) {
+
+			}
+		} catch (Exception e) {
+		}
 		return null;
 	}
 
@@ -39,7 +59,18 @@ public class UserRepository implements Repository<User> {
 
 	@Override
 	public User delete(User entity) {
-		// TODO Auto-generated method stub
+		try {
+			try (Connection connection = DBContext.getConnection()) {
+				try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM tbluse WHERE userid like ?")) {
+					stmt.setString(1,entity.getUserId());
+					ResultSet rs = stmt.executeQuery();
+					return null;
+				}
+			} catch (SQLException e) {
+
+			}
+		} catch (Exception e) {
+		}
 		return null;
 	}
 

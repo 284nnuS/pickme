@@ -11,7 +11,8 @@ import lombok.*;
 @Setter
 @ToString
 public class User {
-	private String username;
+	private String userId;
+	private String name;
 	private String email;
 	private String role;
 	private char gender;
