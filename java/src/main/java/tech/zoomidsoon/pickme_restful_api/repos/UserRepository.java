@@ -16,22 +16,22 @@ public class UserRepository implements Repository<User> {
 	public User create(User entity) {
 		try {
 			try (Connection connection = DBContext.getConnection()) {
+				try (PreparedStatement stmt = connection.prepareStatement(
+						"insert into tbluse (userid,role,email,name,gender,avatar,bio) values (?,?,?,?,?,?,?)")) {
 
-				try (PreparedStatement stmt = connection.prepareStatement("insert into tbluse (userid,role,email,name,gender,avatar,bio) values (?,?,?,?,?,?,?)")) {
-					stmt.setString(1,entity.getUserId());
-					stmt.setString(2,entity.getRole());
-					stmt.setString(3,entity.getEmail());
+					stmt.setString(1, entity.getUserId());
+					stmt.setString(2, entity.getRole());
+					stmt.setString(3, entity.getEmail());
 					stmt.setString(4, entity.getName());
-					stmt.setString(5,Character.toString(entity.getGender()));
+					stmt.setString(5, Character.toString(entity.getGender()));
 					stmt.setString(6, entity.getAvatar());
-					stmt.setString(7,entity.getBio());
-					
-					ResultSet rs = stmt.executeQuery();
-					
-					return entity;
-				}
-			} catch (SQLException e) {
+					stmt.setString(7, entity.getBio());
 
+					if (stmt.executeUpdate() > 0)
+						return entity;
+
+					return null;
+				}
 			}
 		} catch (Exception e) {
 		}
@@ -62,12 +62,13 @@ public class UserRepository implements Repository<User> {
 		try {
 			try (Connection connection = DBContext.getConnection()) {
 				try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM tbluse WHERE userid like ?")) {
-					stmt.setString(1,entity.getUserId());
+					stmt.setString(1, entity.getUserId());
 					ResultSet rs = stmt.executeQuery();
-					return null;
-				}
-			} catch (SQLException e) {
+					UserRowMapper urm = new UserRowMapper();
+					List<User> users = urm.processResultSet(rs, User.class);
 
+					return users.size() > 0 ? users.get(0) : null;
+				}
 			}
 		} catch (Exception e) {
 		}
@@ -78,14 +79,11 @@ public class UserRepository implements Repository<User> {
 	public List<User> readAll() {
 		try {
 			try (Connection connection = DBContext.getConnection()) {
-
 				try (PreparedStatement stmt = connection.prepareStatement("select * from tbluser")) {
 					ResultSet rs = stmt.executeQuery();
 					UserRowMapper urm = new UserRowMapper();
 					return urm.processResultSet(rs, User.class);
 				}
-			} catch (SQLException e) {
-
 			}
 		} catch (Exception e) {
 		}
@@ -101,25 +99,25 @@ public class UserRepository implements Repository<User> {
 			try {
 				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where userid like ?")) {
 					stmt.setString(1, userId);
-					ResultSet rs = stmt.executeQuery();
-					return rs;
+					return stmt.executeQuery();
 				}
 			} catch (SQLException e) {
 			}
 			return null;
 		}
-
 	}
-	public static class FindByName implements Criteria{
+
+	public static class FindByName implements Criteria {
 
 		@Override
 		public ResultSet query(Connection conn) {
 			// TODO Auto-generated method stub
 			return null;
 		}
-		
+
 	}
-	public static class FindByEmail implements Criteria{
+
+	public static class FindByEmail implements Criteria {
 
 		@Override
 		public ResultSet query(Connection conn) {

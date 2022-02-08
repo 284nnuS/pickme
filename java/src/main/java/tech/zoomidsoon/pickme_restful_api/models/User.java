@@ -17,7 +17,6 @@ public class User {
 	private String role;
 	private char gender;
 	private String bio;
-    private  String avatar;
-   
+	private String avatar;
 
 }
