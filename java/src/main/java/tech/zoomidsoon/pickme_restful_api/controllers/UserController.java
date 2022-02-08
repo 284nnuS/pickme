@@ -8,11 +8,6 @@ import javax.ws.rs.core.Response;
 
 @Path("/user")
 public class UserController {
-
-	/**
-	 * @param userId
-	 * @return
-	 */
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response doGet(String userId) {

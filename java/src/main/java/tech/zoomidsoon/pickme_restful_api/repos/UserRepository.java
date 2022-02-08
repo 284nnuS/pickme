@@ -19,7 +19,7 @@ public class UserRepository implements Repository<User> {
 				try (PreparedStatement stmt = connection.prepareStatement(
 						"insert into tbluse (userid,role,email,name,gender,avatar,bio) values (?,?,?,?,?,?,?)")) {
 
-					stmt.setString(1, entity.getUserId());
+					stmt.setInt(1, entity.getUserId());
 					stmt.setString(2, entity.getRole());
 					stmt.setString(3, entity.getEmail());
 					stmt.setString(4, entity.getName());
@@ -62,7 +62,7 @@ public class UserRepository implements Repository<User> {
 		try {
 			try (Connection connection = DBContext.getConnection()) {
 				try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM tbluse WHERE userid like ?")) {
-					stmt.setString(1, entity.getUserId());
+					stmt.setInt(1, entity.getUserId());
 					ResultSet rs = stmt.executeQuery();
 					UserRowMapper urm = new UserRowMapper();
 					List<User> users = urm.processResultSet(rs, User.class);
