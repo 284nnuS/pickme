@@ -2,21 +2,24 @@ package utils;
 
 import static org.mockito.Mockito.*;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.beans.*;
+import java.lang.reflect.*;
+import java.sql.*;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.stream.*;
 
 public class MockResultSet {
 	private final Map<String, Integer> columnIndexes;
 	private final Object[][] values;
 	private int rowIndex = -1;
 
-	public MockResultSet(final String[] columnName, final Object[][] values) {
-		this.values = values;
-		columnIndexes = IntStream.range(0, columnName.length).boxed()
-				.collect(Collectors.toMap(i -> columnName[i], i -> i));
+	public <T> MockResultSet(final List<T> data, final String[] columnNames) {
+		this.columnIndexes = IntStream.range(0,
+				columnNames.length).boxed()
+				.collect(Collectors.toMap(i -> columnNames[i].toLowerCase(), i -> i));
+
+		this.values = data.stream().map(el -> fieldsToArray(el, columnNames, columnIndexes)).toArray(Object[][]::new);
 	}
 
 	public ResultSet build() throws SQLException {
@@ -36,7 +39,7 @@ public class MockResultSet {
 
 		// rs.getString(String columnName)
 		doAnswer(answer -> {
-			final var columnName = answer.getArgumentAt(0, String.class);
+			final var columnName = answer.getArgumentAt(0, String.class).toLowerCase();
 			final var columnIndex = columnIndexes.get(columnName);
 			return (String) values[rowIndex][columnIndex];
 		}).when(rs).getString(anyString());
@@ -49,7 +52,7 @@ public class MockResultSet {
 
 		// rs.getInt(String columnName)
 		doAnswer(answer -> {
-			final var columnName = answer.getArgumentAt(0, String.class);
+			final var columnName = answer.getArgumentAt(0, String.class).toLowerCase();
 			final var columnIndex = columnIndexes.get(columnName);
 			return (Integer) values[rowIndex][columnIndex];
 		}).when(rs).getInt(anyString());
@@ -62,7 +65,7 @@ public class MockResultSet {
 
 		// rs.getObject(String columnName)
 		doAnswer(answer -> {
-			final var columnName = answer.getArgumentAt(0, String.class);
+			final var columnName = answer.getArgumentAt(0, String.class).toLowerCase();
 			final var columnIndex = columnIndexes.get(columnName);
 			return values[rowIndex][columnIndex];
 		}).when(rs).getObject(anyString());
@@ -74,5 +77,39 @@ public class MockResultSet {
 		}).when(rs).getObject(anyInt());
 
 		return rs;
+	}
+
+	private static Object[] fieldsToArray(Object source, String[] fieldNames,
+			Map<String, Integer> fieldIndexes) {
+		BeanInfo beanInfo = null;
+
+		try {
+			beanInfo = Introspector.getBeanInfo(source.getClass());
+		} catch (IntrospectionException e) {
+			return null;
+		}
+
+		PropertyDescriptor[] pdList = beanInfo.getPropertyDescriptors();
+		Object[] fieldArray = new Object[fieldNames.length];
+
+		for (PropertyDescriptor pd : pdList) {
+			Method readMethod = pd.getReadMethod();
+			String name = pd.getName().toLowerCase();
+
+			if (readMethod == null || !fieldIndexes.containsKey(name))
+				continue;
+
+			try {
+				Object val = readMethod.invoke(source);
+				int index = fieldIndexes.get(name);
+
+				if (val instanceof Character)
+					val = Character.toString((Character) val);
+				fieldArray[index] = val;
+			} catch (IllegalAccessException | InvocationTargetException e) {
+			}
+		}
+
+		return fieldArray;
 	}
 }

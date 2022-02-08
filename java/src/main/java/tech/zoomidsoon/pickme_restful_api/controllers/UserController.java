@@ -4,8 +4,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import tech.zoomidsoon.pickme_restful_api.repos.UserRepository;
-
 @Path("/user")
 public class UserController {
 	@GET

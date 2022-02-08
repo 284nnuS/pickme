@@ -21,6 +21,7 @@ public class UserRowMapper extends RowMapper<User> {
 		obj.setEmail(rs.getString("email"));
 		obj.setGender(rs.getString("gender").charAt(0));
 		obj.setRole(rs.getString("role"));
+
 		return false;
 	}
 }
