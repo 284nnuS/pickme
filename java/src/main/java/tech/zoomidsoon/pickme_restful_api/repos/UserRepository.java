@@ -31,8 +31,6 @@ public class UserRepository implements Repository<User> {
 
 					if (stmt.executeUpdate() > 0)
 						return entity;
-
-					return null;
 				}
 			}
 		} catch (Exception e) {
@@ -55,7 +53,25 @@ public class UserRepository implements Repository<User> {
 
 	@Override
 	public User update(User entity) {
-		// TODO Auto-generated method stub
+		try {
+			try (Connection connection = DBContext.getConnection()) {
+
+				try (PreparedStatement stmt = connection.prepareStatement("UPDATE tbluser\n"
+				+"SET name = '?', avatar= '?', bio ='?', gender = '?'\n"
+				+"WHERE userid = '?';")) {
+				    stmt.setString(5, entity.getUserId());
+					stmt.setString(1, entity.getUsername());
+					stmt.setString(2, entity.getAvatar());
+					stmt.setString(3, entity.getBio());
+					stmt.setString(4, Character.toString(entity.getGender()));
+					ResultSet rs = stmt.executeQuery();
+					return (User) rs;
+				}
+			} catch (SQLException e) {
+
+			}
+		} catch (Exception e) {
+		}
 		return null;
 	}
 
@@ -74,7 +90,6 @@ public class UserRepository implements Repository<User> {
 			}
 		} catch (Exception e) {
 		}
-		return null;
 	}
 
 	@Override
@@ -92,7 +107,7 @@ public class UserRepository implements Repository<User> {
 		return null;
 	}
 
-	@NoArgsConstructor
+  @AllArgsConstructor
 	public static class FindById implements Criteria {
 		private String userId;
 
@@ -101,6 +116,23 @@ public class UserRepository implements Repository<User> {
 			try {
 				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where userid like ?")) {
 					stmt.setString(1, userId);
+          return stmt.executeQuery();
+				}
+			} catch (SQLException e) {
+			}
+			return null;
+		}
+	}
+
+  @AllArgsConstructor
+	public static class FindByName implements Criteria {
+		private String userName;
+
+		@Override
+		public ResultSet query(Connection conn) {
+			try {
+				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where name like '%?%'")) {
+					stmt.setString(1, userName);
 					return stmt.executeQuery();
 				}
 			} catch (SQLException e) {
@@ -109,19 +141,18 @@ public class UserRepository implements Repository<User> {
 		}
 	}
 
-	@NoArgsConstructor
-	public static class FindByName implements Criteria {
-		@Override
-		public ResultSet query(Connection conn) {
-			return null;
-		}
-	}
-
-	@NoArgsConstructor
+  @AllArgsConstructor
 	public static class FindByEmail implements Criteria {
+		private String email;
+    
 		@Override
 		public ResultSet query(Connection conn) {
-			return null;
-		}
+			try {
+				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where email like ?")) {
+					stmt.setString(1, email);
+					return stmt.executeQuery();
+				}
+			} catch (SQLException e) {
+			}
 	}
 }
