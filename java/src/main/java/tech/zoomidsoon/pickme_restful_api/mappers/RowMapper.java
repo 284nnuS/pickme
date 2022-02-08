@@ -15,7 +15,8 @@ public abstract class RowMapper<T> {
 		boolean isNew = true;
 
 		while (rs.next()) {
-			if (isNew == mapRow(rs, obj, first, isNew)) {
+			isNew = mapRow(rs, obj, first, isNew);
+			if (isNew) {
 				result.add(obj);
 				obj = newGenericInstance(cls);
 				if (!rs.previous()) // Rollback previous row so when call next(), it won't change index
@@ -42,10 +43,3 @@ public abstract class RowMapper<T> {
 	// Return true to store the object of previous rows to list else continue
 	abstract boolean mapRow(ResultSet rs, T obj, boolean first, boolean isNew) throws SQLException;
 }
-
-// A 1 true true false
-// A 2 false false false
-// A 3 false false false
-// A 4 false false false
-// B 1 false true true
-// B 1 false true false
