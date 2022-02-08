@@ -13,6 +13,7 @@
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 
+
 ### Maven ###
 java/target/
 java/.mvn/wrapper/maven-wrapper.jar
@@ -21,6 +22,7 @@ java/.mvn/wrapper/maven-wrapper.jar
 java/.project
 # JDT-specific (Eclipse Java Development Tools)
 java/.classpath
+java/.settings
 
 # Dependency directories
 node_modules/
