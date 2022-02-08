@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.mysql.cj.Query;
+import lombok.*;
 
 import tech.zoomidsoon.pickme_restful_api.mappers.UserRowMapper;
 import tech.zoomidsoon.pickme_restful_api.models.User;
@@ -16,7 +16,25 @@ public class UserRepository implements Repository<User> {
 
 	@Override
 	public User create(User entity) {
-		// TODO Auto-generated method stub
+		try {
+			try (Connection connection = DBContext.getConnection()) {
+				try (PreparedStatement stmt = connection.prepareStatement(
+						"insert into tbluse (userid,role,email,name,gender,avatar,bio) values (?,?,?,?,?,?,?)")) {
+
+					stmt.setInt(1, entity.getUserId());
+					stmt.setString(2, entity.getRole());
+					stmt.setString(3, entity.getEmail());
+					stmt.setString(4, entity.getName());
+					stmt.setString(5, Character.toString(entity.getGender()));
+					stmt.setString(6, entity.getAvatar());
+					stmt.setString(7, entity.getBio());
+
+					if (stmt.executeUpdate() > 0)
+						return entity;
+				}
+			}
+		} catch (Exception e) {
+		}
 		return null;
 	}
 
@@ -54,100 +72,87 @@ public class UserRepository implements Repository<User> {
 			}
 		} catch (Exception e) {
 		}
-		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	@Override
 	public User delete(User entity) {
-		
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			try (Connection connection = DBContext.getConnection()) {
+				try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM tbluse WHERE userid like ?")) {
+					stmt.setInt(1, entity.getUserId());
+					ResultSet rs = stmt.executeQuery();
+					UserRowMapper urm = new UserRowMapper();
+					List<User> users = urm.processResultSet(rs, User.class);
+
+					return users.size() > 0 ? users.get(0) : null;
+				}
+			}
+		} catch (Exception e) {
+		}
 	}
 
 	@Override
 	public List<User> readAll() {
 		try {
 			try (Connection connection = DBContext.getConnection()) {
-
 				try (PreparedStatement stmt = connection.prepareStatement("select * from tbluser")) {
 					ResultSet rs = stmt.executeQuery();
 					UserRowMapper urm = new UserRowMapper();
 					return urm.processResultSet(rs, User.class);
 				}
-			} catch (SQLException e) {
-
 			}
 		} catch (Exception e) {
 		}
 		return null;
 	}
 
+  @AllArgsConstructor
 	public static class FindById implements Criteria {
-
 		private String userId;
-
-		public FindById(String userId) {
-			this.userId = userId;
-		}
 
 		@Override
 		public ResultSet query(Connection conn) {
 			try {
 				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where userid like ?")) {
 					stmt.setString(1, userId);
-					ResultSet rs = stmt.executeQuery();
-					return rs;
+          return stmt.executeQuery();
 				}
 			} catch (SQLException e) {
 			}
 			return null;
 		}
-
 	}
 
+  @AllArgsConstructor
 	public static class FindByName implements Criteria {
-
 		private String userName;
-
-		public FindByName(String userName) {
-			this.userName = userName;
-		}
 
 		@Override
 		public ResultSet query(Connection conn) {
 			try {
 				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where name like '%?%'")) {
 					stmt.setString(1, userName);
-					ResultSet rs = stmt.executeQuery();
-					return rs;
+					return stmt.executeQuery();
 				}
 			} catch (SQLException e) {
 			}
 			return null;
 		}
-
 	}
 
+  @AllArgsConstructor
 	public static class FindByEmail implements Criteria {
-
 		private String email;
-
-		public FindByEmail(String email) {
-			this.email = email;
-		}
-
+    
 		@Override
 		public ResultSet query(Connection conn) {
 			try {
 				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where email like ?")) {
 					stmt.setString(1, email);
-					ResultSet rs = stmt.executeQuery();
-					return rs;
+					return stmt.executeQuery();
 				}
 			} catch (SQLException e) {
 			}
-			return null;
-		}
 	}
 }
