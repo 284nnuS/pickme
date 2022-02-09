@@ -12,7 +12,7 @@ import lombok.*;
 @EqualsAndHashCode
 @ToString
 public class User {
-	private int userId;
+	private int userId = -1;
 	private String name;
 	private String email;
 	private String role;
