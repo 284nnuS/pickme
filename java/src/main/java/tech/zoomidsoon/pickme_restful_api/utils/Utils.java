@@ -8,7 +8,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class Utils {
-
 	public static void copyNonNullFields(Object dest, Object source)
 			throws IntrospectionException, IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
@@ -24,6 +23,17 @@ public class Utils {
 
 			Object val = readMethod.invoke(source);
 			writeMethod.invoke(dest, val);
+		}
+	}
+
+	public static String getEnv(String name, String defaultValue) {
+		try {
+			String value = System.getenv(name);
+			if (value.isBlank())
+				return defaultValue;
+			return value;
+		} catch (Exception e) {
+			return defaultValue;
 		}
 	}
 }

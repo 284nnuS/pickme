@@ -6,8 +6,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import tech.zoomidsoon.pickme_restful_api.models.Entity;
+
 // An abstract class to map SQL ResultSet to List of Object
-public abstract class RowMapper<T> {
+public abstract class RowMapper<T extends Entity> {
 	public List<T> processResultSet(ResultSet rs, Class<T> cls) throws Exception {
 		List<T> result = new ArrayList<T>();
 		T obj = newGenericInstance(cls);
@@ -21,7 +23,8 @@ public abstract class RowMapper<T> {
 			}
 		}
 
-		result.add(obj);
+		if (!obj.isEmpty())
+			result.add(obj);
 
 		return result;
 	}
