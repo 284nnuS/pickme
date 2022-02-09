@@ -9,35 +9,32 @@ import javax.ws.rs.core.Response;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 import tech.zoomidsoon.pickme_restful_api.repos.UserRepository;
 
-@Path("/user")
+@Path("/users")
 public class UserController {
 
 	@GET
-	@Path("{id}")
+	@Path("/id/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response findById(@PathParam("id") int userId) {
-		return Response.ok().build();
-	}
+		UserRepository.FindById fbi = new UserRepository.FindById(userId);
+		List<User> users = UserRepository.getInstance().read(fbi);
 
-	/**
-	 * Login
-	 *
-	 * @param email
-	 * @return User
-	 */
-	@GET
-	@Path("login/{email}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response login(@PathParam("email") String email) {
-
-		UserRepository.FindByEmail fbe = new UserRepository.FindByEmail(email);
-		List<User> user = UserRepository.getInstance().read(fbe);
-
-		// Check list user is empty, true: return no content
-		if (user.isEmpty()) {
+		if (users.isEmpty()) {
 			return Response.noContent().build();
 		}
-		return Response.ok(user.get(0)).build();
+		return Response.ok(users.get(0)).build();
+	}
 
+	@GET
+	@Path("/email/{email}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response findByEmail(@PathParam("email") String email) {
+		UserRepository.FindByEmail fbe = new UserRepository.FindByEmail(email);
+		List<User> users = UserRepository.getInstance().read(fbe);
+
+		if (users.isEmpty()) {
+			return Response.noContent().build();
+		}
+		return Response.ok(users.get(0)).build();
 	}
 }
