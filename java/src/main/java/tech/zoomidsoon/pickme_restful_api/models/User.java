@@ -1,17 +1,14 @@
 package tech.zoomidsoon.pickme_restful_api.models;
 
-import javax.persistence.Entity;
-
 import lombok.*;
 
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 @ToString
-public class User {
+public class User extends Entity {
 	private int userId = -1;
 	private String name;
 	private String email;
@@ -19,4 +16,9 @@ public class User {
 	private char gender;
 	private String bio;
 	private String avatar;
+
+	@Override
+	public boolean isEmpty() {
+		return this.userId == -1;
+	}
 }
