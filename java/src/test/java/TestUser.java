@@ -1,7 +1,5 @@
 import org.junit.jupiter.api.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.List;
@@ -27,8 +25,7 @@ class TestUser {
 
 		MockResultSet mockResultSet = new MockResultSet(expected, columnNames);
 		ResultSet rs = mockResultSet.build();
-		UserRowMapper urm = new UserRowMapper();
-		List<User> actual = urm.processResultSet(rs, User.class);
+		List<User> actual = UserRowMapper.getInstance().processResultSet(rs, User.class);
 
 		Assertions
 				.assertEquals(expected, actual);

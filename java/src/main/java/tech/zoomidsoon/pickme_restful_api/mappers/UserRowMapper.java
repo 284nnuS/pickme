@@ -6,6 +6,14 @@ import java.sql.SQLException;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 
 public class UserRowMapper extends RowMapper<User> {
+	private static final RowMapper<User> singleton = new UserRowMapper();
+
+	private UserRowMapper() {
+	}
+
+	public static RowMapper<User> getInstance() {
+		return singleton;
+	}
 
 	@Override
 	public boolean mapRow(ResultSet rs, User obj) throws SQLException {
