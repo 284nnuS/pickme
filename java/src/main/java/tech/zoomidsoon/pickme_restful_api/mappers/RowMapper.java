@@ -11,22 +11,18 @@ public abstract class RowMapper<T> {
 	public List<T> processResultSet(ResultSet rs, Class<T> cls) throws Exception {
 		List<T> result = new ArrayList<T>();
 		T obj = newGenericInstance(cls);
-		boolean first = true;
-		boolean isNew = true;
 
 		while (rs.next()) {
-			isNew = mapRow(rs, obj, first, isNew);
-			if (isNew) {
+			if (mapRow(rs, obj)) {
 				result.add(obj);
 				obj = newGenericInstance(cls);
 				if (!rs.previous()) // Rollback previous row so when call next(), it won't change index
 					throw new Exception("Something wrong happened");
 			}
-			first = false;
 		}
 
-		if (!isNew)
-			result.add(obj);
+		result.add(obj);
+
 		return result;
 	}
 
@@ -41,5 +37,5 @@ public abstract class RowMapper<T> {
 	}
 
 	// Return true to store the object of previous rows to list else continue
-	abstract boolean mapRow(ResultSet rs, T obj, boolean first, boolean isNew) throws SQLException;
+	public abstract boolean mapRow(ResultSet rs, T obj) throws SQLException;
 }

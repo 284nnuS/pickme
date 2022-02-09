@@ -8,8 +8,9 @@ import tech.zoomidsoon.pickme_restful_api.models.User;
 public class UserRowMapper extends RowMapper<User> {
 
 	@Override
-	boolean mapRow(ResultSet rs, User obj, boolean first, boolean isNew) throws SQLException {
+	public boolean mapRow(ResultSet rs, User obj) throws SQLException {
 		int userId = rs.getInt("userId");
+		boolean isNew = obj.getUserId() < 0;
 
 		if (!isNew && userId != obj.getUserId())
 			return true;

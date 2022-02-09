@@ -14,6 +14,7 @@ import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
 import tech.zoomidsoon.pickme_restful_api.utils.Utils;
 
 public class UserRepository implements Repository<User> {
+	private static UserRowMapper urm = new UserRowMapper();
 
 	@Override
 	public User create(User entity) {
@@ -44,7 +45,6 @@ public class UserRepository implements Repository<User> {
 		try {
 			try (Connection connection = DBContext.getConnection()) {
 				ResultSet result = criteria.query(connection);
-				UserRowMapper urm = new UserRowMapper();
 				return urm.processResultSet(result, User.class);
 			}
 		} catch (Exception e) {
@@ -57,7 +57,6 @@ public class UserRepository implements Repository<User> {
 		try {
 			try (Connection connection = DBContext.getConnection()) {
 				FindById fid = new FindById(entity.getUserId());
-				UserRowMapper urm = new UserRowMapper();
 				List<User> list = urm.processResultSet(fid.query(connection), User.class);
 
 				if (list == null || list.size() == 0)
@@ -94,7 +93,6 @@ public class UserRepository implements Repository<User> {
 					stmt.setInt(1, entity.getUserId());
 
 					ResultSet rs = stmt.executeQuery();
-					UserRowMapper urm = new UserRowMapper();
 					List<User> users = urm.processResultSet(rs, User.class);
 
 					if (users.size() > 0)
@@ -112,7 +110,6 @@ public class UserRepository implements Repository<User> {
 			try (Connection connection = DBContext.getConnection()) {
 				try (PreparedStatement stmt = connection.prepareStatement("select * from tbluser")) {
 					ResultSet rs = stmt.executeQuery();
-					UserRowMapper urm = new UserRowMapper();
 					return urm.processResultSet(rs, User.class);
 				}
 			}
