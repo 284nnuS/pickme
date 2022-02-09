@@ -9,19 +9,14 @@ import java.lang.reflect.Method;
 
 public class Utils {
 
-	void copyNonNullFields(Object dest, Object source)
+	public static void copyNonNullFields(Object dest, Object source)
 			throws IntrospectionException, IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
 		BeanInfo beanInfo = Introspector.getBeanInfo(source.getClass());
 		PropertyDescriptor[] pdList = beanInfo.getPropertyDescriptors();
 		for (PropertyDescriptor pd : pdList) {
-			Method writeMethod = null;
-			Method readMethod = null;
-			try {
-				writeMethod = pd.getWriteMethod();
-				readMethod = pd.getReadMethod();
-			} catch (Exception e) {
-			}
+			Method writeMethod = pd.getWriteMethod();
+			Method readMethod = pd.getReadMethod();
 
 			if (readMethod == null || writeMethod == null) {
 				continue;

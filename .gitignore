@@ -23,6 +23,9 @@ java/.project
 # JDT-specific (Eclipse Java Development Tools)
 java/.classpath
 java/.settings
+java/bin
+java/.apt_generated
+java/.apt_generated_tests
 
 # Dependency directories
 node_modules/

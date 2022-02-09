@@ -19,25 +19,31 @@ yarn
 
 ```
 .
-├── java/
-│ └── src/main/java/tech/zoomidsoon/pickme_restful_api/
-│ ├── configs -> Java configs
-│ ├── controllers
-│ ├── mappers -> SQL Row mappers
-│ ├── models
-│ ├── repos -> Repository
-│ └── utils
+├── .husky
 ├── configs -> Environment configs, etc
-├── public -> Website assets
-├── scripts -> Helpful scripts
-├── server -> ExpressJS server code
-├── shared -> Shared between server-side and client-side
-└── src/
-├── pages/
-│ ├── app -> Web application pages
-│ ├── auth -> Auth pages
-├── components -> React components
-└── styles -> CSS
+├── java
+│   └── src
+│       ├── main/java/tech/zoomidsoon/pickme_restful_api
+│       │	├── configs	-> Java configs
+│       │	├── controllers
+│       │	├── mappers	-> SQL Row mappers
+│       │	├── models
+│       │	├── repos
+│       │	└── utils
+│       └── test/java
+│           └── utils
+├── scripts		        -> Helpful scripts
+├── server		        -> ExpressJS server code
+│   └── routes
+├── public      		-> Website assets
+├── shared      		-> Shared between server-side and client-side
+├── sql
+└── src
+    ├── components              -> React components
+    ├── pages
+    │   ├── app
+    │   └── auth 		-> Auth pages
+    └── styles
 ```
 
 ## Configuration

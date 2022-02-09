@@ -6,9 +6,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import lombok.*;
+
 import tech.zoomidsoon.pickme_restful_api.mappers.UserRowMapper;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
+import tech.zoomidsoon.pickme_restful_api.utils.Utils;
 
 public class UserRepository implements Repository<User> {
 
@@ -19,7 +22,7 @@ public class UserRepository implements Repository<User> {
 				try (PreparedStatement stmt = connection.prepareStatement(
 						"insert into tbluse (userid,role,email,name,gender,avatar,bio) values (?,?,?,?,?,?,?)")) {
 
-					stmt.setString(1, entity.getUserId());
+					stmt.setInt(1, entity.getUserId());
 					stmt.setString(2, entity.getRole());
 					stmt.setString(3, entity.getEmail());
 					stmt.setString(4, entity.getName());
@@ -29,8 +32,6 @@ public class UserRepository implements Repository<User> {
 
 					if (stmt.executeUpdate() > 0)
 						return entity;
-
-					return null;
 				}
 			}
 		} catch (Exception e) {
@@ -53,7 +54,35 @@ public class UserRepository implements Repository<User> {
 
 	@Override
 	public User update(User entity) {
-		// TODO Auto-generated method stub
+		try {
+			try (Connection connection = DBContext.getConnection()) {
+				FindById fid = new FindById(entity.getUserId());
+				UserRowMapper urm = new UserRowMapper();
+				List<User> list = urm.processResultSet(fid.query(connection), User.class);
+
+				if (list == null || list.size() == 0)
+					return null;
+
+				User inDB = list.get(0);
+
+				Utils.copyNonNullFields(inDB, entity);
+
+				try (PreparedStatement stmt = connection.prepareStatement(
+						"UPDATE tbluser\n"
+								+ "SET name = ?, avatar= ?, bio =?, gender = ?\n"
+								+ "WHERE userid = ?")) {
+					stmt.setInt(5, inDB.getUserId());
+					stmt.setString(1, inDB.getName());
+					stmt.setString(2, inDB.getAvatar());
+					stmt.setString(3, inDB.getBio());
+					stmt.setString(4, Character.toString(inDB.getGender()));
+
+					if (stmt.executeUpdate() > 0)
+						return inDB;
+				}
+			}
+		} catch (Exception e) {
+		}
 		return null;
 	}
 
@@ -62,12 +91,14 @@ public class UserRepository implements Repository<User> {
 		try {
 			try (Connection connection = DBContext.getConnection()) {
 				try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM tbluse WHERE userid like ?")) {
-					stmt.setString(1, entity.getUserId());
+					stmt.setInt(1, entity.getUserId());
+
 					ResultSet rs = stmt.executeQuery();
 					UserRowMapper urm = new UserRowMapper();
 					List<User> users = urm.processResultSet(rs, User.class);
 
-					return users.size() > 0 ? users.get(0) : null;
+					if (users.size() > 0)
+						return users.get(0);
 				}
 			}
 		} catch (Exception e) {
@@ -90,15 +121,15 @@ public class UserRepository implements Repository<User> {
 		return null;
 	}
 
+	@AllArgsConstructor
 	public static class FindById implements Criteria {
-
-		private String userId;
+		private int userId;
 
 		@Override
 		public ResultSet query(Connection conn) {
 			try {
 				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where userid like ?")) {
-					stmt.setString(1, userId);
+					stmt.setInt(1, userId);
 					return stmt.executeQuery();
 				}
 			} catch (SQLException e) {
@@ -107,21 +138,36 @@ public class UserRepository implements Repository<User> {
 		}
 	}
 
+	@AllArgsConstructor
 	public static class FindByName implements Criteria {
+		private String userName;
 
 		@Override
 		public ResultSet query(Connection conn) {
-			// TODO Auto-generated method stub
+			try {
+				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where name like '%?%'")) {
+					stmt.setString(1, userName);
+					return stmt.executeQuery();
+				}
+			} catch (SQLException e) {
+			}
 			return null;
 		}
-
 	}
 
+	@AllArgsConstructor
 	public static class FindByEmail implements Criteria {
+		private String email;
 
 		@Override
 		public ResultSet query(Connection conn) {
-			// TODO Auto-generated method stub
+			try {
+				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where email like ?")) {
+					stmt.setString(1, email);
+					return stmt.executeQuery();
+				}
+			} catch (SQLException e) {
+			}
 			return null;
 		}
 	}

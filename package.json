@@ -3,14 +3,14 @@
    "scripts": {
       "dev": "run-p dev:server dev:java",
       "dev:server": "env-cmd --silent -f configs/nextjs.env ts-node --project server.tsconfig.json server/index.ts",
-      "dev:java": "env-cmd --silent -f configs/java.env mvn -f java/pom.xml -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 thorntail:run",
+      "dev:java": "env-cmd --silent -f configs/java.env mvn -f java/pom.xml --define java.net.preferIPv4Stack=true --define thorntail.http.port=3001 thorntail:run",
       "build": "run-p build:server build:next build:java",
       "build:server": "tsc --project server.tsconfig.json",
       "build:next": "next build",
       "build:java": "mvn -f java/pom.xml package",
       "start": "run-p start:server start:java",
       "start:server": "pm2-runtime dist/server/index.js",
-      "start:java": "java -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 -jar java/target/pickme_restful_api-thorntail.jar",
+      "start:java": "java --define java.net.preferIPv4Stack=true --define thorntail.http.port=3001 -jar java/target/pickme_restful_api-thorntail.jar",
       "test": "run-s test:java",
       "test:java": "env-cmd --silent -f configs/java.env mvn -f java/pom.xml clean test",
       "postinstall": "husky install"

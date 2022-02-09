@@ -9,9 +9,11 @@ public class UserRowMapper extends RowMapper<User> {
 
 	@Override
 	boolean mapRow(ResultSet rs, User obj, boolean first, boolean isNew) throws SQLException {
-		String userId = rs.getString("userId");
+		int userId = rs.getInt("userId");
+
 		if (!isNew && userId != obj.getUserId())
 			return true;
+
 		obj.setUserId(userId);
 		obj.setName(rs.getString("name"));
 		obj.setAvatar(rs.getString("avatar"));
@@ -19,6 +21,7 @@ public class UserRowMapper extends RowMapper<User> {
 		obj.setEmail(rs.getString("email"));
 		obj.setGender(rs.getString("gender").charAt(0));
 		obj.setRole(rs.getString("role"));
+
 		return false;
 	}
 }

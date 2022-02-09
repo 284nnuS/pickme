@@ -9,14 +9,14 @@ import lombok.*;
 @AllArgsConstructor
 @Getter
 @Setter
+@EqualsAndHashCode
 @ToString
 public class User {
-	private String userId;
+	private int userId;
 	private String name;
 	private String email;
 	private String role;
 	private char gender;
 	private String bio;
 	private String avatar;
-
 }
