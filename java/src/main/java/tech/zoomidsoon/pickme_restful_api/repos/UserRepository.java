@@ -28,15 +28,14 @@ public class UserRepository implements Repository<User> {
 		try {
 			try (Connection connection = DBContext.getConnection()) {
 				try (PreparedStatement stmt = connection.prepareStatement(
-						"insert into tbluse (userid,role,email,name,gender,avatar,bio) values (?,?,?,?,?,?,?)")) {
+						"insert into tbluse (role,email,name,gender,avatar,bio) values (?,?,?,?,?,?)")) {
 
-					stmt.setInt(1, entity.getUserId());
-					stmt.setString(2, entity.getRole());
-					stmt.setString(3, entity.getEmail());
-					stmt.setString(4, entity.getName());
-					stmt.setString(5, Character.toString(entity.getGender()));
-					stmt.setString(6, entity.getAvatar());
-					stmt.setString(7, entity.getBio());
+					stmt.setString(1, entity.getRole());
+					stmt.setString(2, entity.getEmail());
+					stmt.setString(3, entity.getName());
+					stmt.setString(4, Character.toString(entity.getGender()));
+					stmt.setString(5, entity.getAvatar());
+					stmt.setString(6, entity.getBio());
 
 					if (stmt.executeUpdate() > 0)
 						return entity;
