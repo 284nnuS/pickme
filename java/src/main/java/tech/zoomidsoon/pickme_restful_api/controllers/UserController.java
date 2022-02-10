@@ -7,12 +7,12 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
+import tech.zoomidsoon.pickme_restful_api.helpers.SQLErrors;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 import tech.zoomidsoon.pickme_restful_api.repos.UserRepository;
-import tech.zoomidsoon.pickme_restful_api.utils.SQLErrors;
-import tech.zoomidsoon.pickme_restful_api.utils.JsonAPIResponse;
 
-@Path("/users")
+@Path("/user")
 public class UserController {
 	@GET
 	@Path("/id/{id}")
@@ -106,7 +106,6 @@ public class UserController {
 		try {
 			User user = new User();
 			user.setUserId(userId);
-
 			user = UserRepository.getInstance().delete(user);
 
 			if (user == null)

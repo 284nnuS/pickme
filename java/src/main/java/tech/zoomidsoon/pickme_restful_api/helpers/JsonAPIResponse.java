@@ -1,4 +1,4 @@
-package tech.zoomidsoon.pickme_restful_api.utils;
+package tech.zoomidsoon.pickme_restful_api.helpers;
 
 import java.sql.SQLException;
 import java.util.Arrays;
