@@ -40,4 +40,24 @@ public class UserController {
 		return Response.ok(user.get(0)).build();
 
 	}
+
+	/**
+	 * Register
+	 *
+	 * @param User
+	 * @return User
+	 */
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response register(User user) {
+
+		try {
+		    UserRepository.getInstance().create(user);
+			// Check user is empty, true: return no content
+		} catch (Exception e) {
+			return Response.noContent().build();
+		}
+		return Response.ok(user).build();
+
+	}
 }
