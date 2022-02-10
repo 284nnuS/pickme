@@ -3,7 +3,7 @@ package tech.zoomidsoon.pickme_restful_api.repos;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 import lombok.*;
@@ -24,85 +24,86 @@ public class UserRepository implements Repository<User> {
 	}
 
 	@Override
-	public User create(User entity) {
-		try {
-			try (Connection connection = DBContext.getConnection()) {
-				try (PreparedStatement stmt = connection.prepareStatement(
-						"insert into tbluse (role,email,name,gender,avatar,bio) values (?,?,?,?,?,?)")) {
+	public User create(User entity) throws Exception {
+		try (Connection connection = DBContext.getConnection()) {
+			try (PreparedStatement stmt = connection.prepareStatement(
+					"insert into tbluser (role,email,name,gender,avatar,bio) values (?,?,?,?,?,?)",
+					Statement.RETURN_GENERATED_KEYS)) {
+				stmt.setString(1, entity.getRole());
+				stmt.setString(2, entity.getEmail());
+				stmt.setString(3, entity.getName());
+				stmt.setString(4, Character.toString(entity.getGender()));
+				stmt.setString(5, entity.getAvatar());
+				stmt.setString(6, entity.getBio());
 
-					stmt.setString(1, entity.getRole());
-					stmt.setString(2, entity.getEmail());
-					stmt.setString(3, entity.getName());
-					stmt.setString(4, Character.toString(entity.getGender()));
-					stmt.setString(5, entity.getAvatar());
-					stmt.setString(6, entity.getBio());
+				if (stmt.executeUpdate() == 0)
+					return null;
 
-					if (stmt.executeUpdate() > 0)
-						return entity;
+				try (ResultSet rs = stmt.getGeneratedKeys()) {
+					rs.next();
+					entity.setUserId(rs.getInt(1));
+					return entity;
 				}
 			}
-		} catch (Exception e) {
 		}
-		return null;
 	}
 
 	@Override
-	public List<User> read(Criteria criteria) {
-		try {
-			try (Connection connection = DBContext.getConnection()) {
-				ResultSet result = criteria.query(connection);
-				return UserRowMapper.getInstance().processResultSet(result, User.class);
+	public List<User> read(Criteria criteria) throws Exception {
+		try (Connection connection = DBContext.getConnection()) {
+			try (ResultSet rs = criteria.query(connection)) {
+				return UserRowMapper.getInstance().processResultSet(rs, User.class);
 			}
-		} catch (Exception e) {
+		}
+	}
+
+	@Override
+	public User update(User entity) throws Exception {
+		try (Connection connection = DBContext.getConnection()) {
+			FindById fid = new FindById(entity.getUserId());
+			List<User> list = UserRowMapper.getInstance().processResultSet(fid.query(connection), User.class);
+
+			if (list.size() == 0)
+				return null;
+
+			User inDB = list.get(0);
+
+			Utils.copyNonNullFields(inDB, entity);
+
+			try (PreparedStatement stmt = connection.prepareStatement(
+					"UPDATE tbluser\n"
+							+ "SET name = ?, avatar= ?, bio =?, gender = ?\n"
+							+ "WHERE userid = ?")) {
+				stmt.setInt(5, inDB.getUserId());
+				stmt.setString(1, inDB.getName());
+				stmt.setString(2, inDB.getAvatar());
+				stmt.setString(3, inDB.getBio());
+				stmt.setString(4, Character.toString(inDB.getGender()));
+
+				if (stmt.executeUpdate() > 0)
+					return inDB;
+			}
 		}
 		return null;
 	}
 
 	@Override
-	public User update(User entity) {
+	public User delete(User entity) throws Exception {
 		try {
 			try (Connection connection = DBContext.getConnection()) {
 				FindById fid = new FindById(entity.getUserId());
 				List<User> list = UserRowMapper.getInstance().processResultSet(fid.query(connection), User.class);
 
-				if (list == null || list.size() == 0)
+				if (list.size() == 0)
 					return null;
 
-				User inDB = list.get(0);
+				User user = list.get(0);
 
-				Utils.copyNonNullFields(inDB, entity);
-
-				try (PreparedStatement stmt = connection.prepareStatement(
-						"UPDATE tbluser\n"
-								+ "SET name = ?, avatar= ?, bio =?, gender = ?\n"
-								+ "WHERE userid = ?")) {
-					stmt.setInt(5, inDB.getUserId());
-					stmt.setString(1, inDB.getName());
-					stmt.setString(2, inDB.getAvatar());
-					stmt.setString(3, inDB.getBio());
-					stmt.setString(4, Character.toString(inDB.getGender()));
-
-					if (stmt.executeUpdate() > 0)
-						return inDB;
-				}
-			}
-		} catch (Exception e) {
-		}
-		return null;
-	}
-
-	@Override
-	public User delete(User entity) {
-		try {
-			try (Connection connection = DBContext.getConnection()) {
-				try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM tbluse WHERE userid like ?")) {
+				try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM tbluser WHERE userid like ?")) {
 					stmt.setInt(1, entity.getUserId());
 
-					ResultSet rs = stmt.executeQuery();
-					List<User> users = UserRowMapper.getInstance().processResultSet(rs, User.class);
-
-					if (users.size() > 0)
-						return users.get(0);
+					if (stmt.executeUpdate() > 0)
+						return user;
 				}
 			}
 		} catch (Exception e) {
@@ -111,17 +112,14 @@ public class UserRepository implements Repository<User> {
 	}
 
 	@Override
-	public List<User> readAll() {
-		try {
-			try (Connection connection = DBContext.getConnection()) {
-				try (PreparedStatement stmt = connection.prepareStatement("select * from tbluser")) {
-					ResultSet rs = stmt.executeQuery();
+	public List<User> readAll() throws Exception {
+		try (Connection connection = DBContext.getConnection()) {
+			try (PreparedStatement stmt = connection.prepareStatement("select * from tbluser")) {
+				try (ResultSet rs = stmt.executeQuery()) {
 					return UserRowMapper.getInstance().processResultSet(rs, User.class);
 				}
 			}
-		} catch (Exception e) {
 		}
-		return null;
 	}
 
 	@AllArgsConstructor
@@ -129,15 +127,10 @@ public class UserRepository implements Repository<User> {
 		private int userId;
 
 		@Override
-		public ResultSet query(Connection conn) {
-			try {
-				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where userid like ?")) {
-					stmt.setInt(1, userId);
-					return stmt.executeQuery();
-				}
-			} catch (SQLException e) {
-			}
-			return null;
+		public ResultSet query(Connection conn) throws Exception {
+			PreparedStatement stmt = conn.prepareStatement("select * from tbluser where userid like ?");
+			stmt.setInt(1, userId);
+			return stmt.executeQuery();
 		}
 	}
 
@@ -146,15 +139,10 @@ public class UserRepository implements Repository<User> {
 		private String userName;
 
 		@Override
-		public ResultSet query(Connection conn) {
-			try {
-				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where name like '%?%'")) {
-					stmt.setString(1, userName);
-					return stmt.executeQuery();
-				}
-			} catch (SQLException e) {
-			}
-			return null;
+		public ResultSet query(Connection conn) throws Exception {
+			PreparedStatement stmt = conn.prepareStatement("select * from tbluser where name like '%?%'");
+			stmt.setString(1, userName);
+			return stmt.executeQuery();
 		}
 	}
 
@@ -163,15 +151,10 @@ public class UserRepository implements Repository<User> {
 		private String email;
 
 		@Override
-		public ResultSet query(Connection conn) {
-			try {
-				try (PreparedStatement stmt = conn.prepareStatement("select * from tbluser where email like ?")) {
-					stmt.setString(1, email);
-					return stmt.executeQuery();
-				}
-			} catch (SQLException e) {
-			}
-			return null;
+		public ResultSet query(Connection conn) throws Exception {
+			PreparedStatement stmt = conn.prepareStatement("select * from tbluser where email like ?");
+			stmt.setString(1, email);
+			return stmt.executeQuery();
 		}
 	}
 }

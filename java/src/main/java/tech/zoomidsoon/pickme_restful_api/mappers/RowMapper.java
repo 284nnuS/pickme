@@ -10,33 +10,33 @@ import tech.zoomidsoon.pickme_restful_api.models.Entity;
 
 // An abstract class to map SQL ResultSet to List of Object
 public abstract class RowMapper<T extends Entity> {
-	public List<T> processResultSet(ResultSet rs, Class<T> cls) throws Exception {
+	public List<T> processResultSet(ResultSet rs, Class<T> cls) throws SQLException {
 		List<T> result = new ArrayList<T>();
 		T obj = newGenericInstance(cls);
 
 		while (rs.next()) {
 			if (mapRow(rs, obj)) {
-				result.add(obj);
+				if (obj != null && !obj.isEmpty())
+					result.add(obj);
 				obj = newGenericInstance(cls);
-				if (!rs.previous()) // Rollback previous row so when call next(), it won't change index
-					throw new Exception("Something wrong happened");
+				rs.previous(); // Rollback previous row so when call next(), it won't change index
 			}
 		}
 
-		if (!obj.isEmpty())
+		if (obj != null && !obj.isEmpty())
 			result.add(obj);
 
 		return result;
 	}
 
 	// Create a new instance from empty constructor
-	private T newGenericInstance(Class<T> cls) throws Exception {
+	private T newGenericInstance(Class<T> cls) {
 		try {
 			return cls.getDeclaredConstructor().newInstance();
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException e) {
-			throw new Exception("Failed to create a new instance instance from empty constructor");
 		}
+		return null;
 	}
 
 	// Return true to store the object of previous rows to list else continue
