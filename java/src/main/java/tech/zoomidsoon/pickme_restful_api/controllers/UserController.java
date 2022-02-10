@@ -53,7 +53,6 @@ public class UserController {
 
 		try {
 		    UserRepository.getInstance().create(user);
-			// Check user is empty, true: return no content
 		} catch (Exception e) {
 			return Response.noContent().build();
 		}
