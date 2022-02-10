@@ -60,6 +60,9 @@ public class UserRepository implements Repository<User> {
 	@Override
 	public User update(User entity) throws Exception {
 		try (Connection connection = DBContext.getConnection()) {
+			if (entity.isEmpty())
+				return null;
+
 			FindById fid = new FindById(entity.getUserId());
 			List<User> list = UserRowMapper.getInstance().processResultSet(fid.query(connection), User.class);
 
