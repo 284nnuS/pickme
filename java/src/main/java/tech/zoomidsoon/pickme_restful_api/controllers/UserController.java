@@ -8,10 +8,10 @@ import javax.ws.rs.core.Response;
 
 import tech.zoomidsoon.pickme_restful_api.models.User;
 import tech.zoomidsoon.pickme_restful_api.repos.UserRepository;
+import tech.zoomidsoon.pickme_restful_api.utils.JsonAPIResponse;
 
 @Path("/users")
 public class UserController {
-
 	@GET
 	@Path("/id/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -20,9 +20,9 @@ public class UserController {
 		List<User> users = UserRepository.getInstance().read(fbi);
 
 		if (users.isEmpty()) {
-			return Response.noContent().build();
+			return JsonAPIResponse.error(404, "No users found");
 		}
-		return Response.ok(users.get(0)).build();
+		return JsonAPIResponse.ok(users.get(0));
 	}
 
 	@GET
@@ -33,8 +33,8 @@ public class UserController {
 		List<User> users = UserRepository.getInstance().read(fbe);
 
 		if (users.isEmpty()) {
-			return Response.noContent().build();
+			return JsonAPIResponse.error(404, "No users found");
 		}
-		return Response.ok(users.get(0)).build();
+		return JsonAPIResponse.ok(users.get(0));
 	}
 }
