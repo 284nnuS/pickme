@@ -22,7 +22,9 @@ public class Utils {
 			}
 
 			Object val = readMethod.invoke(source);
-			writeMethod.invoke(dest, val);
+
+			if (val != null)
+				writeMethod.invoke(dest, val);
 		}
 	}
 
