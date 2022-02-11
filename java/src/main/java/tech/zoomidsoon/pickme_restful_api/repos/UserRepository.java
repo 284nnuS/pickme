@@ -27,7 +27,7 @@ public class UserRepository implements Repository<User> {
 	public User create(User entity) throws Exception {
 		try (Connection connection = DBContext.getConnection()) {
 			try (PreparedStatement stmt = connection.prepareStatement(
-					"insert into tbluser (role,email,name,gender,avatar,bio) values (?,?,?,?,?,?)",
+					"INSERT INTO tbluser (role,email,name,gender,avatar,bio) VALUES (?,?,?,?,?,?)",
 					Statement.RETURN_GENERATED_KEYS)) {
 				stmt.setString(1, entity.getRole());
 				stmt.setString(2, entity.getEmail());
@@ -74,9 +74,7 @@ public class UserRepository implements Repository<User> {
 			Utils.copyNonNullFields(inDB, entity);
 
 			try (PreparedStatement stmt = connection.prepareStatement(
-					"UPDATE tbluser\n"
-							+ "SET name = ?, avatar= ?, bio =?, gender = ?\n"
-							+ "WHERE userid = ?")) {
+					"UPDATE tbluser SET name = ?, avatar = ?, bio = ?, gender = ? WHERE userid = ?")) {
 				stmt.setInt(5, inDB.getUserId());
 				stmt.setString(1, inDB.getName());
 				stmt.setString(2, inDB.getAvatar());
@@ -117,7 +115,7 @@ public class UserRepository implements Repository<User> {
 	@Override
 	public List<User> readAll() throws Exception {
 		try (Connection connection = DBContext.getConnection()) {
-			try (PreparedStatement stmt = connection.prepareStatement("select * from tbluser")) {
+			try (PreparedStatement stmt = connection.prepareStatement("SELECT * FROM tbluser")) {
 				try (ResultSet rs = stmt.executeQuery()) {
 					return UserRowMapper.getInstance().processResultSet(rs, User.class);
 				}
@@ -131,7 +129,7 @@ public class UserRepository implements Repository<User> {
 
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
-			PreparedStatement stmt = conn.prepareStatement("select * from tbluser where userid like ?");
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM tbluser WHERE userid LIKE ?");
 			stmt.setInt(1, userId);
 			return stmt.executeQuery();
 		}
@@ -143,7 +141,7 @@ public class UserRepository implements Repository<User> {
 
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
-			PreparedStatement stmt = conn.prepareStatement("select * from tbluser where name like '%?%'");
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM tbluser WHERE name LIKE '%?%'");
 			stmt.setString(1, userName);
 			return stmt.executeQuery();
 		}
@@ -155,7 +153,7 @@ public class UserRepository implements Repository<User> {
 
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
-			PreparedStatement stmt = conn.prepareStatement("select * from tbluser where email like ?");
+			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM tbluser WHERE email LIKE ?");
 			stmt.setString(1, email);
 			return stmt.executeQuery();
 		}
