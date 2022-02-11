@@ -26,12 +26,13 @@ yarn
 │       ├── main/java/tech/zoomidsoon/pickme_restful_api
 │       │	├── configs	-> Java configs
 │       │	├── controllers
+│       │	├── helpers
 │       │	├── mappers	-> SQL Row mappers
 │       │	├── models
 │       │	├── repos
 │       │	└── utils
 │       └── test/java
-│           └── utils
+│           └── helpers
 ├── scripts		        -> Helpful scripts
 ├── server		        -> ExpressJS server code
 │   └── routes
@@ -39,7 +40,7 @@ yarn
 ├── shared      		-> Shared between server-side and client-side
 ├── sql
 └── src
-    ├── components              -> React components
+    ├── components             -> React components
     ├── pages
     │   ├── app
     │   └── auth 		-> Auth pages

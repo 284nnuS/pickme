@@ -9,16 +9,16 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = false)
 @ToString
 public class User extends Entity {
-	private int userId = -1;
+	private Integer userId;
 	private String name;
 	private String email;
 	private String role;
-	private char gender;
+	private Character gender;
 	private String bio;
 	private String avatar;
 
 	@Override
 	public boolean isEmpty() {
-		return this.userId == -1;
+		return this.userId == null;
 	}
 }
