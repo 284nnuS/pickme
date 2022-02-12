@@ -3,6 +3,7 @@ package tech.zoomidsoon.pickme_restful_api.mappers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import tech.zoomidsoon.pickme_restful_api.models.Hobby;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 
 public class UserRowMapper extends RowMapper<User> {
@@ -31,6 +32,12 @@ public class UserRowMapper extends RowMapper<User> {
 			obj.setGender(rs.getString("gender").charAt(0));
 			obj.setRole(rs.getString("role"));
 		}
+		
+		Hobby hobby = new Hobby();
+		HobbyRowMapper.getInstance().mapRow(rs, hobby);
+		if(!hobby.isEmpty())
+			obj.getHobbies().add(hobby);
+		
 		return false;
 	}
 }

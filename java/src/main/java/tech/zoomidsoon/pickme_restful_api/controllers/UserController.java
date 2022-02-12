@@ -120,4 +120,23 @@ public class UserController {
 		}
 		return Response.serverError().build();
 	}
+
+	/**
+	 * Register
+	 *
+	 * @param User
+	 * @return User
+	 */
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response register(User user) {
+
+		try {
+		    UserRepository.getInstance().create(user);
+		} catch (Exception e) {
+			return Response.noContent().build();
+		}
+		return Response.ok(user).build();
+
+	}
 }

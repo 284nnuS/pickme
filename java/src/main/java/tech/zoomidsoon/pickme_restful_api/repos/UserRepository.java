@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
 
+import org.xnio.Pool;
+
 import lombok.*;
 
 import tech.zoomidsoon.pickme_restful_api.mappers.UserRowMapper;
@@ -26,7 +28,9 @@ public class UserRepository implements Repository<User> {
 	@Override
 	public User create(User entity) throws Exception {
 		try (Connection connection = DBContext.getConnection()) {
+			connection.setAutoCommit(false);
 			try (PreparedStatement stmt = connection.prepareStatement(
+				// Insert user to database
 					"INSERT INTO tbluser (role,email,name,gender,avatar,bio) VALUES (?,?,?,?,?,?)",
 					Statement.RETURN_GENERATED_KEYS)) {
 				stmt.setString(1, entity.getRole());
@@ -35,17 +39,20 @@ public class UserRepository implements Repository<User> {
 				stmt.setString(4, Character.toString(entity.getGender()));
 				stmt.setString(5, entity.getAvatar());
 				stmt.setString(6, entity.getBio());
-
+				// Check that statement is excuted, if not return null
 				if (stmt.executeUpdate() == 0)
 					return null;
-
+                
 				try (ResultSet rs = stmt.getGeneratedKeys()) {
 					rs.next();
 					entity.setUserId(rs.getInt(1));
-					return entity;
 				}
+			}try(PreparedStatement stmt = connection.prepareStatement("INSERT INTO tbluserhobby (userid,hobbyid) VALUES(?,?)")){
+				stmt.setInt(1, entity.getUserId());
+				
 			}
 		}
+		
 	}
 
 	@Override
@@ -115,7 +122,9 @@ public class UserRepository implements Repository<User> {
 	@Override
 	public List<User> readAll() throws Exception {
 		try (Connection connection = DBContext.getConnection()) {
-			try (PreparedStatement stmt = connection.prepareStatement("SELECT * FROM tbluser")) {
+			try (PreparedStatement stmt = connection.prepareStatement("Select *\n"+
+			"From tbluser\n"+ 
+			"left outer join (tblhobby Inner join tbluserhobby on tblhobby.hobbyId=tbluserhobby.hobbyId) on tbluser.userid= tbluserhobby.userId\n")) {
 				try (ResultSet rs = stmt.executeQuery()) {
 					return UserRowMapper.getInstance().processResultSet(rs, User.class);
 				}
@@ -129,7 +138,10 @@ public class UserRepository implements Repository<User> {
 
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM tbluser WHERE userid LIKE ?");
+			PreparedStatement stmt = conn.prepareStatement("Select *\n"+
+			"From tbluser\n"+ 
+			"left outer join (tblhobby Inner join tbluserhobby on tblhobby.hobbyId=tbluserhobby.hobbyId) on tbluser.userid= tbluserhobby.userId\n"+
+			"WHERE tbluser.userid LIKE ?");
 			stmt.setInt(1, userId);
 			return stmt.executeQuery();
 		}
@@ -141,7 +153,10 @@ public class UserRepository implements Repository<User> {
 
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM tbluser WHERE name LIKE '%?%'");
+			PreparedStatement stmt = conn.prepareStatement("Select *\n"+
+			"From tbluser\n"+ 
+			"left outer join (tblhobby Inner join tbluserhobby on tblhobby.hobbyId=tbluserhobby.hobbyId) on tbluser.userid= tbluserhobby.userId\n"+
+			"WHERE tbluser.name LIKE '%?%' ");
 			stmt.setString(1, userName);
 			return stmt.executeQuery();
 		}
@@ -153,7 +168,10 @@ public class UserRepository implements Repository<User> {
 
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
-			PreparedStatement stmt = conn.prepareStatement("SELECT * FROM tbluser WHERE email LIKE ?");
+			PreparedStatement stmt = conn.prepareStatement("Select *\n"+
+			"From tbluser\n"+ 
+			"left outer join (tblhobby Inner join tbluserhobby on tblhobby.hobbyId=tbluserhobby.hobbyId) on tbluser.userid= tbluserhobby.userId\n"+
+			"WHERE tbluser.email LIKE '%?%' ");
 			stmt.setString(1, email);
 			return stmt.executeQuery();
 		}
