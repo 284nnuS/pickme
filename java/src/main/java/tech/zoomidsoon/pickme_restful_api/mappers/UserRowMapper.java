@@ -2,8 +2,8 @@ package tech.zoomidsoon.pickme_restful_api.mappers;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
-import tech.zoomidsoon.pickme_restful_api.models.Hobby;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 
 public class UserRowMapper extends RowMapper<User> {
@@ -29,15 +29,16 @@ public class UserRowMapper extends RowMapper<User> {
 			obj.setAvatar(rs.getString("avatar"));
 			obj.setBio(rs.getString("bio"));
 			obj.setEmail(rs.getString("email"));
-			obj.setGender(rs.getString("gender").charAt(0));
+			obj.setGender(rs.getString("gender"));
 			obj.setRole(rs.getString("role"));
+			obj.setCautionTimes(rs.getInt("cautionTimes"));
+			obj.setHobbies(new ArrayList<>());
 		}
-		
-		Hobby hobby = new Hobby();
-		HobbyRowMapper.getInstance().mapRow(rs, hobby);
-		if(!hobby.isEmpty())
-			obj.getHobbies().add(hobby);
-		
+
+		String hobbyName = rs.getString("hobbyName");
+		if (hobbyName != null && !obj.getHobbies().contains(hobbyName))
+			obj.getHobbies().add(hobbyName);
+
 		return false;
 	}
 }

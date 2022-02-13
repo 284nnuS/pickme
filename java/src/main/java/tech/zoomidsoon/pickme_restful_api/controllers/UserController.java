@@ -1,5 +1,6 @@
 package tech.zoomidsoon.pickme_restful_api.controllers;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -8,29 +9,54 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
+import tech.zoomidsoon.pickme_restful_api.helpers.Result;
 import tech.zoomidsoon.pickme_restful_api.helpers.SQLErrors;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 import tech.zoomidsoon.pickme_restful_api.repos.UserRepository;
+import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
 
 @Path("/user")
 public class UserController {
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response listAllUsers() {
+		try {
+			try (Connection conn = DBContext.getConnection()) {
+				List<User> users = UserRepository.getInstance().readAll(conn);
+
+				return JsonAPIResponse.ok(users);
+			} catch (SQLException e) {
+				Response response = JsonAPIResponse.handleSQLError(e);
+				if (response != null)
+					return response;
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+			e.printStackTrace();
+		}
+		return Response.serverError().build();
+	}
+
 	@GET
 	@Path("/id/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response findById(@PathParam("id") int userId) {
 		try {
-			UserRepository.FindById fbi = new UserRepository.FindById(userId);
-			List<User> users = UserRepository.getInstance().read(fbi);
+			try (Connection conn = DBContext.getConnection()) {
+				UserRepository.FindById findById = new UserRepository.FindById(userId);
+				List<User> users = UserRepository.getInstance().read(conn, findById);
 
-			if (users.isEmpty())
-				return JsonAPIResponse.error(404, "User does not exist", "");
-			return JsonAPIResponse.ok(users.get(0));
-		} catch (SQLException e) {
-			Response response = JsonAPIResponse.sqlErrors(e);
-			if (response != null)
-				return response;
+				if (users.isEmpty())
+					return JsonAPIResponse.handleError(404, "User does not exist", "");
+				return JsonAPIResponse.ok(users.get(0));
+			} catch (SQLException e) {
+				Response response = JsonAPIResponse.handleSQLError(e);
+				if (response != null)
+					return response;
+			}
 		} catch (Exception e) {
 			System.out.println(e);
+			e.printStackTrace();
 		}
 		return Response.serverError().build();
 	}
@@ -40,18 +66,21 @@ public class UserController {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response findByEmail(@PathParam("email") String email) {
 		try {
-			UserRepository.FindByEmail fbe = new UserRepository.FindByEmail(email);
-			List<User> users = UserRepository.getInstance().read(fbe);
+			try (Connection conn = DBContext.getConnection()) {
+				UserRepository.FindByEmail findByEmail = new UserRepository.FindByEmail(email);
+				List<User> users = UserRepository.getInstance().read(conn, findByEmail);
 
-			if (users.isEmpty())
-				return JsonAPIResponse.error(404, "User does not exist", "");
-			return JsonAPIResponse.ok(users.get(0));
-		} catch (SQLException e) {
-			Response response = JsonAPIResponse.sqlErrors(e);
-			if (response != null)
-				return response;
+				if (users.isEmpty())
+					return JsonAPIResponse.handleError(404, "User does not exist", "");
+				return JsonAPIResponse.ok(users.get(0));
+			} catch (SQLException e) {
+				Response response = JsonAPIResponse.handleSQLError(e);
+				if (response != null)
+					return response;
+			}
 		} catch (Exception e) {
 			System.out.println(e);
+			e.printStackTrace();
 		}
 		return Response.serverError().build();
 	}
@@ -60,19 +89,22 @@ public class UserController {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response createNewUser(User user) {
 		try {
-			user = UserRepository.getInstance().create(user);
+			try (Connection conn = DBContext.getConnection()) {
+				Result<User, JsonAPIResponse.Error> result = UserRepository.getInstance().create(conn, user);
 
-			// Always not null
-			return JsonAPIResponse.ok(user);
+				return JsonAPIResponse.handleResult(result);
+			}
 		} catch (SQLException e) {
-			Response response = JsonAPIResponse.sqlErrors(e,
+			Response response = JsonAPIResponse.handleSQLError(e,
 					SQLErrors.DUPLICATE_ENTRY,
+					SQLErrors.DATA_TRUNCATED,
 					SQLErrors.INCORRECT_DATA_TYPE,
 					SQLErrors.CHECK_CONSTANT);
 			if (response != null)
 				return response;
 		} catch (Exception e) {
 			System.out.println(e);
+			e.printStackTrace();
 		}
 		return Response.serverError().build();
 	}
@@ -81,20 +113,22 @@ public class UserController {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response updateUser(User user) {
 		try {
-			user = UserRepository.getInstance().update(user);
+			try (Connection conn = DBContext.getConnection()) {
+				Result<User, JsonAPIResponse.Error> result = UserRepository.getInstance().update(conn, user);
 
-			if (user == null)
-				return JsonAPIResponse.error(404, "User does not exist", "");
-			return JsonAPIResponse.ok(user);
+				return JsonAPIResponse.handleResult(result);
+			}
 		} catch (SQLException e) {
-			Response response = JsonAPIResponse.sqlErrors(e,
+			Response response = JsonAPIResponse.handleSQLError(e,
 					SQLErrors.DUPLICATE_ENTRY,
+					SQLErrors.DATA_TRUNCATED,
 					SQLErrors.INCORRECT_DATA_TYPE,
 					SQLErrors.CHECK_CONSTANT);
 			if (response != null)
 				return response;
 		} catch (Exception e) {
 			System.out.println(e);
+			e.printStackTrace();
 		}
 		return Response.serverError().build();
 	}
@@ -104,39 +138,21 @@ public class UserController {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response deleteById(@PathParam("id") int userId) {
 		try {
-			User user = new User();
-			user.setUserId(userId);
-			user = UserRepository.getInstance().delete(user);
+			try (Connection conn = DBContext.getConnection()) {
+				User user = new User();
+				user.setUserId(userId);
+				Result<User, JsonAPIResponse.Error> result = UserRepository.getInstance().delete(conn, user);
 
-			if (user == null)
-				return JsonAPIResponse.error(404, "User does not exist", "");
-			return JsonAPIResponse.ok(user);
+				return JsonAPIResponse.handleResult(result);
+			}
 		} catch (SQLException e) {
-			Response response = JsonAPIResponse.sqlErrors(e);
+			Response response = JsonAPIResponse.handleSQLError(e);
 			if (response != null)
 				return response;
 		} catch (Exception e) {
 			System.out.println(e);
+			e.printStackTrace();
 		}
 		return Response.serverError().build();
-	}
-
-	/**
-	 * Register
-	 *
-	 * @param User
-	 * @return User
-	 */
-	@POST
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response register(User user) {
-
-		try {
-		    UserRepository.getInstance().create(user);
-		} catch (Exception e) {
-			return Response.noContent().build();
-		}
-		return Response.ok(user).build();
-
 	}
 }

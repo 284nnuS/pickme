@@ -9,6 +9,6 @@ public class DefaultExceptionHandler implements ExceptionMapper<Exception> {
 
 	@Override
 	public Response toResponse(Exception arg0) {
-		return JsonAPIResponse.error(400, arg0.getMessage(), "");
+		return JsonAPIResponse.handleError(400, arg0.getMessage(), "");
 	}
 }

@@ -56,6 +56,7 @@ All .env files put in configs folder
    -  GOOGLE_CLIENT_ID
    -  GOOGLE_CLIENT_SECRET
    -  SECRET_KEY
+   -  JAVA_SERVER_URL
    -  NEXT_PUBLIC_URL (\*)
    -  NEXTAUTH_URL (\*)
 
