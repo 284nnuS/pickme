@@ -24,27 +24,42 @@ public class JsonAPIResponse {
 		return Response.ok(response).build();
 	}
 
-	public static Response error(int code, String message, String details) {
+	public static Response handleError(int code, String message, String details) {
 		JsonAPIResponse response = new JsonAPIResponse();
 		response.error = new Error(code, message, details);
 		return Response.status(code).entity(response).build();
 	}
 
-	public static Response sqlErrors(SQLException e, SQLErrors... handlers) {
+	/**
+	 * Handle SQL Errors that is included in parameter
+	 * 
+	 * @return return null it's unexpected error
+	 */
+	public static Response handleSQLError(SQLException e, SQLErrors... errors) {
 		SQLErrors err = SQLErrors.fromErrCode(e.getErrorCode());
 		if (err == null) {
-			System.out.println(e);
+			System.out.println(e.getErrorCode() + "\n" + e);
+			e.printStackTrace();
 			return null;
 		}
 
-		if (Arrays.asList(handlers).contains(err)) {
+		if (Arrays.asList(errors).contains(err)) {
 			JsonAPIResponse response = new JsonAPIResponse();
 			response.error = new Error(400, err.message, e.getMessage());
 			return Response.status(400).entity(response).build();
 		}
 
-		System.out.println(e);
+		System.out.println(e.getErrorCode() + "\n" + e);
+		e.printStackTrace();
 		return null;
+	}
+
+	public static <T> Response handleResult(Result<T, Error> result) {
+		if (result.isOk())
+			return Response.ok(result.getData()).build();
+
+		Error error = result.getError();
+		return Response.status(error.getCode()).entity(error).build();
 	}
 
 	@Getter

@@ -3,7 +3,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware'
 
 export default function routeAPI(app: Express) {
    const middleware = createProxyMiddleware({
-      target: process.env.JAVA_SERVER_URL || 'http://localhost:3001',
+      target: process.env.JAVA_SERVER_URL,
       changeOrigin: true,
       pathRewrite: { '^/api/restful': '' },
    })

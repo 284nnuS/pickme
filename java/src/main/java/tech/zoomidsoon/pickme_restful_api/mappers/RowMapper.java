@@ -9,10 +9,10 @@ import java.util.List;
 import tech.zoomidsoon.pickme_restful_api.models.Entity;
 
 // An abstract class to map SQL ResultSet to List of Object
-public abstract class RowMapper<T extends Entity> {
-	public List<T> processResultSet(ResultSet rs, Class<T> cls) throws SQLException {
-		List<T> result = new ArrayList<T>();
-		T obj = newGenericInstance(cls);
+public abstract class RowMapper<E extends Entity> {
+	public List<E> processResultSet(ResultSet rs, Class<E> cls) throws SQLException {
+		List<E> result = new ArrayList<E>();
+		E obj = newGenericInstance(cls);
 
 		while (rs.next()) {
 			if (mapRow(rs, obj)) {
@@ -30,7 +30,7 @@ public abstract class RowMapper<T extends Entity> {
 	}
 
 	// Create a new instance from empty constructor
-	private T newGenericInstance(Class<T> cls) {
+	private E newGenericInstance(Class<E> cls) {
 		try {
 			return cls.getDeclaredConstructor().newInstance();
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
@@ -40,5 +40,5 @@ public abstract class RowMapper<T extends Entity> {
 	}
 
 	// Return true to store the object of previous rows to list else continue
-	public abstract boolean mapRow(ResultSet rs, T obj) throws SQLException;
+	public abstract boolean mapRow(ResultSet rs, E obj) throws SQLException;
 }
