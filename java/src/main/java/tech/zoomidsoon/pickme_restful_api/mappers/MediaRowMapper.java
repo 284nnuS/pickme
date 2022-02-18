@@ -5,8 +5,8 @@ import java.sql.SQLException;
 
 import tech.zoomidsoon.pickme_restful_api.models.Media;
 
-public class MediaRowMapper extends RowMapper<Media>{
-    private static final RowMapper<Media> singleton = new MediaRowMapper();
+public class MediaRowMapper extends RowMapper<Media> {
+	private static final RowMapper<Media> singleton = new MediaRowMapper();
 
 	private MediaRowMapper() {
 	}
@@ -14,7 +14,8 @@ public class MediaRowMapper extends RowMapper<Media>{
 	public static RowMapper<Media> getInstance() {
 		return singleton;
 	}
-    @Override
+
+	@Override
 	public boolean mapRow(ResultSet rs, Media obj) throws SQLException {
 		String mediaName = rs.getString("mediaName");
 
@@ -23,10 +24,10 @@ public class MediaRowMapper extends RowMapper<Media>{
 
 		if (obj.isEmpty()) {
 			obj.setMediaName(mediaName);
-            obj.setUserId(rs.getInt("userId"));
+			obj.setUserId(rs.getInt("userId"));
 			obj.setMediaType(rs.getString("mediaType"));
 		}
 
 		return false;
-	}    
+	}
 }

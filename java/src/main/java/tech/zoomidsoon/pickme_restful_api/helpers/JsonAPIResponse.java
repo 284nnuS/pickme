@@ -18,6 +18,8 @@ public class JsonAPIResponse {
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private Error error;
 
+	public static JsonAPIResponse.Error SERVER_ERROR = new JsonAPIResponse.Error(500, "Something went wrong", "");
+
 	public static Response ok(Object data) {
 		JsonAPIResponse response = new JsonAPIResponse();
 		response.data = data;
@@ -25,9 +27,14 @@ public class JsonAPIResponse {
 	}
 
 	public static Response handleError(int code, String message, String details) {
+		Error error = new Error(code, message, details);
+		return handleError(error);
+	}
+
+	public static Response handleError(Error error) {
 		JsonAPIResponse response = new JsonAPIResponse();
-		response.error = new Error(code, message, details);
-		return Response.status(code).entity(response).build();
+		response.error = error;
+		return Response.status(error.code).entity(response).build();
 	}
 
 	/**

@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import tech.zoomidsoon.pickme_restful_api.models.Media;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 
 public class UserRowMapper extends RowMapper<User> {
@@ -33,11 +34,17 @@ public class UserRowMapper extends RowMapper<User> {
 			obj.setRole(rs.getString("role"));
 			obj.setCautionTimes(rs.getInt("cautionTimes"));
 			obj.setHobbies(new ArrayList<>());
+			obj.setMedias(new ArrayList<>());
 		}
 
 		String hobbyName = rs.getString("hobbyName");
 		if (hobbyName != null && !obj.getHobbies().contains(hobbyName))
 			obj.getHobbies().add(hobbyName);
+
+		Media media = new Media();
+		MediaRowMapper.getInstance().mapRow(rs, media);
+		if (!media.isEmpty() && !obj.getMedias().contains(media))
+			obj.getMedias().add(media);
 
 		return false;
 	}

@@ -11,70 +11,20 @@ import javax.ws.rs.core.Response;
 import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
 import tech.zoomidsoon.pickme_restful_api.helpers.Result;
 import tech.zoomidsoon.pickme_restful_api.helpers.SQLErrors;
-import tech.zoomidsoon.pickme_restful_api.models.User;
-import tech.zoomidsoon.pickme_restful_api.repos.UserRepository;
+import tech.zoomidsoon.pickme_restful_api.models.Hobby;
+import tech.zoomidsoon.pickme_restful_api.repos.HobbyRepository;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
 
-@Path("/user")
-public class UserController {
+@Path("/hobby")
+public class HobbyController {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response listAllUsers() {
+	public Response listAllHobbies() {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
-				List<User> users = UserRepository.getInstance().readAll(conn);
+				List<Hobby> hobbies = HobbyRepository.getInstance().readAll(conn);
 
-				return JsonAPIResponse.ok(users);
-			} catch (SQLException e) {
-				Response response = JsonAPIResponse.handleSQLError(e);
-				if (response != null)
-					return response;
-			}
-		} catch (Exception e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}
-
-		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
-	}
-
-	@GET
-	@Path("/id/{id}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response findById(@PathParam("id") int userId) {
-		try {
-			try (Connection conn = DBContext.getConnection()) {
-				UserRepository.FindById findById = new UserRepository.FindById(userId);
-				List<User> users = UserRepository.getInstance().read(conn, findById);
-
-				if (users.isEmpty())
-					return JsonAPIResponse.handleError(404, "User does not exist", "");
-				return JsonAPIResponse.ok(users.get(0));
-			} catch (SQLException e) {
-				Response response = JsonAPIResponse.handleSQLError(e);
-				if (response != null)
-					return response;
-			}
-		} catch (Exception e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}
-
-		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
-	}
-
-	@GET
-	@Path("/email/{email}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response findByEmail(@PathParam("email") String email) {
-		try {
-			try (Connection conn = DBContext.getConnection()) {
-				UserRepository.FindByEmail findByEmail = new UserRepository.FindByEmail(email);
-				List<User> users = UserRepository.getInstance().read(conn, findByEmail);
-
-				if (users.isEmpty())
-					return JsonAPIResponse.handleError(404, "User does not exist", "");
-				return JsonAPIResponse.ok(users.get(0));
+				return JsonAPIResponse.ok(hobbies);
 			} catch (SQLException e) {
 				Response response = JsonAPIResponse.handleSQLError(e);
 				if (response != null)
@@ -90,10 +40,10 @@ public class UserController {
 
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response createNewUser(User user) {
+	public Response createNewHobby(Hobby hobby) {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
-				Result<User, JsonAPIResponse.Error> result = UserRepository.getInstance().create(conn, user);
+				Result<Hobby, JsonAPIResponse.Error> result = HobbyRepository.getInstance().create(conn, hobby);
 
 				return JsonAPIResponse.handleResult(result);
 			}
@@ -115,10 +65,10 @@ public class UserController {
 
 	@PUT
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response updateUser(User user) {
+	public Response updateHobby(Hobby hobby) {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
-				Result<User, JsonAPIResponse.Error> result = UserRepository.getInstance().update(conn, user);
+				Result<Hobby, JsonAPIResponse.Error> result = HobbyRepository.getInstance().update(conn, hobby);
 
 				return JsonAPIResponse.handleResult(result);
 			}
@@ -139,14 +89,14 @@ public class UserController {
 	}
 
 	@DELETE
-	@Path("/id/{id}")
+	@Path("/name/{hobbyName}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response deleteById(@PathParam("id") int userId) {
+	public Response deleteById(@PathParam("hobbyName") String hobbyName) {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
-				User user = new User();
-				user.setUserId(userId);
-				Result<User, JsonAPIResponse.Error> result = UserRepository.getInstance().delete(conn, user);
+				Hobby hobby = new Hobby();
+				hobby.setHobbyName(hobbyName);
+				Result<Hobby, JsonAPIResponse.Error> result = HobbyRepository.getInstance().delete(conn, hobby);
 
 				return JsonAPIResponse.handleResult(result);
 			}

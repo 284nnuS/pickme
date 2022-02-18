@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,7 @@ import lombok.*;
 import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
 import tech.zoomidsoon.pickme_restful_api.helpers.Result;
 import tech.zoomidsoon.pickme_restful_api.mappers.UserRowMapper;
+import tech.zoomidsoon.pickme_restful_api.models.Media;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 import tech.zoomidsoon.pickme_restful_api.repos.HobbyRepository.FindByNameList;
 import tech.zoomidsoon.pickme_restful_api.utils.Utils;
@@ -30,8 +32,8 @@ public class UserRepository implements Repository<User> {
 	public Result<User, JsonAPIResponse.Error> create(Connection conn, User user) throws Exception {
 		try {
 			if (user.getHobbies() != null && !user.getHobbies().isEmpty()) {
-				FindByNameList fbnl = new FindByNameList(user.getHobbies());
-				if (HobbyRepository.getInstance().read(conn, fbnl).size() != user.getHobbies().size()) {
+				FindByNameList findByNameList = new FindByNameList(user.getHobbies());
+				if (HobbyRepository.getInstance().read(conn, findByNameList).size() != user.getHobbies().size()) {
 					return new Result<>(null, new JsonAPIResponse.Error(500, "Some hobbies are not available", ""));
 				}
 			}
@@ -52,7 +54,7 @@ public class UserRepository implements Repository<User> {
 
 				if (stmt.executeUpdate() != 1) {
 					conn.rollback();
-					return new Result<>(null, new JsonAPIResponse.Error(500, "Something went wrong", ""));
+					return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 				}
 
 				// Get id of recently created user
@@ -61,6 +63,8 @@ public class UserRepository implements Repository<User> {
 					user.setUserId(rs.getInt(1));
 				}
 			}
+
+			user.getMedias().forEach(media -> media.setUserId(user.getUserId()));
 
 			// Create User-Hobby relation
 			if (user.getHobbies().size() > 0) {
@@ -76,11 +80,33 @@ public class UserRepository implements Repository<User> {
 
 					if (stmt.executeUpdate() != user.getHobbies().size()) {
 						conn.rollback();
-						return new Result<>(null, new JsonAPIResponse.Error(500, "Something went wrong", ""));
+						return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 					}
 				}
 			}
+
+			// Create User-Media relation
+			if (user.getMedias().size() > 0) {
+				String query = String.format("INSERT INTO tblMedia (mediaName, userId, mediaType) VALUES %s",
+						user.getMedias().stream().map(el -> "(?,?,?)").collect(Collectors.joining(", ")));
+				try (PreparedStatement stmt = conn.prepareStatement(query)) {
+					int index = 1;
+
+					for (Media media : user.getMedias()) {
+						stmt.setString(index++, media.getMediaName());
+						stmt.setInt(index++, media.getUserId());
+						stmt.setString(index++, media.getMediaType());
+					}
+
+					if (stmt.executeUpdate() != user.getMedias().size()) {
+						conn.rollback();
+						return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
+					}
+				}
+			}
+
 			conn.commit();
+			user.getMedias().forEach(media -> media.setUserId(null));
 
 			return new Result<>(user, null);
 
@@ -97,7 +123,9 @@ public class UserRepository implements Repository<User> {
 		}
 
 		try (ResultSet rs = criteria.query(conn)) {
-			return UserRowMapper.getInstance().processResultSet(rs, User.class);
+			List<User> result = UserRowMapper.getInstance().processResultSet(rs, User.class);
+			result.forEach(el -> el.getMedias().forEach(media -> media.setUserId(null)));
+			return result;
 		}
 	}
 
@@ -105,12 +133,12 @@ public class UserRepository implements Repository<User> {
 	public Result<User, JsonAPIResponse.Error> update(Connection conn, User user) throws Exception {
 		// Cannot update if userId is missing
 		if (user.isEmpty())
-			return null;
+			return new Result<>(null, new JsonAPIResponse.Error(400, "userId is required", ""));
 
 		try {
 			if (user.getHobbies() != null && !user.getHobbies().isEmpty()) {
-				FindByNameList fbnl = new FindByNameList(user.getHobbies());
-				if (HobbyRepository.getInstance().read(conn, fbnl).size() != user.getHobbies().size()) {
+				FindByNameList findByNameList = new FindByNameList(user.getHobbies());
+				if (HobbyRepository.getInstance().read(conn, findByNameList).size() != user.getHobbies().size()) {
 					return new Result<>(null, new JsonAPIResponse.Error(500, "Some hobbies are not available", ""));
 				}
 			}
@@ -123,27 +151,25 @@ public class UserRepository implements Repository<User> {
 			if (list.isEmpty())
 				return new Result<>(null, new JsonAPIResponse.Error(404, "User does not exist", ""));
 
+			user.getMedias().forEach(media -> media.setUserId(user.getUserId()));
+
 			User inDB = list.get(0);
-			boolean hobbyIsChanged = !Utils.equalList(inDB.getHobbies(), user.getHobbies());
-			boolean needDeleteBeforeUpdate = inDB.getHobbies().size() > 0 && hobbyIsChanged;
-			User newUser = new User(inDB);
 
-			Utils.copyNonNullFields(newUser, user, "email", "userId");
+			List<String> addedHobbies = new ArrayList<>();
+			List<String> removedHobbies = new ArrayList<>();
+			List<String> mergedHobbies = new ArrayList<>();
+			List<Media> addedMedias = new ArrayList<>();
+			List<Media> removedMedias = new ArrayList<>();
+			List<Media> mergedMedias = new ArrayList<>();
 
-			// Check if having any changes
-			if (newUser.equals(inDB))
-				return new Result<>(newUser, null);
+			Utils.diffList(inDB.getHobbies(), user.getHobbies(), addedHobbies, removedHobbies, mergedHobbies);
+			Utils.diffList(inDB.getMedias(), user.getMedias(), addedMedias, removedMedias, mergedMedias);
 
-			// Remove old hobbies in database
-			if (needDeleteBeforeUpdate)
-				try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM tblUserHobby WHERE userId = ?")) {
-					stmt.setInt(1, newUser.getUserId());
+			Utils.copyNonNullFields(inDB, user, "email", "userId", "medias", "hobbies");
 
-					if (stmt.executeUpdate() == 0) {
-						conn.rollback();
-						return new Result<>(null, new JsonAPIResponse.Error(500, "Something went wrong", ""));
-					}
-				}
+			User newUser = inDB;
+			newUser.setHobbies(mergedHobbies);
+			newUser.setMedias(mergedMedias);
 
 			// Update user in database
 			try (PreparedStatement stmt = conn.prepareStatement(
@@ -158,29 +184,89 @@ public class UserRepository implements Repository<User> {
 
 				if (stmt.executeUpdate() != 1) {
 					conn.rollback();
-					return new Result<>(null, new JsonAPIResponse.Error(500, "Something went wrong", ""));
+					return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 				}
 			}
 
-			// Create User-Hobby relation
-			if (hobbyIsChanged && newUser.getHobbies().size() > 0) {
-				String query = String.format("INSERT INTO tblUserHobby (userId, hobbyName) VALUES %s",
-						newUser.getHobbies().stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
+			// Remove User-Hobby relation
+			if (removedHobbies.size() > 0) {
+				String query = String.format("DELETE FROM tblUserHobby WHERE (userId, hobbyName) IN (%s)",
+						removedHobbies.stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
 				try (PreparedStatement stmt = conn.prepareStatement(query)) {
 					int index = 1;
 
-					for (String hobbyName : newUser.getHobbies()) {
+					for (String hobbyName : removedHobbies) {
 						stmt.setInt(index++, newUser.getUserId());
 						stmt.setString(index++, hobbyName);
 					}
 
-					if (stmt.executeUpdate() != newUser.getHobbies().size()) {
+					if (stmt.executeUpdate() != removedHobbies.size()) {
 						conn.rollback();
-						return new Result<>(null, new JsonAPIResponse.Error(500, "Something went wrong", ""));
+						return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 					}
 				}
 			}
+
+			// Add User-Hobby relation
+			if (addedHobbies.size() > 0) {
+				String query = String.format("INSERT INTO tblUserHobby (userId, hobbyName) VALUES %s",
+						addedHobbies.stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
+				try (PreparedStatement stmt = conn.prepareStatement(query)) {
+					int index = 1;
+
+					for (String hobbyName : addedHobbies) {
+						stmt.setInt(index++, newUser.getUserId());
+						stmt.setString(index++, hobbyName);
+					}
+
+					if (stmt.executeUpdate() != addedHobbies.size()) {
+						conn.rollback();
+						return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
+					}
+				}
+			}
+
+			// Remove User-Hobby relation
+			if (removedMedias.size() > 0) {
+				String query = String.format("DELETE FROM tblMedia WHERE (mediaName) IN (%s)",
+						removedMedias.stream().map(el -> "(?)").collect(Collectors.joining(", ")));
+
+				try (PreparedStatement stmt = conn.prepareStatement(query)) {
+					int index = 1;
+
+					for (Media media : removedMedias) {
+						stmt.setString(index++, media.getMediaName());
+					}
+
+					if (stmt.executeUpdate() != removedMedias.size()) {
+						conn.rollback();
+						return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
+					}
+				}
+			}
+
+			// Add User-Media relation
+			if (addedMedias.size() > 0) {
+				String query = String.format("INSERT INTO tblMedia (mediaName, userId, mediaType) VALUES %s",
+						addedMedias.stream().map(el -> "(?,?,?)").collect(Collectors.joining(", ")));
+				try (PreparedStatement stmt = conn.prepareStatement(query)) {
+					int index = 1;
+
+					for (Media media : addedMedias) {
+						stmt.setString(index++, media.getMediaName());
+						stmt.setInt(index++, media.getUserId());
+						stmt.setString(index++, media.getMediaType());
+					}
+
+					if (stmt.executeUpdate() != addedMedias.size()) {
+						conn.rollback();
+						return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
+					}
+				}
+			}
+
 			conn.commit();
+			user.getMedias().forEach(media -> media.setUserId(null));
 
 			return new Result<>(newUser, null);
 		} catch (Exception e) {
@@ -202,16 +288,17 @@ public class UserRepository implements Repository<User> {
 
 			user = list.get(0);
 
-			try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM tblUser WHERE userId LIKE ?")) {
+			try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM tblUser WHERE userId = ?")) {
 				stmt.setInt(1, user.getUserId());
 
 				if (stmt.executeUpdate() != 1) {
 					conn.rollback();
-					return new Result<>(null, new JsonAPIResponse.Error(500, "Something went wrong", ""));
+					return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 				}
 			}
 
 			conn.commit();
+			user.getMedias().forEach(media -> media.setUserId(null));
 
 			return new Result<>(user, null);
 
@@ -224,13 +311,16 @@ public class UserRepository implements Repository<User> {
 	@Override
 	public List<User> readAll(Connection conn) throws Exception {
 		try (PreparedStatement stmt = conn.prepareStatement(
-				"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName\n"
+				"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName, c.mediaName, c.MediaType \n"
 						+ "FROM tblUser a \n"
-						+ "LEFT OUTER JOIN tblUserHobby b ON a.userId = b.userId ",
+						+ "LEFT OUTER JOIN tblUserHobby b ON a.userId = b.userId \n"
+						+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId ",
 				ResultSet.TYPE_SCROLL_INSENSITIVE,
 				ResultSet.CONCUR_READ_ONLY)) {
 			try (ResultSet rs = stmt.executeQuery()) {
-				return UserRowMapper.getInstance().processResultSet(rs, User.class);
+				List<User> result = UserRowMapper.getInstance().processResultSet(rs, User.class);
+				result.forEach(el -> el.getMedias().forEach(media -> media.setUserId(null)));
+				return result;
 			}
 		}
 	}
@@ -242,10 +332,11 @@ public class UserRepository implements Repository<User> {
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
 			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName\n"
+					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName, c.mediaName, c.MediaType \n"
 							+ "FROM tblUser a \n"
 							+ "LEFT OUTER JOIN tblUserHobby b ON a.userId = b.userId \n"
-							+ "WHERE a.userId LIKE ?",
+							+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId \n"
+							+ "WHERE a.userId = ?",
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 			stmt.setInt(1, userId);
@@ -260,9 +351,10 @@ public class UserRepository implements Repository<User> {
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
 			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName\n"
+					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName, c.mediaName, c.MediaType \n"
 							+ "FROM tblUser a \n"
 							+ "LEFT OUTER JOIN tblUserHobby b ON a.userId = b.userId \n"
+							+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId \n"
 							+ "WHERE a.name LIKE '%?%'",
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
@@ -278,10 +370,11 @@ public class UserRepository implements Repository<User> {
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
 			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName\n"
+					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName, c.mediaName, c.MediaType \n"
 							+ "FROM tblUser a \n"
 							+ "LEFT OUTER JOIN tblUserHobby b ON a.userId = b.userId \n"
-							+ "WHERE a.email LIKE ?",
+							+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId \n"
+							+ "WHERE a.email = ?",
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 			stmt.setString(1, email);

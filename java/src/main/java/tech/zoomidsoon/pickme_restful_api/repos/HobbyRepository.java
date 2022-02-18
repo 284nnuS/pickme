@@ -33,7 +33,7 @@ public class HobbyRepository implements Repository<Hobby> {
 			stmt.setString(2, hobby.getDescription());
 
 			if (stmt.executeUpdate() == 0)
-				return new Result<>(null, new JsonAPIResponse.Error(500, "Something went wrong", ""));
+				return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 
 			return new Result<>(hobby, null);
 		}
@@ -66,15 +66,15 @@ public class HobbyRepository implements Repository<Hobby> {
 		Utils.copyNonNullFields(inDB, hobby);
 
 		try (PreparedStatement stmt = conn.prepareStatement(
-				"UPDATE tblUser SET description = ?")) {
-			stmt.setString(2, inDB.getDescription());
-			stmt.setString(1, inDB.getHobbyName());
+				"UPDATE tblHobby SET description = ? WHERE hobbyName = ?")) {
+			stmt.setString(1, inDB.getDescription());
+			stmt.setString(2, inDB.getHobbyName());
 
 			if (stmt.executeUpdate() > 0)
 				return new Result<>(inDB, null);
 		}
 
-		return new Result<>(null, new JsonAPIResponse.Error(500, "Something went wrong", ""));
+		return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class HobbyRepository implements Repository<Hobby> {
 
 			hobby = list.get(0);
 
-			try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM tblHobby WHERE name LIKE ?")) {
+			try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM tblHobby WHERE hobbyName = ?")) {
 				stmt.setString(1, hobby.getHobbyName());
 
 				if (stmt.executeUpdate() > 0)
@@ -97,7 +97,7 @@ public class HobbyRepository implements Repository<Hobby> {
 		} catch (Exception e) {
 		}
 
-		return new Result<>(null, new JsonAPIResponse.Error(500, "Something went wrong", ""));
+		return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 	}
 
 	@Override
