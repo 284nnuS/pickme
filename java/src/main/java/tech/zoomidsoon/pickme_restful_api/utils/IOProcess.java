@@ -11,11 +11,20 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class IOProcess {
-	
-	public static void writeToFile(byte[] buffer,
-			String filePath, boolean overwrite) throws Exception {
-				
-		File file = new File(filePath);
+	private static String storageFolder = Utils.getEnv("STORAGE_FOLDER", "./storage");
+
+	static {
+		try {
+			IOProcess.createFolder(Paths.get(storageFolder));
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+
+	public static void writeToFile(byte[] buffer, String filePath, boolean overwrite)
+			throws FileAlreadyExistsException, IOException {
+		File file = Paths.get(IOProcess.storageFolder, filePath).toAbsolutePath().toFile();
 
 		if (!overwrite && file.exists())
 			throw new FileAlreadyExistsException(file.getAbsolutePath());
@@ -25,41 +34,35 @@ public class IOProcess {
 		}
 	}
 
-	public static boolean createFolder(String folderName) {
-		Path path = Paths.get("./" + folderName);
+	public static void createFolderInStorage(String folderName) throws SecurityException, IOException {
+		Path path = Paths.get(IOProcess.storageFolder, "./" + folderName).toAbsolutePath();
+		createFolder(path);
+	}
 
-		try {
-			if (Files.exists(path) && !Files.isDirectory(path))
-				Files.delete(path);
+	public static void createFolder(Path path) throws SecurityException, IOException {
+		if (Files.exists(path) && !Files.isDirectory(path))
+			Files.delete(path);
+		else if (!Files.exists(path))
 			Files.createDirectory(path);
-			return true;
-		} catch (IOException e) {
-			// Permission issue
-		}
-		return false;
 	}
 
-	public static Boolean deleteFile(String filePath) {
-		File file = new File(filePath);
+	public static void deleteFile(String filePath)
+			throws FileNotFoundException, SecurityException, IOException {
+		File file = Paths.get(IOProcess.storageFolder, filePath).toAbsolutePath().toFile();
 
-		if (file.exists()) {
-			try {
-				file.delete();
-				return true;
-			} catch (Exception e) {
-				// Permission issue
-			}
-		}
-		return false;
+		if (!file.exists())
+			throw new FileNotFoundException(file.getCanonicalPath());
+
+		file.delete();
 	}
 
-	public static byte[] readFromFile(String filePath) throws Exception {
-		File file = new File(filePath);
+	public static byte[] readFromFile(String filePath) throws FileNotFoundException, IOException {
+		File file = Paths.get(IOProcess.storageFolder, filePath).toAbsolutePath().toFile();
 
-		if (!file.exists()) 
+		if (!file.exists())
 			throw new FileNotFoundException("Something went wrong");
 
-		byte[] buffer = new byte[(int)file.length()];
+		byte[] buffer = new byte[(int) file.length()];
 
 		try (FileInputStream in = new FileInputStream(file)) {
 			in.read(buffer);

@@ -1,5 +1,8 @@
 package tech.zoomidsoon.pickme_restful_api.models;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
@@ -23,6 +26,7 @@ public class Media extends Entity {
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private Integer userId;
 	private String mediaType;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private String payload;
 
 	@Override
@@ -30,21 +34,24 @@ public class Media extends Entity {
 		return this.mediaName == null;
 	}
 
-	public void write() throws Exception {
-		byte[] buffer = base64Decoder.decode(payload);
+	public void write() throws FileAlreadyExistsException, SecurityException, IOException, IllegalArgumentException {
+		byte[] buffer;
+		if (payload == null || (buffer = base64Decoder.decode(payload)) == null)
+			throw new IllegalArgumentException("Payload format is null or not base64");
+
 		String filePath = String.format("./%s/%s", this.userId, this.mediaName);
-		IOProcess.createFolder(Integer.toString(this.userId));
+		IOProcess.createFolderInStorage(Integer.toString(this.userId));
 		IOProcess.writeToFile(buffer, filePath, true);
 	}
 
-	public Pair<byte[], String> read() throws Exception {
+	public Pair<byte[], String> read() throws FileNotFoundException, IOException {
 		String filePath = String.format("./%s/%s", this.userId, this.mediaName);
 		byte[] buffer = IOProcess.readFromFile(filePath);
 		String mediaType = Files.probeContentType(Paths.get(filePath));
 		return new Pair<>(buffer, mediaType);
 	}
 
-	public void delete() {
+	public void delete() throws SecurityException, IOException {
 		String filePath = String.format("./%s/%s", this.userId, this.mediaName);
 		IOProcess.deleteFile(filePath);
 	}

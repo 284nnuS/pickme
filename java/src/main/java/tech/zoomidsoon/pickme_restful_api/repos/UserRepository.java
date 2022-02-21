@@ -97,7 +97,11 @@ public class UserRepository implements Repository<User> {
 						stmt.setString(index++, media.getMediaName());
 						stmt.setInt(index++, media.getUserId());
 						stmt.setString(index++, media.getMediaType());
-						media.write();
+						try {
+							media.write();
+						} catch (IllegalArgumentException e) {
+							return new Result<>(null, new JsonAPIResponse.Error(400, e.getMessage(), ""));
+						}
 					}
 
 					if (stmt.executeUpdate() != user.getMedias().size()) {
@@ -259,7 +263,11 @@ public class UserRepository implements Repository<User> {
 						stmt.setString(index++, media.getMediaName());
 						stmt.setInt(index++, media.getUserId());
 						stmt.setString(index++, media.getMediaType());
-						media.write();
+						try {
+							media.write();
+						} catch (IllegalArgumentException e) {
+							return new Result<>(null, new JsonAPIResponse.Error(400, e.getMessage(), ""));
+						}
 					}
 
 					if (stmt.executeUpdate() != addedMedias.size()) {
