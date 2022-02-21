@@ -6,14 +6,9 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.io.*;
 
 public class Utils {
 	public static void copyNonNullFields(Object dest, Object source, String... excludes)
@@ -50,80 +45,4 @@ public class Utils {
 			return defaultValue;
 		}
 	}
-
-	public static <T> boolean equalList(List<T> listone, List<T> listtwo) {
-		return listone != null && listtwo != null && listone.size() == listtwo.size() && listone.containsAll(listtwo)
-				&& listtwo.containsAll(listone);
-	}
-
-	public static <T> T getLastItem(List<T> list) {
-		if (list == null || list.isEmpty())
-			return null;
-		return list.get(list.size() - 1);
-	}
-
-	public static <T> void diffList(List<T> oldList, List<T> newList, List<T> add, List<T> remove, List<T> merge) {
-		if (oldList == null)
-			throw new IllegalArgumentException("Old list cannot be null");
-
-		if (newList != null && !newList.isEmpty())
-			merge.addAll(newList);
-		else if (!oldList.isEmpty())
-			merge.addAll(oldList);
-
-		if (newList == null)
-			return;
-
-		if (oldList.isEmpty()) {
-			if (newList != null && !newList.isEmpty())
-				add.addAll(newList);
-			return;
-		}
-
-		if (newList != null && newList.isEmpty()) {
-			if (!oldList.isEmpty())
-				remove.addAll(oldList);
-			return;
-		}
-
-		add.addAll(newList.stream().filter(el -> !oldList.contains(el)).collect(Collectors.toList()));
-		remove.addAll(oldList.stream().filter(el -> !newList.contains(el)).collect(Collectors.toList()));
-	}
-
-	// save uploaded file to new location
-	public static void writeToFile(InputStream uploadedInputStream,
-			String uploadedFileLocation) {
-
-		try {
-			OutputStream out = new FileOutputStream(new File(
-					uploadedFileLocation));
-					
-			int read = 0;
-			byte[] bytes = new byte[1024];
-
-			out = new FileOutputStream(new File(uploadedFileLocation));
-			while ((read = uploadedInputStream.read(bytes)) != -1) {
-				out.write(bytes, 0, read);
-			}
-			out.flush();
-			out.close();
-		} catch (IOException e) {
-
-			e.printStackTrace();
-		}
-
-	}
-	public static String createFolder(String folderName){
-		Path path = Paths.get("D:\\server\\"+folderName);
-		//Check folder exits
-		if (!Files.exists(path)) {
-			try {
-				Files.createDirectories(path);
-			} catch (IOException e) {
-				// Folder exits
-				e.printStackTrace();
-			}
-		}
-		return path.toString();
-	} 
 }
