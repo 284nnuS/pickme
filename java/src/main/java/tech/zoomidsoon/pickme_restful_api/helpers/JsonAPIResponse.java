@@ -6,8 +6,12 @@ import java.util.Arrays;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.*;
+import tech.zoomidsoon.pickme_restful_api.mixin.MediaMixin;
+import tech.zoomidsoon.pickme_restful_api.models.Media;
 
 @Getter
 @Setter
@@ -19,11 +23,18 @@ public class JsonAPIResponse {
 	private Error error;
 
 	public static JsonAPIResponse.Error SERVER_ERROR = new JsonAPIResponse.Error(500, "Something went wrong", "");
+	private static ObjectMapper mapper;
 
-	public static Response ok(Object data) {
+	static {
+		mapper = new ObjectMapper();
+		mapper.addMixIn(Media.class, MediaMixin.class);
+	}
+
+	public static Response ok(Object data) throws JsonProcessingException {
 		JsonAPIResponse response = new JsonAPIResponse();
 		response.data = data;
-		return Response.ok(response).build();
+		byte[] output = mapper.writeValueAsBytes(response);
+		return Response.ok(output).build();
 	}
 
 	public static Response handleError(int code, String message, String details) {
@@ -61,9 +72,9 @@ public class JsonAPIResponse {
 		return null;
 	}
 
-	public static <T> Response handleResult(Result<T, Error> result) {
+	public static <T> Response handleResult(Result<T, Error> result) throws JsonProcessingException {
 		if (result.isOk())
-			return Response.ok(result.getData()).build();
+			return ok(result.getData());
 
 		Error error = result.getError();
 		return Response.status(error.getCode()).entity(error).build();

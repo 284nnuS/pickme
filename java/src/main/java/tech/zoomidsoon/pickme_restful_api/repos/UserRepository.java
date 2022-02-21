@@ -112,7 +112,6 @@ public class UserRepository implements Repository<User> {
 			}
 
 			conn.commit();
-			user.getMedias().forEach(media -> media.setUserId(null));
 
 			return new Result<>(user, null);
 
@@ -130,7 +129,6 @@ public class UserRepository implements Repository<User> {
 
 		try (ResultSet rs = criteria.query(conn)) {
 			List<User> result = UserRowMapper.getInstance().processResultSet(rs, User.class);
-			result.forEach(el -> el.getMedias().forEach(media -> media.setUserId(null)));
 			return result;
 		}
 	}
@@ -278,7 +276,6 @@ public class UserRepository implements Repository<User> {
 			}
 
 			conn.commit();
-			user.getMedias().forEach(media -> media.setUserId(null));
 
 			return new Result<>(newUser, null);
 		} catch (Exception e) {
@@ -310,7 +307,6 @@ public class UserRepository implements Repository<User> {
 			}
 
 			conn.commit();
-			user.getMedias().forEach(media -> media.setUserId(null));
 
 			return new Result<>(user, null);
 
@@ -331,7 +327,6 @@ public class UserRepository implements Repository<User> {
 				ResultSet.CONCUR_READ_ONLY)) {
 			try (ResultSet rs = stmt.executeQuery()) {
 				List<User> result = UserRowMapper.getInstance().processResultSet(rs, User.class);
-				result.forEach(el -> el.getMedias().forEach(media -> media.setUserId(null)));
 				return result;
 			}
 		}
