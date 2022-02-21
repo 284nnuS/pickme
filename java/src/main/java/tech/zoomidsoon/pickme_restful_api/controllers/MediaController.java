@@ -3,12 +3,11 @@ package tech.zoomidsoon.pickme_restful_api.controllers;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
+import tech.zoomidsoon.pickme_restful_api.helpers.Pair;
 import tech.zoomidsoon.pickme_restful_api.models.Media;
 import tech.zoomidsoon.pickme_restful_api.repos.MediaRepository;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
@@ -17,8 +16,8 @@ import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
 public class MediaController {
 	@GET
 	@Path("/{userId}/{mediaName}")
-	@Produces(MediaType.APPLICATION_JSON)
 	public Response get(@PathParam("userId") int userId, @PathParam("mediaName") String mediaName) {
+
 		try {
 			try (Connection conn = DBContext.getConnection()) {
 				MediaRepository.FindByMediaNameAndUserId findByMediaNameAndUserId = new MediaRepository.FindByMediaNameAndUserId(
@@ -29,9 +28,9 @@ public class MediaController {
 					return JsonAPIResponse.handleError(404, "Media does not exist", "");
 
 				Media media = medias.get(0);
-				Media.Payload payload = new Media.Payload(media.getMediaType(), "<FILE CONTENT IN BASE64>");
+				Pair<byte[], String> pair = media.read();
 
-				return JsonAPIResponse.ok(payload);
+				return Response.ok(pair.getOne(), pair.getTwo()).build();
 			} catch (SQLException e) {
 				Response response = JsonAPIResponse.handleSQLError(e);
 				if (response != null)

@@ -16,6 +16,7 @@ import tech.zoomidsoon.pickme_restful_api.mappers.UserRowMapper;
 import tech.zoomidsoon.pickme_restful_api.models.Media;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 import tech.zoomidsoon.pickme_restful_api.repos.HobbyRepository.FindByNameList;
+import tech.zoomidsoon.pickme_restful_api.utils.ListUtils;
 import tech.zoomidsoon.pickme_restful_api.utils.Utils;
 
 public class UserRepository implements Repository<User> {
@@ -96,6 +97,7 @@ public class UserRepository implements Repository<User> {
 						stmt.setString(index++, media.getMediaName());
 						stmt.setInt(index++, media.getUserId());
 						stmt.setString(index++, media.getMediaType());
+						media.write();
 					}
 
 					if (stmt.executeUpdate() != user.getMedias().size()) {
@@ -162,8 +164,8 @@ public class UserRepository implements Repository<User> {
 			List<Media> removedMedias = new ArrayList<>();
 			List<Media> mergedMedias = new ArrayList<>();
 
-			Utils.diffList(inDB.getHobbies(), user.getHobbies(), addedHobbies, removedHobbies, mergedHobbies);
-			Utils.diffList(inDB.getMedias(), user.getMedias(), addedMedias, removedMedias, mergedMedias);
+			ListUtils.diffList(inDB.getHobbies(), user.getHobbies(), addedHobbies, removedHobbies, mergedHobbies);
+			ListUtils.diffList(inDB.getMedias(), user.getMedias(), addedMedias, removedMedias, mergedMedias);
 
 			Utils.copyNonNullFields(inDB, user, "email", "userId", "medias", "hobbies");
 
@@ -236,6 +238,7 @@ public class UserRepository implements Repository<User> {
 
 					for (Media media : removedMedias) {
 						stmt.setString(index++, media.getMediaName());
+						media.delete();
 					}
 
 					if (stmt.executeUpdate() != removedMedias.size()) {
@@ -256,6 +259,7 @@ public class UserRepository implements Repository<User> {
 						stmt.setString(index++, media.getMediaName());
 						stmt.setInt(index++, media.getUserId());
 						stmt.setString(index++, media.getMediaType());
+						media.write();
 					}
 
 					if (stmt.executeUpdate() != addedMedias.size()) {

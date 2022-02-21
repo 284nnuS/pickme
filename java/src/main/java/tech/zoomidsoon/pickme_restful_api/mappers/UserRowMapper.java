@@ -23,7 +23,7 @@ public class UserRowMapper extends RowMapper<User> {
 
 		if (!obj.isEmpty() && userId != obj.getUserId())
 			return true;
-
+		
 		if (obj.isEmpty()) {
 			obj.setUserId(userId);
 			obj.setName(rs.getString("name"));
