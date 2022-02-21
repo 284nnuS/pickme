@@ -1,17 +1,23 @@
 package tech.zoomidsoon.pickme_restful_api.controllers;
 
+import java.io.InputStream;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-
+import java.io.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataParam;
+
 
 import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
 import tech.zoomidsoon.pickme_restful_api.models.Media;
 import tech.zoomidsoon.pickme_restful_api.repos.MediaRepository;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
+import tech.zoomidsoon.pickme_restful_api.utils.Utils;
 
 @Path("/media")
 public class MediaController {
@@ -19,6 +25,7 @@ public class MediaController {
 	@Path("/{userId}/{mediaName}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response get(@PathParam("userId") int userId, @PathParam("mediaName") String mediaName) {
+
 		try {
 			try (Connection conn = DBContext.getConnection()) {
 				MediaRepository.FindByMediaNameAndUserId findByMediaNameAndUserId = new MediaRepository.FindByMediaNameAndUserId(
@@ -44,4 +51,23 @@ public class MediaController {
 
 		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
 	}
+	//Return media model
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response uploadFile(
+		@FormDataParam("file") InputStream uploadedUInputStream,
+		@FormDataParam("file") FormDataContentDisposition fileDetail,
+        @FormParam("userId") Integer userId){
+			// create the folder
+			String uploadedFileLocation =Utils.createFolder(String.valueOf(userId))+ "\\" + fileDetail.getFileName();
+			//Create media model
+			Media media = new Media(fileDetail.getFileName(),userId,fileDetail.getType());
+			//save the file
+			Utils.writeToFile(uploadedUInputStream, uploadedFileLocation);
+			
+    		return Response.status(200).entity(media).build();
+		}
+	
+	
+		
 }
