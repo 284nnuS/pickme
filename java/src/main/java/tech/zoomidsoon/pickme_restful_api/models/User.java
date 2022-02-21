@@ -21,6 +21,7 @@ public class User extends Entity {
 	private String avatar;
 	private Integer cautionTimes;
 	private List<String> hobbies;
+	private List<Media> medias;
 
 	public User(User other) {
 		this.userId = other.userId;

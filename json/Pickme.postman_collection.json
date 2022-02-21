@@ -1,0 +1,225 @@
+{
+   "info": {
+      "_postman_id": "d638a3ca-3ab3-4b35-82d6-445d792e4c36",
+      "name": "Pickme",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+   },
+   "item": [
+      {
+         "name": "List All Users",
+         "protocolProfileBehavior": {
+            "disableBodyPruning": true
+         },
+         "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+               "mode": "raw",
+               "raw": "{\n    \"name\": \"Someone\",\n    \"email\": \"abc123@gmail.com\",\n    \"role\": \"admin\",\n    \"gender\": \"male\",\n    \"bio\": \"\",\n    \"avatar\": \"\",\n    \"cautionTimes\": 0,\n    \"hobbies\": [],\n    \"medias\": [\n        {\n            \"mediaName\": \"voice1\",\n            \"mediaType\": \"voice\"\n        }\n    ]\n}",
+               "options": {
+                  "raw": {
+                     "language": "json"
+                  }
+               }
+            },
+            "url": {
+               "raw": "localhost:3001/user",
+               "host": ["localhost"],
+               "port": "3001",
+               "path": ["user"]
+            }
+         },
+         "response": []
+      },
+      {
+         "name": "Create New User",
+         "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+               "mode": "raw",
+               "raw": "{\n    \"name\": \"Someone\",\n    \"email\": \"abc123@gmail.com\",\n    \"role\": \"admin\",\n    \"gender\": \"male\",\n    \"bio\": \"\",\n    \"avatar\": \"\",\n    \"cautionTimes\": 0,\n    \"hobbies\": [],\n    \"medias\": [\n        {\n            \"mediaName\": \"voice1\",\n            \"mediaType\": \"voice\"\n        }\n    ]\n}",
+               "options": {
+                  "raw": {
+                     "language": "json"
+                  }
+               }
+            },
+            "url": {
+               "raw": "localhost:3001/user",
+               "host": ["localhost"],
+               "port": "3001",
+               "path": ["user"]
+            }
+         },
+         "response": []
+      },
+      {
+         "name": "Update User",
+         "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+               "mode": "raw",
+               "raw": "{\n    \"userId\": 22,\n    \"name\": \"AbcXyz\",\n    \"email\": \"abc123@gmail.com\",\n    \"role\": \"admin\",\n    \"gender\": \"male\",\n    \"bio\": \"\",\n    \"avatar\": \"\",\n    \"cautionTimes\": 0,\n    \"hobbies\": [\"game\"],\n    \"medias\": [\n        {\n            \"mediaName\": \"voice3\",\n            \"mediaType\": \"image\"\n        }\n    ]\n}",
+               "options": {
+                  "raw": {
+                     "language": "json"
+                  }
+               }
+            },
+            "url": {
+               "raw": "localhost:3001/user",
+               "host": ["localhost"],
+               "port": "3001",
+               "path": ["user"]
+            }
+         },
+         "response": []
+      },
+      {
+         "name": "Delete User",
+         "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+               "mode": "raw",
+               "raw": "{\n    \"name\": \"Someone\",\n    \"email\": \"abc123@gmail.com\",\n    \"role\": \"admin\",\n    \"gender\": \"male\",\n    \"bio\": \"\",\n    \"avatar\": \"\",\n    \"cautionTimes\": 0,\n    \"hobbies\": [],\n    \"medias\": [\n        {\n            \"mediaName\": \"voice1\",\n            \"mediaType\": \"voice\"\n        }\n    ]\n}",
+               "options": {
+                  "raw": {
+                     "language": "json"
+                  }
+               }
+            },
+            "url": {
+               "raw": "localhost:3001/user/id/14",
+               "host": ["localhost"],
+               "port": "3001",
+               "path": ["user", "id", "14"]
+            }
+         },
+         "response": []
+      },
+      {
+         "name": "List All Hobbies",
+         "protocolProfileBehavior": {
+            "disableBodyPruning": true
+         },
+         "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+               "mode": "raw",
+               "raw": "{\n    \"name\": \"Someone\",\n    \"email\": \"abc123@gmail.com\",\n    \"role\": \"admin\",\n    \"gender\": \"male\",\n    \"bio\": \"\",\n    \"avatar\": \"\",\n    \"cautionTimes\": 0,\n    \"hobbies\": [],\n    \"medias\": [\n        {\n            \"mediaName\": \"voice1\",\n            \"mediaType\": \"voice\"\n        }\n    ]\n}",
+               "options": {
+                  "raw": {
+                     "language": "json"
+                  }
+               }
+            },
+            "url": {
+               "raw": "localhost:3001/hobby",
+               "host": ["localhost"],
+               "port": "3001",
+               "path": ["hobby"]
+            }
+         },
+         "response": []
+      },
+      {
+         "name": "Create New Hobby",
+         "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+               "mode": "raw",
+               "raw": "{\n    \"hobbyName\": \"game\",\n    \"description\": \"Nothing to explain\"\n}",
+               "options": {
+                  "raw": {
+                     "language": "json"
+                  }
+               }
+            },
+            "url": {
+               "raw": "localhost:3001/hobby",
+               "host": ["localhost"],
+               "port": "3001",
+               "path": ["hobby"]
+            }
+         },
+         "response": []
+      },
+      {
+         "name": "Update Hobby",
+         "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+               "mode": "raw",
+               "raw": "{\n    \"hobbyName\": \"game\",\n    \"description\": \"Nothing to explain\"\n}",
+               "options": {
+                  "raw": {
+                     "language": "json"
+                  }
+               }
+            },
+            "url": {
+               "raw": "localhost:3001/hobby",
+               "host": ["localhost"],
+               "port": "3001",
+               "path": ["hobby"]
+            }
+         },
+         "response": []
+      },
+      {
+         "name": "Delete Hobby",
+         "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+               "mode": "raw",
+               "raw": "{\n    \"name\": \"Someone\",\n    \"email\": \"abc123@gmail.com\",\n    \"role\": \"admin\",\n    \"gender\": \"male\",\n    \"bio\": \"\",\n    \"avatar\": \"\",\n    \"cautionTimes\": 0,\n    \"hobbies\": [],\n    \"medias\": [\n        {\n            \"mediaName\": \"voice1\",\n            \"mediaType\": \"voice\"\n        }\n    ]\n}",
+               "options": {
+                  "raw": {
+                     "language": "json"
+                  }
+               }
+            },
+            "url": {
+               "raw": "localhost:3001/hobby/name/game",
+               "host": ["localhost"],
+               "port": "3001",
+               "path": ["hobby", "name", "game"]
+            }
+         },
+         "response": []
+      },
+      {
+         "name": "Get Media",
+         "protocolProfileBehavior": {
+            "disableBodyPruning": true
+         },
+         "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+               "mode": "raw",
+               "raw": "{\n    \"name\": \"Someone\",\n    \"email\": \"abc123@gmail.com\",\n    \"role\": \"admin\",\n    \"gender\": \"male\",\n    \"bio\": \"\",\n    \"avatar\": \"\",\n    \"cautionTimes\": 0,\n    \"hobbies\": [],\n    \"medias\": [\n        {\n            \"mediaName\": \"voice1\",\n            \"mediaType\": \"voice\"\n        }\n    ]\n}",
+               "options": {
+                  "raw": {
+                     "language": "json"
+                  }
+               }
+            },
+            "url": {
+               "raw": "localhost:3001/media/22/voice3",
+               "host": ["localhost"],
+               "port": "3001",
+               "path": ["media", "22", "voice3"]
+            }
+         },
+         "response": []
+      }
+   ]
+}
