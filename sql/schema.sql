@@ -43,7 +43,7 @@ CREATE TABLE `tblUser` (
   PRIMARY KEY (`userId`),
   UNIQUE KEY `tbluser_unique` (`email`,`avatar`),
   CONSTRAINT `tbluser_check_email` CHECK (regexp_like(`email`,_utf8mb4'^[a-z0-9!#$%&\'*+/=?^_`{|}~-]+(.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@([a-z0-9]+[a-z0-9-]*)*[a-z0-9]+(.([a-z0-9]+[a-z0-9-]*)*[a-z0-9]+)*.[a-z]{2,6}$'))
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 -- `DATABASE`.tblMatchStatus definition
@@ -65,7 +65,7 @@ CREATE TABLE `tblMedia` (
   `mediaName` varchar(30) NOT NULL,
   `userId` int NOT NULL,
   `mediaType` enum('voice','image') NOT NULL,
-  PRIMARY KEY (`mediaName`),
+  PRIMARY KEY (`mediaName`,`userId`),
   KEY `tblMedia_FK` (`userId`),
   CONSTRAINT `tblMedia_FK` FOREIGN KEY (`userId`) REFERENCES `tblUser` (`userId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -79,6 +79,7 @@ CREATE TABLE `tblMessage` (
   `sender` int NOT NULL,
   `receiver` int NOT NULL,
   `content` longtext NOT NULL,
+  `react` enum('like','love','haha','sad','angry') DEFAULT NULL,
   PRIMARY KEY (`messageId`),
   KEY `tblMessage_FK_1` (`receiver`),
   KEY `tblMessage_FK` (`sender`),
@@ -101,17 +102,6 @@ CREATE TABLE `tblNotification` (
   KEY `tblNotification_FK_1` (`targetUID`),
   CONSTRAINT `tblNotification_FK` FOREIGN KEY (`sourceUID`) REFERENCES `tblUser` (`userId`) ON DELETE CASCADE,
   CONSTRAINT `tblNotification_FK_1` FOREIGN KEY (`targetUID`) REFERENCES `tblUser` (`userId`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-
--- `DATABASE`.tblReactMessage definition
-
-CREATE TABLE `tblReactMessage` (
-  `messageId` bigint NOT NULL,
-  `react` enum('like','love','haha','sad','angry') NOT NULL,
-  PRIMARY KEY (`messageId`,`react`),
-  KEY `tblReactMessage_FK` (`messageId`),
-  CONSTRAINT `tblReactMessage_FK` FOREIGN KEY (`messageId`) REFERENCES `tblMessage` (`messageId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
