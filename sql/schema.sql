@@ -43,7 +43,7 @@ CREATE TABLE `tblUser` (
   PRIMARY KEY (`userId`),
   UNIQUE KEY `tbluser_unique` (`email`,`avatar`),
   CONSTRAINT `tbluser_check_email` CHECK (regexp_like(`email`,_utf8mb4'^[a-z0-9!#$%&\'*+/=?^_`{|}~-]+(.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@([a-z0-9]+[a-z0-9-]*)*[a-z0-9]+(.([a-z0-9]+[a-z0-9-]*)*[a-z0-9]+)*.[a-z]{2,6}$'))
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 -- `DATABASE`.tblMatchStatus definition
