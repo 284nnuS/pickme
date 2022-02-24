@@ -56,18 +56,12 @@ public class IOProcess {
 		file.delete();
 	}
 
-	public static byte[] readFromFile(String filePath) throws FileNotFoundException, IOException {
+	public static FileInputStream readFromFile(String filePath) throws FileNotFoundException, IOException {
 		File file = Paths.get(IOProcess.storageFolder, filePath).toAbsolutePath().toFile();
 
 		if (!file.exists())
 			throw new FileNotFoundException("Something went wrong");
 
-		byte[] buffer = new byte[(int) file.length()];
-
-		try (FileInputStream in = new FileInputStream(file)) {
-			in.read(buffer);
-		}
-
-		return buffer;
+		return new FileInputStream(file);
 	}
 }

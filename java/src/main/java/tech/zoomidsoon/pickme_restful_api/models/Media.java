@@ -1,5 +1,6 @@
 package tech.zoomidsoon.pickme_restful_api.models;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
@@ -44,11 +45,11 @@ public class Media extends Entity {
 		IOProcess.writeToFile(buffer, filePath, true);
 	}
 
-	public Pair<byte[], String> read() throws FileNotFoundException, IOException {
+	public Pair<FileInputStream, String> read() throws FileNotFoundException, IOException {
 		String filePath = String.format("./%s/%s", this.userId, this.mediaName);
-		byte[] buffer = IOProcess.readFromFile(filePath);
+		FileInputStream stream = IOProcess.readFromFile(filePath);
 		String mediaType = Files.probeContentType(Paths.get(filePath));
-		return new Pair<>(buffer, mediaType);
+		return new Pair<>(stream, mediaType);
 	}
 
 	public void delete() throws SecurityException, IOException {
