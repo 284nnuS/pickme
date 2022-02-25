@@ -16,17 +16,12 @@ public class HobbyRowMapper extends RowMapper<Hobby> {
 	}
 
 	@Override
-	public boolean mapRow(ResultSet rs, Hobby obj) throws SQLException {
+	public Boolean mapRow(ResultSet rs, Hobby obj) throws SQLException {
 		String hobbyName = rs.getString("hobbyName");
 
-		if (!obj.isEmpty() && hobbyName != null && !hobbyName.equals(obj.getHobbyName()))
-			return true;
+		obj.setHobbyName(hobbyName);
+		obj.setDescription(rs.getString("description"));
 
-		if (obj.isEmpty()) {
-			obj.setHobbyName(hobbyName);
-			obj.setDescription(rs.getString("description"));
-		}
-
-		return false;
+		return null;
 	}
 }

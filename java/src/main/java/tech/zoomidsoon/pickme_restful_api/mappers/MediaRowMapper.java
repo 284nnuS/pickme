@@ -16,18 +16,13 @@ public class MediaRowMapper extends RowMapper<Media> {
 	}
 
 	@Override
-	public boolean mapRow(ResultSet rs, Media obj) throws SQLException {
+	public Boolean mapRow(ResultSet rs, Media obj) throws SQLException {
 		String mediaName = rs.getString("mediaName");
 
-		if (!obj.isEmpty() && mediaName != null && !mediaName.equals(obj.getMediaName()))
-			return true;
+		obj.setMediaName(mediaName);
+		obj.setUserId(rs.getInt("userId"));
+		obj.setMediaType(rs.getString("mediaType"));
 
-		if (obj.isEmpty()) {
-			obj.setMediaName(mediaName);
-			obj.setUserId(rs.getInt("userId"));
-			obj.setMediaType(rs.getString("mediaType"));
-		}
-
-		return false;
+		return null;
 	}
 }

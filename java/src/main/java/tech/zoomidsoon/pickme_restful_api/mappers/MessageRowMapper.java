@@ -17,23 +17,17 @@ public class MessageRowMapper extends RowMapper<Message> {
 	}
 
 	@Override
-	public boolean mapRow(ResultSet rs, Message obj) throws SQLException {
+	public Boolean mapRow(ResultSet rs, Message obj) throws SQLException {
 		Long messageId = rs.getLong("messageId");
+		Timestamp time = rs.getTimestamp("time");
 
-		if (!obj.isEmpty() && messageId != null && !messageId.equals(obj.getMessageId()))
-			return true;
+		obj.setMessageId(messageId);
+		obj.setTime(time != null ? time.getTime() : null);
+		obj.setSender(rs.getInt("sender"));
+		obj.setReceiver(rs.getInt("receiver"));
+		obj.setContent(rs.getString("content"));
+		obj.setReact(rs.getString("react"));
 
-		if (obj.isEmpty()) {
-			Timestamp time = rs.getTimestamp("time");
-
-			obj.setMessageId(messageId);
-			obj.setTime(time != null ? time.getTime() : null);
-			obj.setSender(rs.getInt("sender"));
-			obj.setReceiver(rs.getInt("receiver"));
-			obj.setContent(rs.getString("content"));
-			obj.setReact(rs.getString("react"));
-		}
-
-		return false;
+		return null;
 	}
 }

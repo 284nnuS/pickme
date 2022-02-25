@@ -15,11 +15,13 @@ public abstract class RowMapper<E extends Entity> {
 		E obj = newGenericInstance(cls);
 
 		while (rs.next()) {
-			if (mapRow(rs, obj)) {
+			Boolean next = mapRow(rs, obj);
+			if (next == null || next) {
 				if (obj != null && !obj.isEmpty())
 					result.add(obj);
 				obj = newGenericInstance(cls);
-				rs.previous(); // Rollback previous row so when call next(), it won't change index
+				if (next != null && next)
+					rs.previous(); // Rollback previous to row so when call next(), it won't change index
 			}
 		}
 
@@ -39,6 +41,8 @@ public abstract class RowMapper<E extends Entity> {
 		return null;
 	}
 
-	// Return true to store the object of previous rows to list else continue
-	public abstract boolean mapRow(ResultSet rs, E obj) throws SQLException;
+	// - True: Store object and rollback to previous row
+	// - False: Do nothing
+	// - Null: Store object and NOT rollback to previous row
+	public abstract Boolean mapRow(ResultSet rs, E obj) throws SQLException;
 }
