@@ -52,8 +52,9 @@ public class HobbyRepository implements Repository<Hobby> {
 
 	@Override
 	public Result<Hobby, JsonAPIResponse.Error> update(Connection conn, Hobby hobby) throws Exception {
+		// Cannot update if hobbyName is missing
 		if (hobby.isEmpty())
-			return null;
+			return new Result<>(null, new JsonAPIResponse.Error(400, "hobbyName is required", ""));
 
 		FindByName fin = new FindByName(hobby.getHobbyName());
 		List<Hobby> list = HobbyRowMapper.getInstance().processResultSet(fin.query(conn), Hobby.class);
