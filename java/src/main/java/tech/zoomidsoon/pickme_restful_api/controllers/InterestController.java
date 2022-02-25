@@ -11,18 +11,18 @@ import javax.ws.rs.core.Response;
 import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
 import tech.zoomidsoon.pickme_restful_api.helpers.Result;
 import tech.zoomidsoon.pickme_restful_api.helpers.SQLErrors;
-import tech.zoomidsoon.pickme_restful_api.models.Hobby;
-import tech.zoomidsoon.pickme_restful_api.repos.HobbyRepository;
+import tech.zoomidsoon.pickme_restful_api.models.Interest;
+import tech.zoomidsoon.pickme_restful_api.repos.InterestRepository;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
 
-@Path("/hobby")
-public class HobbyController {
+@Path("/interest")
+public class InterestController {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response listAllHobbies() {
+	public Response listAllInterests() {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
-				List<Hobby> hobbies = HobbyRepository.getInstance().readAll(conn);
+				List<Interest> hobbies = InterestRepository.getInstance().readAll(conn);
 
 				return JsonAPIResponse.ok(hobbies);
 			} catch (SQLException e) {
@@ -40,10 +40,10 @@ public class HobbyController {
 
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response createNewHobby(Hobby hobby) {
+	public Response createNewInterest(Interest interest) {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
-				Result<Hobby, JsonAPIResponse.Error> result = HobbyRepository.getInstance().create(conn, hobby);
+				Result<Interest, JsonAPIResponse.Error> result = InterestRepository.getInstance().create(conn, interest);
 
 				return JsonAPIResponse.handleResult(result);
 			}
@@ -65,10 +65,10 @@ public class HobbyController {
 
 	@PUT
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response updateHobby(Hobby hobby) {
+	public Response updateInterest(Interest interest) {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
-				Result<Hobby, JsonAPIResponse.Error> result = HobbyRepository.getInstance().update(conn, hobby);
+				Result<Interest, JsonAPIResponse.Error> result = InterestRepository.getInstance().update(conn, interest);
 
 				return JsonAPIResponse.handleResult(result);
 			}
@@ -89,14 +89,14 @@ public class HobbyController {
 	}
 
 	@DELETE
-	@Path("/name/{hobbyName}")
+	@Path("/name/{interestName}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response deleteById(@PathParam("hobbyName") String hobbyName) {
+	public Response deleteById(@PathParam("interestName") String interestName) {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
-				Hobby hobby = new Hobby();
-				hobby.setHobbyName(hobbyName);
-				Result<Hobby, JsonAPIResponse.Error> result = HobbyRepository.getInstance().delete(conn, hobby);
+				Interest interest = new Interest();
+				interest.setInterestName(interestName);
+				Result<Interest, JsonAPIResponse.Error> result = InterestRepository.getInstance().delete(conn, interest);
 
 				return JsonAPIResponse.handleResult(result);
 			}
