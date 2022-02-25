@@ -75,7 +75,7 @@ CREATE TABLE `tblMedia` (
 
 CREATE TABLE `tblMessage` (
   `messageId` bigint NOT NULL AUTO_INCREMENT,
-  `time` datetime NOT NULL,
+  `time` timestamp NOT NULL,
   `sender` int NOT NULL,
   `receiver` int NOT NULL,
   `content` longtext NOT NULL,
