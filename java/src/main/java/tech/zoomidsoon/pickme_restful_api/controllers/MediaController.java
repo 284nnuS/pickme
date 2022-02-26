@@ -1,14 +1,17 @@
 package tech.zoomidsoon.pickme_restful_api.controllers;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
 import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
+import tech.zoomidsoon.pickme_restful_api.helpers.Pair;
 import tech.zoomidsoon.pickme_restful_api.models.Media;
 import tech.zoomidsoon.pickme_restful_api.repos.MediaRepository;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
@@ -17,8 +20,8 @@ import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
 public class MediaController {
 	@GET
 	@Path("/{userId}/{mediaName}")
-	@Produces(MediaType.APPLICATION_JSON)
 	public Response get(@PathParam("userId") int userId, @PathParam("mediaName") String mediaName) {
+
 		try {
 			try (Connection conn = DBContext.getConnection()) {
 				MediaRepository.FindByMediaNameAndUserId findByMediaNameAndUserId = new MediaRepository.FindByMediaNameAndUserId(
@@ -29,9 +32,24 @@ public class MediaController {
 					return JsonAPIResponse.handleError(404, "Media does not exist", "");
 
 				Media media = medias.get(0);
-				Media.Payload payload = new Media.Payload(media.getMediaType(), "<FILE CONTENT IN BASE64>");
+				Pair<FileInputStream, String> pair = media.read();
 
-				return JsonAPIResponse.ok(payload);
+				FileInputStream stream = pair.getOne();
+				StreamingOutput output = new StreamingOutput() {
+					@Override
+					public void write(OutputStream arg0) throws IOException, WebApplicationException {
+						byte[] buffer = new byte[1024 * 8];
+						int size;
+
+						while ((size = stream.read(buffer)) > 0) {
+							arg0.write(buffer, 0, size);
+							arg0.flush();
+						}
+						stream.close();
+					}
+				};
+
+				return Response.ok(output, pair.getTwo()).build();
 			} catch (SQLException e) {
 				Response response = JsonAPIResponse.handleSQLError(e);
 				if (response != null)

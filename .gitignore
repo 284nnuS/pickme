@@ -13,6 +13,7 @@
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 
+yarn-error.log
 
 ### Maven ###
 java/target/
@@ -26,6 +27,9 @@ java/.settings
 java/bin
 java/.apt_generated
 java/.apt_generated_tests
+
+# Default file storage location
+java/storage
 
 # Dependency directories
 node_modules/

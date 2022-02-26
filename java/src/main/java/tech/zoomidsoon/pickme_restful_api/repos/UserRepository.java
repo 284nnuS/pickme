@@ -15,7 +15,8 @@ import tech.zoomidsoon.pickme_restful_api.helpers.Result;
 import tech.zoomidsoon.pickme_restful_api.mappers.UserRowMapper;
 import tech.zoomidsoon.pickme_restful_api.models.Media;
 import tech.zoomidsoon.pickme_restful_api.models.User;
-import tech.zoomidsoon.pickme_restful_api.repos.HobbyRepository.FindByNameList;
+import tech.zoomidsoon.pickme_restful_api.repos.InterestRepository.FindByNameList;
+import tech.zoomidsoon.pickme_restful_api.utils.ListUtils;
 import tech.zoomidsoon.pickme_restful_api.utils.Utils;
 
 public class UserRepository implements Repository<User> {
@@ -33,7 +34,7 @@ public class UserRepository implements Repository<User> {
 		try {
 			if (user.getHobbies() != null && !user.getHobbies().isEmpty()) {
 				FindByNameList findByNameList = new FindByNameList(user.getHobbies());
-				if (HobbyRepository.getInstance().read(conn, findByNameList).size() != user.getHobbies().size()) {
+				if (InterestRepository.getInstance().read(conn, findByNameList).size() != user.getHobbies().size()) {
 					return new Result<>(null, new JsonAPIResponse.Error(500, "Some hobbies are not available", ""));
 				}
 			}
@@ -66,16 +67,16 @@ public class UserRepository implements Repository<User> {
 
 			user.getMedias().forEach(media -> media.setUserId(user.getUserId()));
 
-			// Create User-Hobby relation
+			// Create User-Interest relation
 			if (user.getHobbies().size() > 0) {
-				String query = String.format("INSERT INTO tblUserHobby (userId, hobbyName) VALUES %s",
+				String query = String.format("INSERT INTO tblUserInterest (userId, interestName) VALUES %s",
 						user.getHobbies().stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
 				try (PreparedStatement stmt = conn.prepareStatement(query)) {
 					int index = 1;
 
-					for (String hobbyName : user.getHobbies()) {
+					for (String interestName : user.getHobbies()) {
 						stmt.setInt(index++, user.getUserId());
-						stmt.setString(index++, hobbyName);
+						stmt.setString(index++, interestName);
 					}
 
 					if (stmt.executeUpdate() != user.getHobbies().size()) {
@@ -96,6 +97,11 @@ public class UserRepository implements Repository<User> {
 						stmt.setString(index++, media.getMediaName());
 						stmt.setInt(index++, media.getUserId());
 						stmt.setString(index++, media.getMediaType());
+						try {
+							media.write();
+						} catch (IllegalArgumentException e) {
+							return new Result<>(null, new JsonAPIResponse.Error(400, e.getMessage(), ""));
+						}
 					}
 
 					if (stmt.executeUpdate() != user.getMedias().size()) {
@@ -106,7 +112,6 @@ public class UserRepository implements Repository<User> {
 			}
 
 			conn.commit();
-			user.getMedias().forEach(media -> media.setUserId(null));
 
 			return new Result<>(user, null);
 
@@ -124,7 +129,6 @@ public class UserRepository implements Repository<User> {
 
 		try (ResultSet rs = criteria.query(conn)) {
 			List<User> result = UserRowMapper.getInstance().processResultSet(rs, User.class);
-			result.forEach(el -> el.getMedias().forEach(media -> media.setUserId(null)));
 			return result;
 		}
 	}
@@ -138,7 +142,7 @@ public class UserRepository implements Repository<User> {
 		try {
 			if (user.getHobbies() != null && !user.getHobbies().isEmpty()) {
 				FindByNameList findByNameList = new FindByNameList(user.getHobbies());
-				if (HobbyRepository.getInstance().read(conn, findByNameList).size() != user.getHobbies().size()) {
+				if (InterestRepository.getInstance().read(conn, findByNameList).size() != user.getHobbies().size()) {
 					return new Result<>(null, new JsonAPIResponse.Error(500, "Some hobbies are not available", ""));
 				}
 			}
@@ -162,8 +166,8 @@ public class UserRepository implements Repository<User> {
 			List<Media> removedMedias = new ArrayList<>();
 			List<Media> mergedMedias = new ArrayList<>();
 
-			Utils.diffList(inDB.getHobbies(), user.getHobbies(), addedHobbies, removedHobbies, mergedHobbies);
-			Utils.diffList(inDB.getMedias(), user.getMedias(), addedMedias, removedMedias, mergedMedias);
+			ListUtils.diffList(inDB.getHobbies(), user.getHobbies(), addedHobbies, removedHobbies, mergedHobbies);
+			ListUtils.diffList(inDB.getMedias(), user.getMedias(), addedMedias, removedMedias, mergedMedias);
 
 			Utils.copyNonNullFields(inDB, user, "email", "userId", "medias", "hobbies");
 
@@ -188,16 +192,16 @@ public class UserRepository implements Repository<User> {
 				}
 			}
 
-			// Remove User-Hobby relation
+			// Remove User-Interest relation
 			if (removedHobbies.size() > 0) {
-				String query = String.format("DELETE FROM tblUserHobby WHERE (userId, hobbyName) IN (%s)",
+				String query = String.format("DELETE FROM tblUserInterest WHERE (userId, interestName) IN (%s)",
 						removedHobbies.stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
 				try (PreparedStatement stmt = conn.prepareStatement(query)) {
 					int index = 1;
 
-					for (String hobbyName : removedHobbies) {
+					for (String interestName : removedHobbies) {
 						stmt.setInt(index++, newUser.getUserId());
-						stmt.setString(index++, hobbyName);
+						stmt.setString(index++, interestName);
 					}
 
 					if (stmt.executeUpdate() != removedHobbies.size()) {
@@ -207,16 +211,16 @@ public class UserRepository implements Repository<User> {
 				}
 			}
 
-			// Add User-Hobby relation
+			// Add User-Interest relation
 			if (addedHobbies.size() > 0) {
-				String query = String.format("INSERT INTO tblUserHobby (userId, hobbyName) VALUES %s",
+				String query = String.format("INSERT INTO tblUserInterest (userId, interestName) VALUES %s",
 						addedHobbies.stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
 				try (PreparedStatement stmt = conn.prepareStatement(query)) {
 					int index = 1;
 
-					for (String hobbyName : addedHobbies) {
+					for (String interestName : addedHobbies) {
 						stmt.setInt(index++, newUser.getUserId());
-						stmt.setString(index++, hobbyName);
+						stmt.setString(index++, interestName);
 					}
 
 					if (stmt.executeUpdate() != addedHobbies.size()) {
@@ -226,7 +230,7 @@ public class UserRepository implements Repository<User> {
 				}
 			}
 
-			// Remove User-Hobby relation
+			// Remove User-Interest relation
 			if (removedMedias.size() > 0) {
 				String query = String.format("DELETE FROM tblMedia WHERE (mediaName) IN (%s)",
 						removedMedias.stream().map(el -> "(?)").collect(Collectors.joining(", ")));
@@ -236,6 +240,7 @@ public class UserRepository implements Repository<User> {
 
 					for (Media media : removedMedias) {
 						stmt.setString(index++, media.getMediaName());
+						media.delete();
 					}
 
 					if (stmt.executeUpdate() != removedMedias.size()) {
@@ -256,6 +261,11 @@ public class UserRepository implements Repository<User> {
 						stmt.setString(index++, media.getMediaName());
 						stmt.setInt(index++, media.getUserId());
 						stmt.setString(index++, media.getMediaType());
+						try {
+							media.write();
+						} catch (IllegalArgumentException e) {
+							return new Result<>(null, new JsonAPIResponse.Error(400, e.getMessage(), ""));
+						}
 					}
 
 					if (stmt.executeUpdate() != addedMedias.size()) {
@@ -266,7 +276,6 @@ public class UserRepository implements Repository<User> {
 			}
 
 			conn.commit();
-			user.getMedias().forEach(media -> media.setUserId(null));
 
 			return new Result<>(newUser, null);
 		} catch (Exception e) {
@@ -298,7 +307,6 @@ public class UserRepository implements Repository<User> {
 			}
 
 			conn.commit();
-			user.getMedias().forEach(media -> media.setUserId(null));
 
 			return new Result<>(user, null);
 
@@ -311,15 +319,14 @@ public class UserRepository implements Repository<User> {
 	@Override
 	public List<User> readAll(Connection conn) throws Exception {
 		try (PreparedStatement stmt = conn.prepareStatement(
-				"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName, c.mediaName, c.MediaType \n"
+				"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
 						+ "FROM tblUser a \n"
-						+ "LEFT OUTER JOIN tblUserHobby b ON a.userId = b.userId \n"
+						+ "LEFT OUTER JOIN tblUserInterest b ON a.userId = b.userId \n"
 						+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId ",
 				ResultSet.TYPE_SCROLL_INSENSITIVE,
 				ResultSet.CONCUR_READ_ONLY)) {
 			try (ResultSet rs = stmt.executeQuery()) {
 				List<User> result = UserRowMapper.getInstance().processResultSet(rs, User.class);
-				result.forEach(el -> el.getMedias().forEach(media -> media.setUserId(null)));
 				return result;
 			}
 		}
@@ -332,9 +339,9 @@ public class UserRepository implements Repository<User> {
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
 			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName, c.mediaName, c.MediaType \n"
+					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
 							+ "FROM tblUser a \n"
-							+ "LEFT OUTER JOIN tblUserHobby b ON a.userId = b.userId \n"
+							+ "LEFT OUTER JOIN tblUserInterest b ON a.userId = b.userId \n"
 							+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId \n"
 							+ "WHERE a.userId = ?",
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -351,9 +358,9 @@ public class UserRepository implements Repository<User> {
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
 			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName, c.mediaName, c.MediaType \n"
+					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
 							+ "FROM tblUser a \n"
-							+ "LEFT OUTER JOIN tblUserHobby b ON a.userId = b.userId \n"
+							+ "LEFT OUTER JOIN tblUserInterest b ON a.userId = b.userId \n"
 							+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId \n"
 							+ "WHERE a.name LIKE '%?%'",
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -370,9 +377,9 @@ public class UserRepository implements Repository<User> {
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
 			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.hobbyName, c.mediaName, c.MediaType \n"
+					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
 							+ "FROM tblUser a \n"
-							+ "LEFT OUTER JOIN tblUserHobby b ON a.userId = b.userId \n"
+							+ "LEFT OUTER JOIN tblUserInterest b ON a.userId = b.userId \n"
 							+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId \n"
 							+ "WHERE a.email = ?",
 					ResultSet.TYPE_SCROLL_INSENSITIVE,

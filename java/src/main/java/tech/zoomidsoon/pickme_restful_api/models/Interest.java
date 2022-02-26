@@ -8,12 +8,12 @@ import lombok.*;
 @Setter
 @ToString
 @EqualsAndHashCode(callSuper = false)
-public class Hobby extends Entity {
-	private String hobbyName;
+public class Interest extends Entity {
+	private String interestName;
 	private String description;
 
 	@Override
 	public boolean isEmpty() {
-		return this.hobbyName == null;
+		return this.interestName == null;
 	}
 }

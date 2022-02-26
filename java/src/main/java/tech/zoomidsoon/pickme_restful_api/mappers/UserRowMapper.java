@@ -18,7 +18,7 @@ public class UserRowMapper extends RowMapper<User> {
 	}
 
 	@Override
-	public boolean mapRow(ResultSet rs, User obj) throws SQLException {
+	public Boolean mapRow(ResultSet rs, User obj) throws SQLException {
 		int userId = rs.getInt("userId");
 
 		if (!obj.isEmpty() && userId != obj.getUserId())
@@ -37,9 +37,9 @@ public class UserRowMapper extends RowMapper<User> {
 			obj.setMedias(new ArrayList<>());
 		}
 
-		String hobbyName = rs.getString("hobbyName");
-		if (hobbyName != null && !obj.getHobbies().contains(hobbyName))
-			obj.getHobbies().add(hobbyName);
+		String interestName = rs.getString("interestName");
+		if (interestName != null && !obj.getHobbies().contains(interestName))
+			obj.getHobbies().add(interestName);
 
 		Media media = new Media();
 		MediaRowMapper.getInstance().mapRow(rs, media);
