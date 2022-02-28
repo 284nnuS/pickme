@@ -9,7 +9,11 @@ export default function route(app: Express, nextApp: NextServer) {
    // eslint-disable-next-line @typescript-eslint/no-explicit-any
    const handler = (req: any, res: any) => nextHandler(req, res)
 
-   app.all('/app/*', permit('user', 'mod', 'admin'), handler)
+   app.all('/api/*', handler)
+
+   // app.all('/auth/signUp/', permit('none'), handler)
+
+   app.all('/app/*', permit('user'), handler)
 
    app.all('/*', handler)
 }

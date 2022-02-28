@@ -32,10 +32,10 @@ public class UserRepository implements Repository<User> {
 	@Override
 	public Result<User, JsonAPIResponse.Error> create(Connection conn, User user) throws Exception {
 		try {
-			if (user.getHobbies() != null && !user.getHobbies().isEmpty()) {
-				FindByNameList findByNameList = new FindByNameList(user.getHobbies());
-				if (InterestRepository.getInstance().read(conn, findByNameList).size() != user.getHobbies().size()) {
-					return new Result<>(null, new JsonAPIResponse.Error(500, "Some hobbies are not available", ""));
+			if (user.getInterests() != null && !user.getInterests().isEmpty()) {
+				FindByNameList findByNameList = new FindByNameList(user.getInterests());
+				if (InterestRepository.getInstance().read(conn, findByNameList).size() != user.getInterests().size()) {
+					return new Result<>(null, new JsonAPIResponse.Error(500, "Some interest are not available", ""));
 				}
 			}
 
@@ -68,18 +68,18 @@ public class UserRepository implements Repository<User> {
 			user.getMedias().forEach(media -> media.setUserId(user.getUserId()));
 
 			// Create User-Interest relation
-			if (user.getHobbies().size() > 0) {
+			if (user.getInterests().size() > 0) {
 				String query = String.format("INSERT INTO tblUserInterest (userId, interestName) VALUES %s",
-						user.getHobbies().stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
+						user.getInterests().stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
 				try (PreparedStatement stmt = conn.prepareStatement(query)) {
 					int index = 1;
 
-					for (String interestName : user.getHobbies()) {
+					for (String interestName : user.getInterests()) {
 						stmt.setInt(index++, user.getUserId());
 						stmt.setString(index++, interestName);
 					}
 
-					if (stmt.executeUpdate() != user.getHobbies().size()) {
+					if (stmt.executeUpdate() != user.getInterests().size()) {
 						conn.rollback();
 						return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 					}
@@ -140,10 +140,10 @@ public class UserRepository implements Repository<User> {
 			return new Result<>(null, new JsonAPIResponse.Error(400, "userId is required", ""));
 
 		try {
-			if (user.getHobbies() != null && !user.getHobbies().isEmpty()) {
-				FindByNameList findByNameList = new FindByNameList(user.getHobbies());
-				if (InterestRepository.getInstance().read(conn, findByNameList).size() != user.getHobbies().size()) {
-					return new Result<>(null, new JsonAPIResponse.Error(500, "Some hobbies are not available", ""));
+			if (user.getInterests() != null && !user.getInterests().isEmpty()) {
+				FindByNameList findByNameList = new FindByNameList(user.getInterests());
+				if (InterestRepository.getInstance().read(conn, findByNameList).size() != user.getInterests().size()) {
+					return new Result<>(null, new JsonAPIResponse.Error(500, "Some interest are not available", ""));
 				}
 			}
 
@@ -159,20 +159,21 @@ public class UserRepository implements Repository<User> {
 
 			User inDB = list.get(0);
 
-			List<String> addedHobbies = new ArrayList<>();
-			List<String> removedHobbies = new ArrayList<>();
-			List<String> mergedHobbies = new ArrayList<>();
+			List<String> addedInterests = new ArrayList<>();
+			List<String> removedInterests = new ArrayList<>();
+			List<String> mergedInterests = new ArrayList<>();
 			List<Media> addedMedias = new ArrayList<>();
 			List<Media> removedMedias = new ArrayList<>();
 			List<Media> mergedMedias = new ArrayList<>();
 
-			ListUtils.diffList(inDB.getHobbies(), user.getHobbies(), addedHobbies, removedHobbies, mergedHobbies);
+			ListUtils.diffList(inDB.getInterests(), user.getInterests(), addedInterests, removedInterests,
+					mergedInterests);
 			ListUtils.diffList(inDB.getMedias(), user.getMedias(), addedMedias, removedMedias, mergedMedias);
 
-			Utils.copyNonNullFields(inDB, user, "email", "userId", "medias", "hobbies");
+			Utils.copyNonNullFields(inDB, user, "email", "userId", "medias", "interest");
 
 			User newUser = inDB;
-			newUser.setHobbies(mergedHobbies);
+			newUser.setInterests(mergedInterests);
 			newUser.setMedias(mergedMedias);
 
 			// Update user in database
@@ -193,18 +194,18 @@ public class UserRepository implements Repository<User> {
 			}
 
 			// Remove User-Interest relation
-			if (removedHobbies.size() > 0) {
+			if (removedInterests.size() > 0) {
 				String query = String.format("DELETE FROM tblUserInterest WHERE (userId, interestName) IN (%s)",
-						removedHobbies.stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
+						removedInterests.stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
 				try (PreparedStatement stmt = conn.prepareStatement(query)) {
 					int index = 1;
 
-					for (String interestName : removedHobbies) {
+					for (String interestName : removedInterests) {
 						stmt.setInt(index++, newUser.getUserId());
 						stmt.setString(index++, interestName);
 					}
 
-					if (stmt.executeUpdate() != removedHobbies.size()) {
+					if (stmt.executeUpdate() != removedInterests.size()) {
 						conn.rollback();
 						return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 					}
@@ -212,18 +213,18 @@ public class UserRepository implements Repository<User> {
 			}
 
 			// Add User-Interest relation
-			if (addedHobbies.size() > 0) {
+			if (addedInterests.size() > 0) {
 				String query = String.format("INSERT INTO tblUserInterest (userId, interestName) VALUES %s",
-						addedHobbies.stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
+						addedInterests.stream().map(el -> "(?,?)").collect(Collectors.joining(", ")));
 				try (PreparedStatement stmt = conn.prepareStatement(query)) {
 					int index = 1;
 
-					for (String interestName : addedHobbies) {
+					for (String interestName : addedInterests) {
 						stmt.setInt(index++, newUser.getUserId());
 						stmt.setString(index++, interestName);
 					}
 
-					if (stmt.executeUpdate() != addedHobbies.size()) {
+					if (stmt.executeUpdate() != addedInterests.size()) {
 						conn.rollback();
 						return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 					}

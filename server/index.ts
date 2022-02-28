@@ -1,10 +1,8 @@
 import http from 'http'
 import next from 'next'
 import express, { Express } from 'express'
-import { nextAuth, authorize } from './security'
-import helmet from 'helmet'
+import { authorize } from './security'
 import attach from './websocket'
-import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import route from './routes'
 
@@ -15,15 +13,9 @@ const app: Express = express()
 const nextApp = next({ dev })
 const server = http.createServer(app)
 
-app.use(
-   helmet({
-      contentSecurityPolicy: !dev,
-   }),
-)
+app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(bodyParser.json())
 app.use(cookieParser())
-app.use(nextAuth)
 app.use(authorize)
 
 attach(server)

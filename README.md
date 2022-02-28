@@ -57,8 +57,7 @@ All .env files put in configs folder
    -  GOOGLE_CLIENT_SECRET
    -  SECRET_KEY
    -  JAVA_SERVER_URL
-   -  NEXT_PUBLIC_URL (\*)
-   -  NEXTAUTH_URL (\*)
+   -  NEXTAUTH_URL
 
 -  java.env
    -  DB_HOSTNAME (default: "localhost")
@@ -67,11 +66,6 @@ All .env files put in configs folder
    -  DB_PASSWORD
 -  db.env
    -  MYSQL_ROOT_PASSWORD
-
-### Note:
-
--  (\*) Both have the same value
-
 ## Start development
 
 ```sh
