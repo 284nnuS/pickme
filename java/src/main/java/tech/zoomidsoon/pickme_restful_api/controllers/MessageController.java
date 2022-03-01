@@ -40,13 +40,34 @@ public class MessageController {
 		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
 	}
 
-	@GET
+	@Path("/get")
+	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getMessages(MessageRepository.FindByTimeAndUserId findByTimeAndUserId) {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
 				List<Message> messages = MessageRepository.getInstance().read(conn, findByTimeAndUserId);
 				return JsonAPIResponse.ok(messages);
+			} catch (SQLException e) {
+				Response response = JsonAPIResponse.handleSQLError(e);
+				if (response != null)
+					return response;
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+			e.printStackTrace();
+		}
+
+		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
+	}
+
+	@PUT
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response updateMessage(Message message) {
+		try {
+			try (Connection conn = DBContext.getConnection()) {
+				Result<Message, JsonAPIResponse.Error> result = MessageRepository.getInstance().update(conn, message);
+				return JsonAPIResponse.handleResult(result);
 			} catch (SQLException e) {
 				Response response = JsonAPIResponse.handleSQLError(e);
 				if (response != null)

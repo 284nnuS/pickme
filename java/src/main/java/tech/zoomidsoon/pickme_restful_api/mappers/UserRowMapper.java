@@ -33,13 +33,13 @@ public class UserRowMapper extends RowMapper<User> {
 			obj.setGender(rs.getString("gender"));
 			obj.setRole(rs.getString("role"));
 			obj.setCautionTimes(rs.getInt("cautionTimes"));
-			obj.setHobbies(new ArrayList<>());
+			obj.setInterests(new ArrayList<>());
 			obj.setMedias(new ArrayList<>());
 		}
 
 		String interestName = rs.getString("interestName");
-		if (interestName != null && !obj.getHobbies().contains(interestName))
-			obj.getHobbies().add(interestName);
+		if (interestName != null && !obj.getInterests().contains(interestName))
+			obj.getInterests().add(interestName);
 
 		Media media = new Media();
 		MediaRowMapper.getInstance().mapRow(rs, media);

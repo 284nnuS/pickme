@@ -15,6 +15,7 @@ import tech.zoomidsoon.pickme_restful_api.mappers.MessageRowMapper;
 import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
 import tech.zoomidsoon.pickme_restful_api.helpers.Result;
 import tech.zoomidsoon.pickme_restful_api.models.Message;
+import tech.zoomidsoon.pickme_restful_api.utils.Utils;
 
 public class MessageRepository implements Repository<Message> {
 	private static final Repository<Message> singleton = new MessageRepository();
@@ -65,7 +66,20 @@ public class MessageRepository implements Repository<Message> {
 
 	@Override
 	public Result<Message, Error> update(Connection conn, Message message) throws Exception {
-		throw new UnsupportedOperationException("Message Repository does not support updating");
+		// Cannot update if messageId is missing
+		if (message.isEmpty())
+			return new Result<>(null, new JsonAPIResponse.Error(400, "messageId is required", ""));
+
+		try (PreparedStatement stmt = conn.prepareStatement(
+				"UPDATE tblMessage SET react = ? WHERE messageId = ?")) {
+			stmt.setString(1, message.getReact());
+			stmt.setLong(2, message.getMessageId());
+
+			if (stmt.executeUpdate() > 0)
+				return new Result<>(message, null);
+
+			return new Result<>(null, new JsonAPIResponse.Error(400, "messageId not found", ""));
+		}
 	}
 
 	@Override
@@ -76,6 +90,21 @@ public class MessageRepository implements Repository<Message> {
 	@Override
 	public List<Message> readAll(Connection conn) throws Exception {
 		throw new UnsupportedOperationException("Message Repository does not support readAll");
+	}
+
+	@AllArgsConstructor
+	public static class FindById implements Criteria {
+		private Long messageId;
+
+		@Override
+		public ResultSet query(Connection conn) throws Exception {
+			PreparedStatement stmt = conn.prepareStatement(
+					"SELECT * FROM tblMessage WHERE messageId = ?",
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			stmt.setLong(1, messageId);
+			return stmt.executeQuery();
+		}
 	}
 
 	@NoArgsConstructor

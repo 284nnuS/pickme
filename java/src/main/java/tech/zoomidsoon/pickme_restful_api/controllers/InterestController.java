@@ -22,9 +22,9 @@ public class InterestController {
 	public Response listAllInterests() {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
-				List<Interest> hobbies = InterestRepository.getInstance().readAll(conn);
+				List<Interest> interests = InterestRepository.getInstance().readAll(conn);
 
-				return JsonAPIResponse.ok(hobbies);
+				return JsonAPIResponse.ok(interests);
 			} catch (SQLException e) {
 				Response response = JsonAPIResponse.handleSQLError(e);
 				if (response != null)
