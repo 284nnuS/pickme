@@ -8,28 +8,28 @@ const people = [
       name: 'Thu Hoai',
       age: 20,
       url: '../../public/static/images/angry.png',
-      bio: 'bla bla',
+      bio: 'The greatest glory in living lies not in never falling, but in rising every time we fall.',
       voice: '...',
    },
    {
       name: 'Thu Hoai1',
       age: 20,
       url: '../../public/static/images/angry16.png',
-      bio: 'bla bla',
+      bio: 'The greatest glory in living lies not in never falling, but in rising every time we fall.',
       voice: '...',
    },
    {
       name: 'Thu Hoai2',
       age: 20,
       url: '../../public/static/images/angry32.png',
-      bio: 'bla bla',
+      bio: 'The way to get started is to quit talking and begin doing. ',
       voice: '...',
    },
    {
       name: 'Thu Hoai3',
       age: 20,
       url: '../../public/static/images/facebook.png',
-      bio: 'bla bla',
+      bio: 'The way to get started is to quit talking and begin doing. ',
       voice: '...',
    },
 ]
@@ -76,7 +76,7 @@ const PickmeCard = () => {
 
    return (
       <center>
-         <div className="h-[720px] w-[400px] relative">
+         <div className="h-[720px] w-[400px] relative m-2 rounded-2xl ">
             {people.map((person, index) => (
                <TinderCard
                   ref={childRefs[index]}
