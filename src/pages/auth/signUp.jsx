@@ -93,24 +93,7 @@ export default function SignUp({ allInterests }) {
                         />
                      </div>
                   </div>
-                  <SegmentedControl
-                     value={gender}
-                     setValue={setGender}
-                     data={[
-                        {
-                           name: 'male',
-                           label: 'Male',
-                        },
-                        {
-                           name: 'female',
-                           label: 'Female',
-                        },
-                        {
-                           name: 'others',
-                           label: 'Others',
-                        },
-                     ]}
-                  />
+                  <SegmentedControl value={gender} setValue={setGender} data={['male', 'female', 'others']} />
                   <div>
                      <label className="block mb-2 text-sm font-bold text-gray-900 dark:text-gray-400">Birthday</label>
                      <DatePicker

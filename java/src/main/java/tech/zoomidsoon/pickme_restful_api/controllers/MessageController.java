@@ -15,6 +15,7 @@ import tech.zoomidsoon.pickme_restful_api.models.Message;
 import tech.zoomidsoon.pickme_restful_api.repos.MessageRepository;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
 
+@SuppressWarnings({ "unchecked" })
 @Path("/message")
 public class MessageController {
 	@POST

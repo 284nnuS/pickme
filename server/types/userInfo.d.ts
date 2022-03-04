@@ -1,7 +1,8 @@
 interface UserInfo {
-   id: string
+   userId: number
    email: string
    name: string
-   role: string
+   gender: Gender
+   role?: string
    avatar: string
 }

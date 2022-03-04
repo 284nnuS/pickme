@@ -15,8 +15,9 @@
       "jsx": "preserve",
       "incremental": true,
       "baseUrl": ".",
+      "typeRoots": ["./server/types", "./types"],
       "paths": {
-         "@/shared/*": ["shared/*"]
+         "~/*": ["./*"]
       }
    },
    "ts-node": {
@@ -24,5 +25,11 @@
    },
    "files": ["global.d.ts"],
    "exclude": ["node_modules"],
-   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"]
+   "include": [
+      "next-env.d.ts",
+      "**/*.ts",
+      "**/*.tsx",
+      "src/components/PickmeCard.jsx",
+      "src/components/SegmentedControl.jsx"
+   ]
 }

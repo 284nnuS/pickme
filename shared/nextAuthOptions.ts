@@ -1,7 +1,7 @@
 import GoogleProvider from 'next-auth/providers/google'
 import FacebookProvider from 'next-auth/providers/facebook'
 import axios from 'axios'
-import { NextAuthOptions, Session, User } from 'next-auth'
+import { NextAuthOptions, User } from 'next-auth'
 import { JWT } from 'next-auth/jwt'
 
 export const getUserInfo = async (email: string) => {
@@ -40,16 +40,12 @@ const nextAuthOptions: NextAuthOptions = {
          else if (url.startsWith('/')) return new URL(url, baseUrl).toString()
          return baseUrl
       },
-      async session({ session, token }: { session: Session; token: JWT; user: User }) {
+      async session({ session, token }) {
          const res = await getUserInfo(token.email)
-         if (res && 'data' in res)
-            session.user = {
-               email: token.email,
-               role: res['data'].role,
-               name: res['data'].name,
-               id: res['data'].userId,
-               avatar: res['data'].avatar,
-            }
+         if (res && 'data' in res) {
+            const userInfo: UserInfo = { email: token.email, ...res['data'] }
+            session['userInfo'] = userInfo
+         }
          return session
       },
    },

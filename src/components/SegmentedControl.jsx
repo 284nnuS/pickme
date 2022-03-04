@@ -8,7 +8,7 @@ function SegmentedControl({ data, value, setValue }) {
          <fieldset className="grid grid-cols-3 mt-2 gap-x-1" onChange={(e) => setValue(e.target.value)} value={value}>
             {data.map((el, i) => {
                return (
-                  <div key={el.name} className="w-32 h-12">
+                  <div key={el} className="w-32 h-12">
                      <input
                         type="radio"
                         name="gender"
@@ -19,10 +19,10 @@ function SegmentedControl({ data, value, setValue }) {
                      />
                      <button
                         type="button"
-                        className="w-full h-full text-sm text-center text-gray-900 bg-white border border-gray-300 rounded-lg peer-checked:bg-gray-900 peer-checked:text-white"
+                        className="w-full h-full text-sm text-center text-gray-900 capitalize bg-white border border-gray-300 rounded-lg peer-checked:bg-gray-900 peer-checked:text-white"
                         onClick={() => radioRefs.current[i].click()}
                      >
-                        {el.label}
+                        {el}
                      </button>
                   </div>
                )

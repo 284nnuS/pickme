@@ -51,7 +51,21 @@ public class MatchStatusRepository implements Repository<MatchStatus> {
 
 	@Override
 	public Result<MatchStatus, Error> update(Connection conn, MatchStatus matchStatus) throws Exception {
-		throw new UnsupportedOperationException("MatchStatus Repository does not support updating");
+		// Cannot update if userIds is missing
+		if (matchStatus.isEmpty())
+			return new Result<>(null, new JsonAPIResponse.Error(400, "userIdOne and userIdTwo are required", ""));
+
+		try (PreparedStatement stmt = conn.prepareStatement(
+				"UPDATE tblMatchStatus SET like = ? WHERE userIdOne = ? AND userIdTwo = ?")) {
+			stmt.setInt(1, matchStatus.getUserIdOne());
+			stmt.setInt(2, matchStatus.getUserIdTwo());
+			stmt.setBoolean(3, matchStatus.getLike());
+
+			if (stmt.executeUpdate() != 1)
+				return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
+
+			return new Result<>(matchStatus, null);
+		}
 	}
 
 	@Override

@@ -10,9 +10,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.*;
-import tech.zoomidsoon.pickme_restful_api.mixin.MediaMixin;
-import tech.zoomidsoon.pickme_restful_api.models.Media;
 
+@SuppressWarnings({ "rawtypes", "unchecked" })
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,14 +22,11 @@ public class JsonAPIResponse {
 	private Error error;
 
 	public static JsonAPIResponse.Error SERVER_ERROR = new JsonAPIResponse.Error(500, "Something went wrong", "");
-	private static ObjectMapper mapper;
 
-	static {
-		mapper = new ObjectMapper();
-		mapper.addMixIn(Media.class, MediaMixin.class);
-	}
-
-	public static Response ok(Object data) throws JsonProcessingException {
+	public static Response ok(Object data, Pair<Class, Class>... mixins) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		for (Pair<Class, Class> pair : mixins)
+			mapper.addMixIn(pair.getOne(), pair.getTwo());
 		JsonAPIResponse response = new JsonAPIResponse();
 		response.data = data;
 		byte[] output = mapper.writeValueAsBytes(response);

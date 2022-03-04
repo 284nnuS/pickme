@@ -1,17 +1,17 @@
-import { useRef } from 'react'
+import { Dispatch, SetStateAction, useRef } from 'react'
 import { BsPlus } from 'react-icons/bs'
 import { MdKeyboardVoice } from 'react-icons/md'
 
-function VoiceUpload({ voice, setVoice }) {
-   const inputRef = useRef()
+function VoiceUpload({ voice, setVoice }: { voice: File; setVoice: Dispatch<SetStateAction<File>> }) {
+   const inputRef = useRef<HTMLInputElement>()
 
-   const handleFile = (file, callback) => {
-      let reader = new FileReader()
+   const handleFile = (file: globalThis.File, callback: (file: File) => void) => {
+      const reader = new FileReader()
       reader.onload = (e) => {
          callback.call(null, {
             name: file.name,
             dataUrl: e.target.result,
-         })
+         } as File)
       }
       reader.readAsDataURL(file)
    }
