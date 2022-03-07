@@ -1,26 +1,14 @@
 import Head from 'next/head'
 import { useSession, signIn } from 'next-auth/react'
+import Guide from '../components/Guide'
+import MatchesList from '../components/MatchesList'
 
 function Index() {
    const { data: session } = useSession()
 
    return (
       <>
-         <Head>
-            <title>Home</title>
-         </Head>
-         <div className="flex justify-center items-center w-screen h-screen">
-            {!session && (
-               <button
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 
-					font-semibold rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 
-					dark:focus:ring-blue-800"
-                  onClick={() => signIn()}
-               >
-                  Login
-               </button>
-            )}
-         </div>
+         <MatchesList />
       </>
    )
 }
