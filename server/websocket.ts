@@ -29,7 +29,7 @@ sio.on('connection', (socket: Socket) => {
    socket.join('uid-' + socket['userId'])
 
    socket
-      .on('Get more messages', ({ time, otherId, num }) => {
+      .on('Get more messages', ({ time, otherId, num }: GetMoreMessages) => {
          const getMessageReq = {
             time,
             userIdOne: socket['userId'],
@@ -38,35 +38,48 @@ sio.on('connection', (socket: Socket) => {
          }
 
          axios.post(`${env.javaServerUrl}/message/get`, getMessageReq).then((res) => {
-            const messages = res.data.data
+            const messages: Message[] = res.data.data
             sio.emit('Messages', messages)
          })
       })
-      .on('Send message', ({ targetId, content }) => {
+      .on('Send message', ({ otherId, content }: SendMessage) => {
          const message = {
             time: new Date().getTime(),
             sender: socket['userId'],
-            receiver: targetId,
+            receiver: otherId,
             content,
          }
 
          axios
             .post(`${env.javaServerUrl}/message`, message)
             .then((res) => {
-               const message = res.data.data
+               const message: Message = res.data.data
                sio.emit('New message', message)
-               sio.to('uid-' + targetId).emit('New message', message)
+               sio.to('uid-' + otherId).emit('New message', message)
             })
             .catch((err) => {
                console.log(err.response.data)
             })
       })
-      .on('React to message', ({ messageId, sender, receiver, react }) => {
-         axios.put(`${env.javaServerUrl}/message`, { messageId, sender, receiver, react }).then((response) => {
-            const message = response.data.data
+      .on('React to message', ({ messageId, sender, receiver, content, react }: ReactToMessage) => {
+         if (sender !== socket['userId'] && receiver !== socket['userId']) return
+         console.log({ messageId, sender, receiver, content, react })
+         axios.put(`${env.javaServerUrl}/message`, { messageId, sender, receiver, content, react }).then((response) => {
+            const message: Message = response.data.data
             sio.emit('React to message', message)
-            sio.to(message.sender === socket['userId'] ? message.receiver : message.sender).emit(
+            sio.to('' + (message.sender === (socket['userId'] as number) ? message.receiver : message.sender)).emit(
                'React to message',
+               message,
+            )
+         })
+      })
+      .on('Delete message', ({ messageId, sender, receiver }: DeleteMessage) => {
+         if (sender !== socket['userId'] && receiver !== socket['userId']) return
+         axios.put(`${env.javaServerUrl}/message`, { messageId, sender, receiver, content: null }).then((response) => {
+            const message: Message = response.data.data
+            sio.emit('Delete message', message)
+            sio.to('' + (message.sender === (socket['userId'] as number) ? message.receiver : message.sender)).emit(
+               'Delete message',
                message,
             )
          })

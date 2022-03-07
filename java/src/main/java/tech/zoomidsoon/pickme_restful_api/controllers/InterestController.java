@@ -15,6 +15,7 @@ import tech.zoomidsoon.pickme_restful_api.models.Interest;
 import tech.zoomidsoon.pickme_restful_api.repos.InterestRepository;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
 
+@SuppressWarnings({ "unchecked" })
 @Path("/interest")
 public class InterestController {
 	@GET

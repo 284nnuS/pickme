@@ -1,43 +1,44 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, FormEvent } from 'react'
 import classNames from 'classnames'
-import Image from 'next/image'
 import { MdSend } from 'react-icons/md'
 import { io } from 'socket.io-client'
 import { useThrottle, useThrottleCallback } from '@react-hook/throttle'
-import { RiEmotionLine } from 'react-icons/ri'
-import { Menu, Popover } from '@mantine/core'
 import { ReactSelect } from '.'
+import { Image, Tooltip } from '@mantine/core'
+import { AiOutlineRollback } from 'react-icons/ai'
 
-function ChatBox({ yourId, otherId, otherAvatar, otherName }) {
+function ChatBox({ yourId, other }: { yourId: number; other: UserInfo }) {
    const socket = io()
    const [init, setInit] = useState(false)
-   const [messageList, setMessageList] = useState([])
+   const [messageList, setMessageList] = useState<Message[]>([])
    const [canLoadMore, setCanLoadMore] = useThrottle(false, 1, true)
-   const listRef = useRef()
+   const listRef = useRef<HTMLUListElement>()
 
    const [disableSpinner, setDisableSpinner] = useState(false)
 
-   const process = (messages) =>
+   const process = (messages: Message[]) =>
       messages
-         .filter((v, i, a) => a.findIndex((t) => t.messageId === v.messageId) === i)
+         .filter((v: Message, i: number, a: Message[]) => a.findIndex((t) => t.messageId === v.messageId) === i)
          .filter(
-            (el) => (el.sender == yourId && el.receiver == otherId) || (el.sender == otherId && el.receiver == yourId),
+            (el: Message) =>
+               (el.sender === yourId && el.receiver === other.userId) ||
+               (el.sender === other.userId && el.receiver === yourId),
          )
-         .sort((a, b) => b.time - a.time)
+         .sort((a: Message, b: Message) => b.time - a.time)
 
    useEffect(() => {
       socket.open()
       socket
-         .on('Messages', (messages) => {
+         .on('Messages', (messages: Message[]) => {
             if (messages && messages.length > 0) {
                setCanLoadMore(true)
                setMessageList((currentMessages) => process([...currentMessages, ...messages]))
             } else setDisableSpinner(true)
          })
-         .on('New message', (newMessage) =>
+         .on('New message', (newMessage: Message) =>
             setMessageList((currentMessages) => process([newMessage, ...currentMessages])),
          )
-         .on('React to message', ({ messageId, sender, receiver, react }) =>
+         .on('React to message', ({ messageId, sender, receiver, react }: ReactToMessage) =>
             setMessageList((current) => {
                const index = current.findIndex((t) => t.messageId === messageId)
                if (
@@ -45,6 +46,18 @@ function ChatBox({ yourId, otherId, otherAvatar, otherName }) {
                   (current[index].sender === receiver && current[index].receiver === sender)
                ) {
                   current[index].react = react
+               }
+               return [...current]
+            }),
+         )
+         .on('Delete message', ({ messageId, sender, receiver }: DeleteMessage) =>
+            setMessageList((current) => {
+               const index = current.findIndex((t) => t.messageId === messageId)
+               if (
+                  (current[index].sender === sender && current[index].receiver === receiver) ||
+                  (current[index].sender === receiver && current[index].receiver === sender)
+               ) {
+                  current[index].content = null
                }
                return [...current]
             }),
@@ -60,35 +73,39 @@ function ChatBox({ yourId, otherId, otherAvatar, otherName }) {
       if (init) {
          const now = new Date()
          const currentTime = now.getTime() - now.getTimezoneOffset() * 60000
-         socket.emit('Get more messages', {
+         const req: GetMoreMessages = {
             time: currentTime,
-            otherId,
+            otherId: other.userId,
             num: 15,
-         })
+         }
+         socket.emit('Get more messages', req)
          listRef.current.scrollTop = listRef.current.scrollHeight
       }
    }, [init])
 
    const handleScroll = useCallback(
       (e) => {
-         const getMoreMessages = (time, num) => socket.emit('Get more messages', { time, otherId, num })
-
+         const getMoreMessages = (time: number, num: number) => {
+            const req: GetMoreMessages = { time, otherId: other.userId, num }
+            socket.emit('Get more messages', req)
+         }
          const list = e.target
          if (canLoadMore && list.scrollTop <= list.lastChild.offsetTop) {
             getMoreMessages(messageList[messageList.length - 1].time, 15)
             setCanLoadMore(false)
          }
       },
-      [otherId, socket, canLoadMore, messageList, setCanLoadMore],
+      [other.userId, socket, canLoadMore, messageList, setCanLoadMore],
    )
 
    const throttledhandleScroll = useThrottleCallback(handleScroll, 0.5, true)
 
-   const inputBoxRef = useRef()
+   const inputBoxRef = useRef<HTMLInputElement>()
 
-   const sendMessage = (e) => {
+   const sendMessage = (e: FormEvent) => {
       const inputBox = inputBoxRef.current
-      socket.emit('Send message', { targetId: otherId, content: inputBox.value })
+      const req: SendMessage = { otherId: other.userId, content: inputBox.value }
+      socket.emit('Send message', req)
       inputBox.value = ''
       e.preventDefault()
    }
@@ -103,7 +120,7 @@ function ChatBox({ yourId, otherId, otherAvatar, otherName }) {
       }
    }, [init, throttledhandleScroll])
 
-   const abbreviate = (fullName) => {
+   const abbreviate = (fullName: string) => {
       const words = fullName.split(' ')
       const short = words[0] + (words.length > 1 ? ' ' + words[words.length - 1] : '')
       return short
@@ -113,19 +130,19 @@ function ChatBox({ yourId, otherId, otherAvatar, otherName }) {
          .toUpperCase()
    }
 
-   const abbreviateName = abbreviate(otherName)
+   const abbreviateName = abbreviate(other.name)
 
    return (
       <div className="w-screen h-screen overflow-hidden">
          <div className="flex items-center h-16 px-6 py-2 border-b-2 gap-x-5 border-slate-200">
-            {otherAvatar ? (
-               <Image src={otherAvatar} alt="Avatar" width="48" height="48" />
+            {other.avatar ? (
+               <Image src={other.avatar} radius={100} alt="Avatar" width={48} height={48} />
             ) : (
                <p className="w-12 h-12 text-lg font-bold text-center text-white bg-teal-600 rounded-full leading-[3rem]">
                   {abbreviateName}
                </p>
             )}
-            <p className="text-lg font-semibold">{otherName}</p>
+            <p className="text-lg font-semibold">{other.name}</p>
             <div className="flex-grow"></div>
             <button className="p-2 text-sm bg-white border-2 rounded-full border-slate-400 hover:bg-slate-400 hover:text-white">
                UNMATCH
@@ -134,21 +151,36 @@ function ChatBox({ yourId, otherId, otherAvatar, otherName }) {
          <ul className="flex flex-col-reverse p-6 overflow-y-auto h-[calc(100%-7.5rem)]" ref={listRef}>
             {Object.values(messageList).map((el, i, list) => {
                const youIsSender = yourId === el.sender
+               const currentTime = new Date()
+               const nextMessageTime = i < list.length - 1 && new Date(list[i + 1].time)
+               const currentMessageTime = new Date(el.time)
+               const nextMessageIsMoreThanADay =
+                  nextMessageTime && (currentTime.getTime() - nextMessageTime.getTime()) / (1000 * 60 * 60 * 24) > 1.0
+               const currentMessageIsMoreThanADay =
+                  (currentTime.getTime() - currentMessageTime.getTime()) / (1000 * 60 * 60 * 24) > 1.0
+               const isANewDay = nextMessageTime && currentMessageTime.getDay() !== nextMessageTime.getDay()
+
                return (
                   <li key={el.messageId}>
+                     {(i === list.length - 1 || (nextMessageIsMoreThanADay && isANewDay)) && (
+                        <div className="w-full py-6 text-sm font-semibold text-center text-slate-400">
+                           {currentMessageTime.toLocaleDateString()}
+                        </div>
+                     )}
                      <div className={classNames('flex relative', youIsSender && 'flex-row-reverse')}>
                         {youIsSender ||
-                           (otherAvatar ? (
+                           (other.avatar ? (
                               <Image
-                                 src={otherAvatar}
+                                 src={other.avatar}
                                  alt="Avatar"
                                  className={
-                                    i > 0 && list[i - 1].sender !== el.sender
+                                    i === 0 || list[i - 1].sender !== el.sender
                                        ? 'absolute left-0 bottom-0 top-auto'
                                        : 'hidden'
                                  }
-                                 width="40"
-                                 height="40"
+                                 radius={100}
+                                 width={40}
+                                 height={40}
                               />
                            ) : (
                               <p
@@ -163,33 +195,61 @@ function ChatBox({ yourId, otherId, otherAvatar, otherName }) {
                            ))}
                         <div
                            className={classNames(
-                              'inline-block max-w-[60%] ml-14 relative group',
+                              'max-w-[60%] ml-14 relative group',
                               youIsSender ? 'pl-10' : 'pr-10',
                               i < list.length - 1 && list[i + 1].sender !== el.sender ? 'mt-12' : 'mt-5',
                            )}
                         >
-                           <div
-                              className={classNames(
-                                 youIsSender
-                                    ? 'bg-cyan-600 text-white rounded-br-none'
-                                    : 'bg-slate-300 text-black rounded-bl-none',
-                                 'rounded-3xl p-3 block relative',
-                              )}
+                           <Tooltip
+                              label={
+                                 (currentMessageIsMoreThanADay ? currentMessageTime.toLocaleDateString() + ' ' : '') +
+                                 currentMessageTime.toLocaleTimeString()
+                              }
                            >
-                              {el.content}
-                              {el.react && (
-                                 <div className="absolute flex items-center justify-center w-6 h-6 bg-white border rounded-full -right-2 -bottom-2 z-1">
-                                    <Image
-                                       src={`/static/images/${el.react}16.png`}
-                                       layout="fixed"
-                                       width="16"
-                                       height="16"
-                                       alt={el.react}
-                                    />
+                              <div
+                                 className={classNames(
+                                    el.content
+                                       ? youIsSender
+                                          ? 'bg-cyan-600 text-white rounded-br-none'
+                                          : 'bg-slate-300 text-black rounded-bl-none'
+                                       : 'bg-white-300 border-2 border-slate-300 text-slate-300 italic',
+                                    'rounded-3xl p-3 block relative',
+                                 )}
+                              >
+                                 {el.content ? el.content : 'This message is removed'}
+                                 {el.content && el.react && (
+                                    <div className="absolute flex items-center justify-center w-6 h-6 bg-white border rounded-full -right-2 -bottom-2 z-1">
+                                       <Image
+                                          src={`/static/images/${el.react}16.png`}
+                                          width={16}
+                                          height={16}
+                                          radius={100}
+                                          alt={el.react}
+                                       />
+                                    </div>
+                                 )}
+                              </div>
+                           </Tooltip>
+                           {el.content &&
+                              (youIsSender ? (
+                                 <div className="absolute top-0 bottom-0 items-center hidden group-hover:flex -left-0">
+                                    <button
+                                       className="relative p-1 bg-white rounded-full w-7 h-7 hover:bg-slate-300"
+                                       onClick={() => {
+                                          const req: DeleteMessage = {
+                                             messageId: el.messageId,
+                                             sender: el.sender,
+                                             receiver: el.receiver,
+                                          }
+                                          socket.emit('Delete message', req)
+                                       }}
+                                    >
+                                       <AiOutlineRollback className="w-full h-full text-gray-500" />
+                                    </button>
                                  </div>
-                              )}
-                           </div>
-                           {youIsSender || <ReactSelect socket={socket} message={el} />}
+                              ) : (
+                                 <ReactSelect socket={socket} message={el} />
+                              ))}
                         </div>
                      </div>
                   </li>
