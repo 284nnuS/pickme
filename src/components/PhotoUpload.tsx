@@ -1,18 +1,18 @@
 import { Image } from '@mantine/core'
-import { useRef } from 'react'
+import { Dispatch, SetStateAction, useRef } from 'react'
 import { BsPlusCircleFill } from 'react-icons/bs'
 import { MdOutlineClose } from 'react-icons/md'
 
-function PhotoUpload({ photos, setPhotos }) {
-   const inputRef = useRef()
+function PhotoUpload({ photos, setPhotos }: { photos: File[]; setPhotos: Dispatch<SetStateAction<File[]>> }) {
+   const inputRef = useRef<HTMLInputElement>()
 
-   const handleFile = (file, callback) => {
-      let reader = new FileReader()
+   const handleFile = (file: globalThis.File, callback: (file: File) => void) => {
+      const reader = new FileReader()
       reader.onload = (e) => {
          callback.call(null, {
             name: file.name,
             dataUrl: e.target.result,
-         })
+         } as File)
       }
       reader.readAsDataURL(file)
    }

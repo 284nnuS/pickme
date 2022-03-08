@@ -91,8 +91,8 @@ const PickmeCard = () => {
             <SwipeButton
                handleCloseBtn={() => swipe('left')}
                handleHeartBtn={() => swipe('right')}
-               handleRepeatBtn={() => swipe('up')}
-               handleStarBtn={() => swipe('up')}
+               handleRepeatBtn={() => swipe('right')}
+               handleStarBtn={() => swipe('right')}
             />
          </div>
       </center>

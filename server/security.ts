@@ -18,7 +18,7 @@ export async function authorize(req: Request, res: Response, next: NextFunction)
       nextAuthOptions,
    )
 
-   if (!req.url.startsWith('/auth/signUp') && !req.url.startsWith('/api/signUp') && !has(session, 'user.id')) {
+   if (!req.url.startsWith('/auth/signUp') && !req.url.startsWith('/api/signUp') && !has(session, 'userInfo.userId')) {
       res.redirect('/auth/signUp')
       return
    }
@@ -40,7 +40,7 @@ export function permit(...roles: string[]): (req: Request, res: Response, next: 
          return
       }
 
-      if (!has(session, 'user.id')) {
+      if (!has(session, 'userInfo.userId')) {
          if (roles.includes('none')) {
             next()
             return
@@ -51,7 +51,10 @@ export function permit(...roles: string[]): (req: Request, res: Response, next: 
          res.redirect('/')
          return
       }
-      if (!roles.includes(session.user.role)) {
+
+      const userInfo: UserInfo = session['userInfo'] as UserInfo
+
+      if (!roles.includes(userInfo.role)) {
          //Unauthorized
          res.status(403).send()
          return

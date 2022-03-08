@@ -1,20 +1,21 @@
-import { Popover } from '@mantine/core'
+import { Image, Popover } from '@mantine/core'
 import classNames from 'classnames'
-import Image from 'next/image'
 import { useState } from 'react'
 import { RiEmotionLine } from 'react-icons/ri'
+import { Socket } from 'socket.io-client'
 
-function ReactSelect({ message, socket }) {
+function ReactSelect({ message, socket }: { message: Message; socket: Socket }) {
    const [opened, setOpened] = useState(false)
 
-   const reactToMessage = (react) => {
-      socket.emit('React to message', {
+   const reactToMessage = (react: React) => {
+      const req: ReactToMessage = {
          messageId: message.messageId,
          sender: message.sender,
          receiver: message.receiver,
+         content: message.content,
          react: react === message.react ? null : react,
-      })
-      console.log('Reacted')
+      }
+      socket.emit('React to message', req)
       setOpened(false)
    }
 
@@ -35,7 +36,7 @@ function ReactSelect({ message, socket }) {
             }
          >
             <div className="flex gap-x-2">
-               {Object.values(['like', 'haha', 'wow', 'sad', 'angry']).map((emotion, i) => {
+               {Object.values(['love', 'haha', 'wow', 'sad', 'angry']).map((emotion: React, i: number) => {
                   return (
                      <button
                         key={i}
@@ -48,7 +49,7 @@ function ReactSelect({ message, socket }) {
                         <Image
                            src={`/static/images/${emotion}32.png`}
                            alt={emotion}
-                           layout="fixed"
+                           radius={100}
                            width={32}
                            height={32}
                         />

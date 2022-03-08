@@ -15,6 +15,7 @@ import tech.zoomidsoon.pickme_restful_api.models.MatchStatus;
 import tech.zoomidsoon.pickme_restful_api.repos.MatchStatusRepository;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
 
+@SuppressWarnings({ "unchecked" })
 @Path("/matchStatus")
 public class MatchStatusController {
 	@POST
@@ -23,6 +24,31 @@ public class MatchStatusController {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
 				Result<MatchStatus, JsonAPIResponse.Error> result = MatchStatusRepository.getInstance().create(conn,
+						matchStatus);
+
+				return JsonAPIResponse.handleResult(result);
+			}
+		} catch (SQLException e) {
+			Response response = JsonAPIResponse.handleSQLError(e,
+					SQLErrors.DUPLICATE_ENTRY,
+					SQLErrors.DATA_TRUNCATED,
+					SQLErrors.INCORRECT_DATA_TYPE,
+					SQLErrors.CHECK_CONSTANT);
+			if (response != null)
+				return response;
+		} catch (Exception e) {
+			System.out.println(e);
+			e.printStackTrace();
+		}
+		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
+	}
+
+	@PUT
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response updateMatchStatus(MatchStatus matchStatus) {
+		try {
+			try (Connection conn = DBContext.getConnection()) {
+				Result<MatchStatus, JsonAPIResponse.Error> result = MatchStatusRepository.getInstance().update(conn,
 						matchStatus);
 
 				return JsonAPIResponse.handleResult(result);

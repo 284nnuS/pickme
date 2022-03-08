@@ -6,7 +6,8 @@
       "outDir": "dist",
       "noEmit": false,
       "rootDir": "./",
-      "typeRoots": ["types"]
+      "typeRoots": ["./types"]
    },
-   "include": ["server"]
+   "include": ["server"],
+   "files": ["./types/*.d.ts"]
 }

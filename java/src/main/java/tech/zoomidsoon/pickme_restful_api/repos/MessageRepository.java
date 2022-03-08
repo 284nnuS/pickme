@@ -70,10 +70,27 @@ public class MessageRepository implements Repository<Message> {
 		if (message.isEmpty())
 			return new Result<>(null, new JsonAPIResponse.Error(400, "messageId is required", ""));
 
+		FindById fid = new FindById(message.getMessageId());
+		List<Message> list = this.read(conn, fid);
+
+		if (list.isEmpty())
+			return new Result<>(null, new JsonAPIResponse.Error(400, "Message does not exist", ""));
+
+		Message inDB = list.get(0);
+
+		if (message.getReact() != null && inDB.getContent() == null)
+			return new Result<>(null, new JsonAPIResponse.Error(400, "Can't react to deleted message'", ""));
+
+		if (message.getContent() != null && !message.getContent().equals(inDB.getContent()))
+			return new Result<>(null, new JsonAPIResponse.Error(400, "Not allow to change content of message'", ""));
+
+		Utils.copyNonNullFields(inDB, message, "messageId", "time", "sender, receiver");
+
 		try (PreparedStatement stmt = conn.prepareStatement(
-				"UPDATE tblMessage SET react = ? WHERE messageId = ?")) {
-			stmt.setString(1, message.getReact());
-			stmt.setLong(2, message.getMessageId());
+				"UPDATE tblMessage SET content = ?, react = ? WHERE messageId = ?")) {
+			stmt.setString(1, message.getContent());
+			stmt.setString(2, message.getReact());
+			stmt.setLong(3, message.getMessageId());
 
 			if (stmt.executeUpdate() > 0)
 				return new Result<>(message, null);
