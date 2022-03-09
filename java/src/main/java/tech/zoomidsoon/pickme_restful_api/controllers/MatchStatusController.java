@@ -71,7 +71,7 @@ public class MatchStatusController {
 	@Path("/{userId}")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getMarchStatusOfUser(@PathParam("userId") int userId) {
+	public Response getMatchStatusOfUser(@PathParam("userId") int userId) {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
 				MatchStatusRepository.FindByUserId findByUserId = new MatchStatusRepository.FindByUserId(userId);

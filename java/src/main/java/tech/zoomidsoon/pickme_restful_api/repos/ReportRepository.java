@@ -17,6 +17,14 @@ import tech.zoomidsoon.pickme_restful_api.utils.Utils;
 import lombok.*;
 
 public class ReportRepository implements Repository<Report> {
+    private static final Repository<Report> singleton = new ReportRepository();
+
+    private ReportRepository() {
+    }
+
+    public static Repository<Report> getInstance() {
+        return singleton;
+    }
 
     @Override
     public Result<Report, Error> create(Connection conn, Report report) throws Exception {
@@ -120,7 +128,7 @@ public class ReportRepository implements Repository<Report> {
         }
     }
 
-    @NoArgsConstructor
+    @AllArgsConstructor
     @Getter
     @Setter
     public static class FindByTimeAndReportedId implements Criteria {
@@ -144,6 +152,7 @@ public class ReportRepository implements Repository<Report> {
     }
 
     @NoArgsConstructor
+    @AllArgsConstructor
     @Getter
     @Setter
     public static class FindByDone implements Criteria {
