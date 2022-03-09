@@ -389,4 +389,24 @@ public class UserRepository implements Repository<User> {
 			return stmt.executeQuery();
 		}
 	}
+
+	@AllArgsConstructor
+	public static class FindByUserIdWithMatchstatus implements Criteria {
+		private Integer userId;
+
+		@Override
+		public ResultSet query(Connection conn) throws Exception {
+			PreparedStatement stmt = conn.prepareStatement(
+					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
+							+ "FROM tblUser a \n"
+							+ "LEFT OUTER JOIN tblUserInterest b ON a.userId = b.userId \n"
+							+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId \n"
+							+ "WHERE a.userId NOT IN (SELECT userIdTwo FROM tblMatchStatus WHERE userIdOne = ?) and a.userid not like ? ORDER BY RAND() LIMIT 10",
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			stmt.setInt(1, userId);
+			stmt.setInt(2, userId);
+			return stmt.executeQuery();
+		}
+	}
 }
