@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { useSession, signIn } from 'next-auth/react'
+import { useSession, signIn, signUp } from 'next-auth/react'
 
 function Index() {
    const { data: session } = useSession()
@@ -9,17 +9,21 @@ function Index() {
          <Head>
             <title>Home</title>
          </Head>
-         <div className="flex justify-center items-center w-screen h-screen">
-            {!session && (
-               <button
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 
-					font-semibold rounded-full text-sm px-5 py-2.5 text-center mr-2 mb-2 
-					dark:focus:ring-blue-800"
-                  onClick={() => signIn()}
-               >
-                  Login
-               </button>
-            )}
+         <div className="bg-indigo-900 relative overflow-hidden h-screen ">
+            <img src="/static/images/6293645.jpg" className="absolute h-full w-full object-cover" />
+
+            <div className="container mx-auto px-6 md:px-12 relative z-10  w-screen  ">
+               <div className="flex justify-between items-center ">
+                  <img src="/static/images/Pickme (2).png" className="w-[20vh] h-[20vh]" />
+                  <button
+                     className="block h-[60px] w-[140px] bg-white hover:bg-gray-100 py-3 px-4 rounded-full text-lg text-gray-800 font-bold uppercase  float-right"
+                     onClick={() => signIn()}
+                  >
+                     Continue
+                  </button>
+               </div>
+               <h1 className="font-bold text-6xl sm:text-7xl text-white leading-tight ml-5 ">Let find your friend</h1>
+            </div>
          </div>
       </>
    )
