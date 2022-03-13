@@ -14,15 +14,15 @@ const {
 
 export default function SignIn({ providers }) {
    return (
-      <div className="fixed flex justify-center items-center w-screen h-screen select-none">
+      <div className="fixed flex items-center justify-center w-screen h-screen select-none">
          <Image
-            className="object-cover object-center z-0"
+            className="z-0 object-cover object-center"
             src="/static/images/background.jpg"
             alt=""
             layout="fill"
             priority={true}
          />
-         <div className="bg-white p-8 rounded-xl z-1 relative flex flex-col items-center gap-y-6">
+         <div className="relative flex flex-col items-center p-8 bg-white rounded-xl z-1 gap-y-6">
             <Image
                className="object-contain object-center"
                src="/static/images/logo.png"
@@ -31,12 +31,12 @@ export default function SignIn({ providers }) {
                width="60"
                height="120"
             />
-            <p className="font-bold text-2xl">GET STARTED</p>
+            <p className="text-2xl font-bold">GET STARTED</p>
             <div className="flex flex-col items-center gap-y-3">
                {Object.values(providers).map((provider) => (
                   <button
                      key={provider.id}
-                     className="flex items-center rounded-full border-2 w-72 pl-4 py-1 gap-x-3 hover:opacity-70"
+                     className="flex items-center py-1 pl-4 border-2 rounded-full w-72 gap-x-3 hover:opacity-70"
                      onClick={() => signIn(provider.id, { callbackUrl: new URL('/app', publicURL).href })}
                   >
                      {icons[provider.id]}
@@ -44,7 +44,7 @@ export default function SignIn({ providers }) {
                   </button>
                ))}
             </div>
-            <a className="text-neutral-500 underline" href="/terms">
+            <a className="underline text-neutral-500" href="/terms">
                Have you read our Terms?
             </a>
          </div>

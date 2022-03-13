@@ -5,14 +5,18 @@ function SegmentedControl({ data, value, setValue }) {
    return (
       <div>
          <label className="block text-sm font-bold text-gray-900 dark:text-gray-400">Gender</label>
-         <fieldset className="grid grid-cols-3 mt-2 gap-x-1" onChange={(e) => setValue(e.target.value)} value={value}>
+         <fieldset
+            className="grid grid-cols-3 mt-2 gap-x-1"
+            onChange={(e) => setValue(e.target['value'])}
+            value={value}
+         >
             {data.map((el, i) => {
                return (
                   <div key={el} className="w-32 h-12">
                      <input
                         type="radio"
                         name="gender"
-                        value={el.name}
+                        value={el}
                         ref={(ref) => (radioRefs.current[i] = ref)}
                         className="hidden peer"
                         required

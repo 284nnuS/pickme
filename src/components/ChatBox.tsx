@@ -3,12 +3,24 @@ import classNames from 'classnames'
 import { MdSend } from 'react-icons/md'
 import { io } from 'socket.io-client'
 import { useThrottle, useThrottleCallback } from '@react-hook/throttle'
-import { ReactSelect } from '.'
+import { NotificationBox, ReactSelect } from '.'
 import { Image, Tooltip } from '@mantine/core'
 import { AiOutlineRollback } from 'react-icons/ai'
 
-function ChatBox({ yourId, other }: { yourId: number; other: UserInfo }) {
-   const socket = io()
+function ChatBox({
+   yourId,
+   other,
+   deleted,
+   updateCallBack,
+   unmatchCallback,
+}: {
+   yourId: number
+   other: UserInfo
+   deleted: boolean
+   updateCallBack: (message: Message) => void
+   unmatchCallback: (id: number) => void
+}) {
+   const socket = io('/chat')
    const [init, setInit] = useState(false)
    const [messageList, setMessageList] = useState<Message[]>([])
    const [canLoadMore, setCanLoadMore] = useThrottle(false, 1, true)
@@ -35,9 +47,10 @@ function ChatBox({ yourId, other }: { yourId: number; other: UserInfo }) {
                setMessageList((currentMessages) => process([...currentMessages, ...messages]))
             } else setDisableSpinner(true)
          })
-         .on('New message', (newMessage: Message) =>
-            setMessageList((currentMessages) => process([newMessage, ...currentMessages])),
-         )
+         .on('New message', (newMessage: Message) => {
+            setMessageList((currentMessages) => process([newMessage, ...currentMessages]))
+            updateCallBack(newMessage)
+         })
          .on('React to message', ({ messageId, sender, receiver, react }: ReactToMessage) =>
             setMessageList((current) => {
                const index = current.findIndex((t) => t.messageId === messageId)
@@ -59,14 +72,15 @@ function ChatBox({ yourId, other }: { yourId: number; other: UserInfo }) {
                ) {
                   current[index].content = null
                }
+
+               updateCallBack(current[index])
                return [...current]
             }),
          )
+         .on('connect', () => setInit(true))
          .on('disconnect', () => {
             socket.removeAllListeners()
          })
-
-      setInit(true)
    }, [])
 
    useEffect(() => {
@@ -122,139 +136,148 @@ function ChatBox({ yourId, other }: { yourId: number; other: UserInfo }) {
 
    const abbreviate = (fullName: string) => {
       const words = fullName.split(' ')
-      const short = words[0] + (words.length > 1 ? ' ' + words[words.length - 1] : '')
-      return short
-         .replace(/\b(\w)\w+/g, '$1.')
-         .replace(/\s/g, '')
-         .replace(/\.$/, '')
-         .toUpperCase()
+      return (words[0][0] + (words.length > 1 ? '.' + words[1][0] : '')).toUpperCase()
    }
 
    const abbreviateName = abbreviate(other.name)
 
    return (
-      <div className="w-screen h-screen overflow-hidden">
+      <div className="w-full h-screen overflow-hidden">
          <div className="flex items-center h-16 px-6 py-2 border-b-2 gap-x-5 border-slate-200">
-            {other.avatar ? (
+            {!deleted && other.avatar ? (
                <Image src={other.avatar} radius={100} alt="Avatar" width={48} height={48} />
             ) : (
                <p className="w-12 h-12 text-lg font-bold text-center text-white bg-teal-600 rounded-full leading-[3rem]">
                   {abbreviateName}
                </p>
             )}
-            <p className="text-lg font-semibold">{other.name}</p>
+            <p className={classNames('text-lg font-semibold', deleted && 'line-through')}>{other.name}</p>
             <div className="flex-grow"></div>
-            <button className="p-2 text-sm bg-white border-2 rounded-full border-slate-400 hover:bg-slate-400 hover:text-white">
-               UNMATCH
-            </button>
+            <NotificationBox yourId={yourId} />
+            {deleted || (
+               <button
+                  className="p-2 text-sm font-bold uppercase bg-white border-2 rounded-full border-slate-400 hover:bg-slate-400 hover:text-white"
+                  onClick={() => unmatchCallback(other.userId)}
+               >
+                  UnMatch
+               </button>
+            )}
          </div>
-         <ul className="flex flex-col-reverse p-6 overflow-y-auto h-[calc(100%-7.5rem)]" ref={listRef}>
-            {Object.values(messageList).map((el, i, list) => {
-               const youIsSender = yourId === el.sender
-               const currentTime = new Date()
-               const nextMessageTime = i < list.length - 1 && new Date(list[i + 1].time)
-               const currentMessageTime = new Date(el.time)
-               const nextMessageIsMoreThanADay =
-                  nextMessageTime && (currentTime.getTime() - nextMessageTime.getTime()) / (1000 * 60 * 60 * 24) > 1.0
-               const currentMessageIsMoreThanADay =
-                  (currentTime.getTime() - currentMessageTime.getTime()) / (1000 * 60 * 60 * 24) > 1.0
-               const isANewDay = nextMessageTime && currentMessageTime.getDay() !== nextMessageTime.getDay()
+         <ul className="flex flex-col-reverse p-6 overflow-y-auto h-[calc(100%-7.5rem)] relative" ref={listRef}>
+            {!deleted ? (
+               Object.values(messageList).map((el, i, list) => {
+                  const youIsSender = yourId === el.sender
+                  const currentTime = new Date()
+                  const nextMessageTime = i < list.length - 1 && new Date(list[i + 1].time)
+                  const currentMessageTime = new Date(el.time)
+                  const nextMessageIsMoreThanADay =
+                     nextMessageTime &&
+                     (currentTime.getTime() - nextMessageTime.getTime()) / (1000 * 60 * 60 * 24) > 1.0
+                  const currentMessageIsMoreThanADay =
+                     (currentTime.getTime() - currentMessageTime.getTime()) / (1000 * 60 * 60 * 24) > 1.0
+                  const isANewDay = nextMessageTime && currentMessageTime.getDay() !== nextMessageTime.getDay()
 
-               return (
-                  <li key={el.messageId}>
-                     {(i === list.length - 1 || (nextMessageIsMoreThanADay && isANewDay)) && (
-                        <div className="w-full py-6 text-sm font-semibold text-center text-slate-400">
-                           {currentMessageTime.toLocaleDateString()}
-                        </div>
-                     )}
-                     <div className={classNames('flex relative', youIsSender && 'flex-row-reverse')}>
-                        {youIsSender ||
-                           (other.avatar ? (
-                              <Image
-                                 src={other.avatar}
-                                 alt="Avatar"
-                                 className={
-                                    i === 0 || list[i - 1].sender !== el.sender
-                                       ? 'absolute left-0 bottom-0 top-auto'
-                                       : 'hidden'
-                                 }
-                                 radius={100}
-                                 width={40}
-                                 height={40}
-                              />
-                           ) : (
-                              <p
-                                 className={
-                                    i > 0 && list[i - 1].sender !== el.sender
-                                       ? 'absolute left-0 bottom-0 top-auto w-10 h-10 font-semibold leading-10 text-center text-white bg-teal-600 rounded-full'
-                                       : 'hidden'
-                                 }
-                              >
-                                 {abbreviateName}
-                              </p>
-                           ))}
-                        <div
-                           className={classNames(
-                              'max-w-[60%] ml-14 relative group',
-                              youIsSender ? 'pl-10' : 'pr-10',
-                              i < list.length - 1 && list[i + 1].sender !== el.sender ? 'mt-12' : 'mt-5',
-                           )}
-                        >
-                           <Tooltip
-                              label={
-                                 (currentMessageIsMoreThanADay ? currentMessageTime.toLocaleDateString() + ' ' : '') +
-                                 currentMessageTime.toLocaleTimeString()
-                              }
-                           >
-                              <div
-                                 className={classNames(
-                                    el.content
-                                       ? youIsSender
-                                          ? 'bg-cyan-600 text-white rounded-br-none'
-                                          : 'bg-slate-300 text-black rounded-bl-none'
-                                       : 'bg-white-300 border-2 border-slate-300 text-slate-300 italic',
-                                    'rounded-3xl p-3 block relative',
-                                 )}
-                              >
-                                 {el.content ? el.content : 'This message is removed'}
-                                 {el.content && el.react && (
-                                    <div className="absolute flex items-center justify-center w-6 h-6 bg-white border rounded-full -right-2 -bottom-2 z-1">
-                                       <Image
-                                          src={`/static/images/${el.react}16.png`}
-                                          width={16}
-                                          height={16}
-                                          radius={100}
-                                          alt={el.react}
-                                       />
-                                    </div>
-                                 )}
-                              </div>
-                           </Tooltip>
-                           {el.content &&
-                              (youIsSender ? (
-                                 <div className="absolute top-0 bottom-0 items-center hidden group-hover:flex -left-0">
-                                    <button
-                                       className="relative p-1 bg-white rounded-full w-7 h-7 hover:bg-slate-300"
-                                       onClick={() => {
-                                          const req: DeleteMessage = {
-                                             messageId: el.messageId,
-                                             sender: el.sender,
-                                             receiver: el.receiver,
-                                          }
-                                          socket.emit('Delete message', req)
-                                       }}
-                                    >
-                                       <AiOutlineRollback className="w-full h-full text-gray-500" />
-                                    </button>
-                                 </div>
+                  return (
+                     <li key={el.messageId}>
+                        {(i === list.length - 1 || (nextMessageIsMoreThanADay && isANewDay)) && (
+                           <div className="w-full py-6 text-sm font-semibold text-center text-slate-400">
+                              {currentMessageTime.toLocaleDateString()}
+                           </div>
+                        )}
+                        <div className={classNames('flex relative', youIsSender && 'flex-row-reverse')}>
+                           {youIsSender ||
+                              (other.avatar ? (
+                                 <Image
+                                    src={other.avatar}
+                                    alt="Avatar"
+                                    className={
+                                       i === 0 || list[i - 1].sender !== el.sender
+                                          ? 'absolute left-0 bottom-0 top-auto'
+                                          : 'hidden'
+                                    }
+                                    radius={100}
+                                    width={40}
+                                    height={40}
+                                 />
                               ) : (
-                                 <ReactSelect socket={socket} message={el} />
+                                 <p
+                                    className={
+                                       i > 0 && list[i - 1].sender !== el.sender
+                                          ? 'absolute left-0 bottom-0 top-auto w-10 h-10 font-semibold leading-10 text-center text-white bg-teal-600 rounded-full'
+                                          : 'hidden'
+                                    }
+                                 >
+                                    {abbreviateName}
+                                 </p>
                               ))}
+                           <div
+                              className={classNames(
+                                 'max-w-[60%] ml-14 relative group',
+                                 youIsSender ? 'pl-10' : 'pr-10',
+                                 i < list.length - 1 && list[i + 1].sender !== el.sender ? 'mt-12' : 'mt-5',
+                              )}
+                           >
+                              <Tooltip
+                                 label={
+                                    (currentMessageIsMoreThanADay
+                                       ? currentMessageTime.toLocaleDateString() + ' '
+                                       : '') + currentMessageTime.toLocaleTimeString()
+                                 }
+                              >
+                                 <div
+                                    className={classNames(
+                                       el.content
+                                          ? youIsSender
+                                             ? 'bg-cyan-600 text-white rounded-br-none'
+                                             : 'bg-slate-300 text-black rounded-bl-none'
+                                          : 'bg-white-300 border-2 border-slate-300 text-slate-300 italic',
+                                       'rounded-3xl p-3 block relative',
+                                    )}
+                                 >
+                                    {el.content ? el.content : 'This message is removed'}
+                                    {el.content && el.react && (
+                                       <div className="absolute flex items-center justify-center w-6 h-6 bg-white border rounded-full -right-2 -bottom-2 z-1">
+                                          <Image
+                                             src={`/static/images/${el.react}16.png`}
+                                             width={16}
+                                             height={16}
+                                             radius={100}
+                                             alt={el.react}
+                                          />
+                                       </div>
+                                    )}
+                                 </div>
+                              </Tooltip>
+                              {el.content &&
+                                 (youIsSender ? (
+                                    <div className="absolute top-0 bottom-0 items-center hidden group-hover:flex -left-0">
+                                       <button
+                                          className="relative p-1 bg-white rounded-full w-7 h-7 hover:bg-slate-300"
+                                          onClick={() => {
+                                             const req: DeleteMessage = {
+                                                messageId: el.messageId,
+                                                sender: el.sender,
+                                                receiver: el.receiver,
+                                             }
+                                             socket.emit('Delete message', req)
+                                          }}
+                                       >
+                                          <AiOutlineRollback className="w-full h-full text-gray-500" />
+                                       </button>
+                                    </div>
+                                 ) : (
+                                    <ReactSelect socket={socket} message={el} />
+                                 ))}
+                           </div>
                         </div>
-                     </div>
-                  </li>
-               )
-            })}
+                     </li>
+                  )
+               })
+            ) : (
+               <div className="absolute top-0 bottom-0 left-0 right-0 flex items-center justify-center text-xl font-semibold text-slate-500">
+                  You cannot chat with {abbreviateName}
+               </div>
+            )}
             <div
                className={classNames(
                   disableSpinner || !listRef.current || listRef.current.scrollHeight <= listRef.current.offsetHeight
@@ -281,17 +304,23 @@ function ChatBox({ yourId, other }: { yourId: number; other: UserInfo }) {
                <span className="text-sm text-slate-400 font-extralight">Loading more messages...</span>
             </div>
          </ul>
-         <form className="flex items-center px-4 border-t-2 h-14 border-slate-200" action={null} onSubmit={sendMessage}>
-            <input
-               className="py-1.5 px-4 bg-gray-200 border-none rounded-full w-full focus:outline-none"
-               placeholder="Aa"
-               ref={inputBoxRef}
-               required
-            />
-            <button type="submit" className="p-2 ml-3 bg-teal-500 rounded-full">
-               <MdSend className="w-6 h-6 text-white" />
-            </button>
-         </form>
+         {deleted || (
+            <form
+               className="flex items-center px-4 border-t-2 h-14 border-slate-200"
+               action={null}
+               onSubmit={sendMessage}
+            >
+               <input
+                  className="py-1.5 px-4 bg-gray-200 border-none rounded-full w-full focus:outline-none"
+                  placeholder="Aa"
+                  ref={inputBoxRef}
+                  required
+               />
+               <button type="submit" className="p-2 ml-3 bg-teal-500 rounded-full">
+                  <MdSend className="w-6 h-6 text-white" />
+               </button>
+            </form>
+         )}
       </div>
    )
 }

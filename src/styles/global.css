@@ -6,3 +6,16 @@ html {
    font-family: ProximaNova, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif,
       Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
 }
+
+body {
+   overflow: hidden !important;
+}
+
+.carousel {
+   display: inline-flex;
+   overflow-x: hidden;
+   scroll-snap-type: x mandatory;
+   -webkit-overflow-scrolling: touch;
+   scrollbar-width: none;
+   -ms-overflow-style: none;
+}

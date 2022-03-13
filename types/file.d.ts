@@ -1,4 +1,4 @@
-interface File {
+interface MediaFile {
    name: string
    dataUrl: string
 }

@@ -30,6 +30,6 @@
       "**/*.ts",
       "**/*.tsx",
       "src/components/PickmeCard.jsx",
-      "src/components/SegmentedControl.jsx"
+      "src/components/SegmentedControl.tsx"
    ]
 }

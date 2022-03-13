@@ -27,12 +27,16 @@ public class UserRowMapper extends RowMapper<User> {
 		if (obj.isEmpty()) {
 			obj.setUserId(userId);
 			obj.setName(rs.getString("name"));
+			obj.setBirthday(rs.getDate("birthday").getTime());
 			obj.setAvatar(rs.getString("avatar"));
 			obj.setBio(rs.getString("bio"));
 			obj.setEmail(rs.getString("email"));
 			obj.setGender(rs.getString("gender"));
-			obj.setRole(rs.getString("role"));
-			obj.setCautionTimes(rs.getInt("cautionTimes"));
+			try {
+				obj.setRole(rs.getString("role"));
+				obj.setCautionTimes(rs.getInt("cautionTimes"));
+			} catch (Exception e) {
+			}
 			obj.setInterests(new ArrayList<>());
 			obj.setMedias(new ArrayList<>());
 		}

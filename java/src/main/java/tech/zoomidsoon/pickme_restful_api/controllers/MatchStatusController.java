@@ -71,12 +71,39 @@ public class MatchStatusController {
 	@Path("/{userId}")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getMarchStatusOfUser(@PathParam("userId") int userId) {
+	public Response getMatchStatusOfUser(@PathParam("userId") int userId) {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
 				MatchStatusRepository.FindByUserId findByUserId = new MatchStatusRepository.FindByUserId(userId);
 				List<MatchStatus> matchStatuses = MatchStatusRepository.getInstance().read(conn, findByUserId);
 				return JsonAPIResponse.ok(matchStatuses);
+			} catch (SQLException e) {
+				Response response = JsonAPIResponse.handleSQLError(e);
+				if (response != null)
+					return response;
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+			e.printStackTrace();
+		}
+
+		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
+	}
+
+	// Check match status from 2 id, return List<MatchStatus> , if size=2, match, if
+	// size<2 , unmatch
+	@Path("/{userIdOne}/{userIdTwo}")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response checkMatch(@PathParam("userIdOne") int userIdOne, @PathParam("userIdTwo") int userIdTwo) {
+		try {
+			try (Connection conn = DBContext.getConnection()) {
+				MatchStatusRepository.FindByUserIdOneAndTwo findByUserIdOneAndTwo = new MatchStatusRepository.FindByUserIdOneAndTwo(
+						userIdOne, userIdTwo);
+				List<MatchStatus> matchStatuses = MatchStatusRepository.getInstance().read(conn, findByUserIdOneAndTwo);
+
+				return JsonAPIResponse
+						.ok(matchStatuses.size() == 2 && matchStatuses.get(0).getLike() && matchStatuses.get(1).getLike());
 			} catch (SQLException e) {
 				Response response = JsonAPIResponse.handleSQLError(e);
 				if (response != null)

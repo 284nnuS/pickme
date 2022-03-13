@@ -56,11 +56,10 @@ public class MatchStatusRepository implements Repository<MatchStatus> {
 			return new Result<>(null, new JsonAPIResponse.Error(400, "userIdOne and userIdTwo are required", ""));
 
 		try (PreparedStatement stmt = conn.prepareStatement(
-				"UPDATE tblMatchStatus SET like = ? WHERE userIdOne = ? AND userIdTwo = ?")) {
-			stmt.setInt(1, matchStatus.getUserIdOne());
-			stmt.setInt(2, matchStatus.getUserIdTwo());
-			stmt.setBoolean(3, matchStatus.getLike());
-
+				"UPDATE tblMatchStatus SET `like` = ? WHERE userIdOne = ? AND userIdTwo = ?")) {
+			stmt.setBoolean(1, matchStatus.getLike());
+			stmt.setInt(2, matchStatus.getUserIdOne());
+			stmt.setInt(3, matchStatus.getUserIdTwo());
 			if (stmt.executeUpdate() != 1)
 				return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
 
@@ -90,6 +89,25 @@ public class MatchStatusRepository implements Repository<MatchStatus> {
 					ResultSet.CONCUR_READ_ONLY);
 			stmt.setInt(1, userId);
 			stmt.setInt(2, userId);
+			return stmt.executeQuery();
+		}
+	}
+
+	@AllArgsConstructor
+	public static class FindByUserIdOneAndTwo implements Criteria {
+		private int userIdOne;
+		private int userIdTwo;
+
+		@Override
+		public ResultSet query(Connection conn) throws Exception {
+			PreparedStatement stmt = conn.prepareStatement(
+					"SELECT * FROM tblMatchStatus WHERE (userIdOne = ? AND userIdTwo =? and `like`=1)  OR (userIdOne = ? AND userIdTwo = ? and `like`=1)",
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			stmt.setInt(1, userIdOne);
+			stmt.setInt(2, userIdTwo);
+			stmt.setInt(3, userIdTwo);
+			stmt.setInt(4, userIdOne);
 			return stmt.executeQuery();
 		}
 	}

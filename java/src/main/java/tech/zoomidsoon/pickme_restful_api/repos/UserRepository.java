@@ -1,6 +1,7 @@
 package tech.zoomidsoon.pickme_restful_api.repos;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -43,15 +44,16 @@ public class UserRepository implements Repository<User> {
 
 			// Insert user into database
 			try (PreparedStatement stmt = conn.prepareStatement(
-					"INSERT INTO tblUser (role, email, name, gender, avatar, bio, cautionTimes) VALUES (?,?,?,?,?,?,?)",
+					"INSERT INTO tblUser (email, name, role, birthday, gender, avatar, bio, cautionTimes) VALUES (?,?,?,?,?,?,?,?)",
 					Statement.RETURN_GENERATED_KEYS)) {
-				stmt.setString(1, user.getRole());
-				stmt.setString(2, user.getEmail());
-				stmt.setString(3, user.getName());
-				stmt.setString(4, user.getGender());
-				stmt.setString(5, user.getAvatar());
-				stmt.setString(6, user.getBio());
-				stmt.setInt(7, user.getCautionTimes());
+				stmt.setString(1, user.getEmail());
+				stmt.setString(2, user.getName());
+				stmt.setString(3, user.getRole());
+				stmt.setDate(4, new Date(user.getBirthday()));
+				stmt.setString(5, user.getGender());
+				stmt.setString(6, user.getAvatar());
+				stmt.setString(7, user.getBio());
+				stmt.setInt(8, user.getCautionTimes());
 
 				if (stmt.executeUpdate() != 1) {
 					conn.rollback();
@@ -65,7 +67,8 @@ public class UserRepository implements Repository<User> {
 				}
 			}
 
-			user.getMedias().forEach(media -> media.setUserId(user.getUserId()));
+			if (user.getMedias() != null)
+				user.getMedias().forEach(media -> media.setUserId(user.getUserId()));
 
 			// Create User-Interest relation
 			if (user.getInterests().size() > 0) {
@@ -155,8 +158,6 @@ public class UserRepository implements Repository<User> {
 			if (list.isEmpty())
 				return new Result<>(null, new JsonAPIResponse.Error(404, "User does not exist", ""));
 
-			user.getMedias().forEach(media -> media.setUserId(user.getUserId()));
-
 			User inDB = list.get(0);
 
 			List<String> addedInterests = new ArrayList<>();
@@ -166,9 +167,14 @@ public class UserRepository implements Repository<User> {
 			List<Media> removedMedias = new ArrayList<>();
 			List<Media> mergedMedias = new ArrayList<>();
 
-			ListUtils.diffList(inDB.getInterests(), user.getInterests(), addedInterests, removedInterests,
-					mergedInterests);
-			ListUtils.diffList(inDB.getMedias(), user.getMedias(), addedMedias, removedMedias, mergedMedias);
+			if (user.getMedias() != null) {
+				user.getMedias().forEach(media -> media.setUserId(user.getUserId()));
+				ListUtils.diffList(inDB.getMedias(), user.getMedias(), addedMedias, removedMedias, mergedMedias);
+			}
+
+			if (user.getInterests() != null)
+				ListUtils.diffList(inDB.getInterests(), user.getInterests(), addedInterests, removedInterests,
+						mergedInterests);
 
 			Utils.copyNonNullFields(inDB, user, "email", "userId", "medias", "interest");
 
@@ -178,14 +184,15 @@ public class UserRepository implements Repository<User> {
 
 			// Update user in database
 			try (PreparedStatement stmt = conn.prepareStatement(
-					"UPDATE tblUser SET role = ?, name = ?, gender = ?, avatar = ?, bio = ?, cautionTimes = ? WHERE userId = ?")) {
-				stmt.setString(1, newUser.getRole());
-				stmt.setString(2, newUser.getName());
-				stmt.setString(3, newUser.getGender());
-				stmt.setString(4, newUser.getAvatar());
-				stmt.setString(5, newUser.getBio());
-				stmt.setInt(6, newUser.getCautionTimes());
-				stmt.setInt(7, newUser.getUserId());
+					"UPDATE tblUser SET name = ?,  role = ?, birthday = ?, gender = ?, avatar = ?, bio = ?, cautionTimes = ? WHERE userId = ?")) {
+				stmt.setString(1, newUser.getName());
+				stmt.setString(2, newUser.getRole());
+				stmt.setDate(3, new Date(newUser.getBirthday()));
+				stmt.setString(4, newUser.getGender());
+				stmt.setString(5, newUser.getAvatar());
+				stmt.setString(6, newUser.getBio());
+				stmt.setInt(7, newUser.getCautionTimes());
+				stmt.setInt(8, newUser.getUserId());
 
 				if (stmt.executeUpdate() != 1) {
 					conn.rollback();
@@ -320,7 +327,7 @@ public class UserRepository implements Repository<User> {
 	@Override
 	public List<User> readAll(Connection conn) throws Exception {
 		try (PreparedStatement stmt = conn.prepareStatement(
-				"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
+				"SELECT a.userId, a.name, a.email, a.birthday, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
 						+ "FROM tblUser a \n"
 						+ "LEFT OUTER JOIN tblUserInterest b ON a.userId = b.userId \n"
 						+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId ",
@@ -340,11 +347,34 @@ public class UserRepository implements Repository<User> {
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
 			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
+					"SELECT a.userId, a.name, a.email, a.birthday, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
 							+ "FROM tblUser a \n"
 							+ "LEFT OUTER JOIN tblUserInterest b ON a.userId = b.userId \n"
 							+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId \n"
 							+ "WHERE a.userId = ?",
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			stmt.setInt(1, userId);
+			return stmt.executeQuery();
+		}
+	}
+
+	@AllArgsConstructor
+	public static class FindMatchedUsersById implements Criteria {
+		private int userId;
+
+		@Override
+		public ResultSet query(Connection conn) throws Exception {
+			PreparedStatement stmt = conn.prepareStatement(
+					"SELECT a.userId, a.name, a.email, a.birthday, a.gender, a.bio, a.avatar, b.interestName, c.mediaName, c.MediaType \n"
+							+ "FROM tblUser a \n"
+							+ "INNER JOIN (SELECT tms1.userIdTwo as matchedId FROM tblMatchStatus tms1 \n"
+							+ "INNER JOIN tblMatchStatus tms2 \n"
+							+ "ON tms1.userIdOne = tms2.userIdTwo AND tms1.userIdTwo = tms2.userIdOne AND tms1.`like` = 1 AND tms2.`like` = 1 AND tms1.userIdOne = ?) re \n"
+							+ "ON a.userId = re.matchedId \n"
+							+ "LEFT OUTER JOIN tblUserInterest b ON a.userId = b.userId \n"
+							+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId \n"
+							+ "WHERE a.role = 'user'",
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 			stmt.setInt(1, userId);
@@ -359,7 +389,7 @@ public class UserRepository implements Repository<User> {
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
 			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
+					"SELECT a.userId, a.name, a.birthday, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
 							+ "FROM tblUser a \n"
 							+ "LEFT OUTER JOIN tblUserInterest b ON a.userId = b.userId \n"
 							+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId \n"
@@ -378,7 +408,7 @@ public class UserRepository implements Repository<User> {
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
 			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT a.userId, a.name, a.email, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
+					"SELECT a.userId, a.name, a.email, a.birthday, a.role, a.gender, a.bio, a.avatar, a.cautionTimes, b.interestName, c.mediaName, c.MediaType \n"
 							+ "FROM tblUser a \n"
 							+ "LEFT OUTER JOIN tblUserInterest b ON a.userId = b.userId \n"
 							+ "LEFT OUTER JOIN tblMedia c ON a.userId = c.userId \n"
@@ -386,6 +416,27 @@ public class UserRepository implements Repository<User> {
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 			stmt.setString(1, email);
+			return stmt.executeQuery();
+		}
+	}
+
+	@AllArgsConstructor
+	public static class FindUsersNotMeet implements Criteria {
+		private Integer userId;
+
+		@Override
+		public ResultSet query(Connection conn) throws Exception {
+			PreparedStatement stmt = conn.prepareStatement(
+					"SELECT * FROM (SELECT a.userId, a.name, a.email, a.birthday, a.gender, a.bio, a.avatar, a.cautionTimes \n"
+							+ "FROM tblUser a\n"
+							+ "WHERE a.userId NOT IN (SELECT userIdTwo FROM tblMatchStatus WHERE userIdOne = ?) AND a.userid NOT LIKE ? AND a.role = 'user'\n"
+							+ "ORDER BY RAND() LIMIT 10) re\n"
+							+ "LEFT OUTER JOIN tblUserInterest b ON re.userId = b.userId\n"
+							+ "LEFT OUTER JOIN tblMedia c ON re.userId = c.userId",
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			stmt.setInt(1, userId);
+			stmt.setInt(2, userId);
 			return stmt.executeQuery();
 		}
 	}

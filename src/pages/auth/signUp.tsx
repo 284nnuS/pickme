@@ -1,12 +1,11 @@
 import { DatePicker } from '@mantine/dates'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BsPlus } from 'react-icons/bs'
-import { Chips, ChipsModal, SegmentedControl, PhotoUpload, VoiceUpload } from '../../components'
+import { Chips, ChipsModal, SegmentedControl, PhotoUpload, VoiceUpload } from '~/src/components'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import getUuid from 'uuid-by-string'
-import { version } from 'os'
-import Link from 'next/link'
+import env from '~/shared/env'
 
 export default function SignUp({ allInterests }) {
    const { data: session } = useSession()
@@ -16,7 +15,7 @@ export default function SignUp({ allInterests }) {
    const [birthday, setBirthday] = useState(new Date())
    const [biography, setBiography] = useState('')
    const [photos, setPhotos] = useState([])
-   const [voice, setVoice] = useState({ name: '' })
+   const [voice, setVoice] = useState<MediaFile>({ name: '', dataUrl: null })
    const [interests, setInterests] = useState([])
 
    const [opened, setOpened] = useState(false)
@@ -39,10 +38,11 @@ export default function SignUp({ allInterests }) {
    const submit = (e) => {
       const data = {
          name: fullName,
+         birthday: birthday.getTime(),
          gender,
          bio: biography,
          interests: interests.map((el) => el.name),
-         medias: [...photos.map((el) => convert(el, 'image'))],
+         medias: [...photos.map((el) => convert(el, 'image')), convert(voice, 'voice')],
       }
 
       axios
@@ -170,12 +170,12 @@ export default function SignUp({ allInterests }) {
 }
 
 export async function getStaticProps(context) {
-   const res = await fetch(`http://localhost:3001/interest`)
-   const data = await res.json()
+   const res = await axios.get(`${env.javaServerUrl}/interest`)
+   const data = res.data['data']
 
    return {
       props: {
-         allInterests: data.data.map((el) => {
+         allInterests: data.map((el) => {
             return {
                name: el.interestName,
                description: el.description,

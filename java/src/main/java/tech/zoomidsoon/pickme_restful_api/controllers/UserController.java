@@ -29,7 +29,7 @@ public class UserController {
 			try (Connection conn = DBContext.getConnection()) {
 				List<User> users = UserRepository.getInstance().readAll(conn);
 
-				return JsonAPIResponse.ok(users);
+				return JsonAPIResponse.ok(users, new Pair(Media.class, MediaMixin.class));
 			} catch (SQLException e) {
 				Response response = JsonAPIResponse.handleSQLError(e);
 				if (response != null)
@@ -55,6 +55,29 @@ public class UserController {
 				if (users.isEmpty())
 					return JsonAPIResponse.handleError(404, "User does not exist", "");
 				return JsonAPIResponse.ok(users.get(0), new Pair(Media.class, MediaMixin.class));
+			} catch (SQLException e) {
+				Response response = JsonAPIResponse.handleSQLError(e);
+				if (response != null)
+					return response;
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+			e.printStackTrace();
+		}
+
+		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
+	}
+
+	@GET
+	@Path("/matched/id/{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getMatchedUsers(@PathParam("id") int userId) {
+		try {
+			try (Connection conn = DBContext.getConnection()) {
+				UserRepository.FindMatchedUsersById findMatchedUsersById = new UserRepository.FindMatchedUsersById(userId);
+				List<User> users = UserRepository.getInstance().read(conn, findMatchedUsersById);
+
+				return JsonAPIResponse.ok(users, new Pair(Media.class, MediaMixin.class));
 			} catch (SQLException e) {
 				Response response = JsonAPIResponse.handleSQLError(e);
 				if (response != null)
@@ -106,6 +129,29 @@ public class UserController {
 				if (users.isEmpty())
 					return JsonAPIResponse.handleError(404, "User does not exist", "");
 				return JsonAPIResponse.ok(users.get(0));
+			} catch (SQLException e) {
+				Response response = JsonAPIResponse.handleSQLError(e);
+				if (response != null)
+					return response;
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+			e.printStackTrace();
+		}
+
+		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
+	}
+
+	@GET
+	@Path("/card/id/{userId}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response findByEmail(@PathParam("userId") int userId) {
+		try {
+			try (Connection conn = DBContext.getConnection()) {
+				UserRepository.FindUsersNotMeet findUsersNotMeet = new UserRepository.FindUsersNotMeet(userId);
+				List<User> users = UserRepository.getInstance().read(conn, findUsersNotMeet);
+				return JsonAPIResponse.ok(users, new Pair<>(Media.class, MediaMixin.class), new Pair(User.class,
+						UserBasicInfoMixin.class));
 			} catch (SQLException e) {
 				Response response = JsonAPIResponse.handleSQLError(e);
 				if (response != null)

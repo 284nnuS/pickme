@@ -111,7 +111,7 @@ public class MessageRepository implements Repository<Message> {
 
 	@AllArgsConstructor
 	public static class FindById implements Criteria {
-		private Long messageId;
+		private long messageId;
 
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
@@ -120,6 +120,30 @@ public class MessageRepository implements Repository<Message> {
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 			stmt.setLong(1, messageId);
+			return stmt.executeQuery();
+		}
+	}
+
+	@AllArgsConstructor
+	public static class FindLatestMessageByUserId implements Criteria {
+		private int userId;
+
+		@Override
+		public ResultSet query(Connection conn) throws Exception {
+			PreparedStatement stmt = conn.prepareStatement(
+					"SELECT * FROM tblMessage tm \n"
+							+ "INNER JOIN (SELECT tms1.userIdTwo as matchedId FROM tblMatchStatus tms1 \n"
+							+ "INNER JOIN tblMatchStatus tms2 \n"
+							+ "ON tms1.userIdOne = tms2.userIdTwo AND tms1.userIdTwo = tms2.userIdOne AND tms1.`like` = 1 AND tms2.`like` = 1 AND tms1.userIdOne = ?) ma \n"
+							+ "ON tm.sender = ma.matchedId OR tm.receiver = ma.matchedId \n"
+							+ "WHERE tm.sender = ? OR tm.receiver = ? \n"
+							+ "ORDER BY tm.`time` DESC \n"
+							+ "LIMIT 1",
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			stmt.setInt(1, userId);
+			stmt.setInt(2, userId);
+			stmt.setInt(3, userId);
 			return stmt.executeQuery();
 		}
 	}
@@ -149,4 +173,5 @@ public class MessageRepository implements Repository<Message> {
 			return stmt.executeQuery();
 		}
 	}
+
 }

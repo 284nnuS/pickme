@@ -12,6 +12,7 @@ import javax.ws.rs.core.StreamingOutput;
 
 import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
 import tech.zoomidsoon.pickme_restful_api.helpers.Pair;
+import tech.zoomidsoon.pickme_restful_api.helpers.SQLErrors;
 import tech.zoomidsoon.pickme_restful_api.models.Media;
 import tech.zoomidsoon.pickme_restful_api.repos.MediaRepository;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
@@ -51,7 +52,8 @@ public class MediaController {
 
 				return Response.ok(output, pair.getTwo()).build();
 			} catch (SQLException e) {
-				Response response = JsonAPIResponse.handleSQLError(e);
+				Response response = JsonAPIResponse.handleSQLError(e, SQLErrors.DATA_TRUNCATED,
+						SQLErrors.INCORRECT_DATA_TYPE);
 				if (response != null)
 					return response;
 			}

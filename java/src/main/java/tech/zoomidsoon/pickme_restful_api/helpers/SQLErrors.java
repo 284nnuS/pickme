@@ -11,6 +11,7 @@ public enum SQLErrors {
 	DUPLICATE_ENTRY(1062, "Duplicate entry"),
 	DATA_TRUNCATED(1265, "Data truncated"),
 	INCORRECT_DATA_TYPE(1366, "Invalid data type"),
+	TRIGGER_EXCEPTION(1644, "SQL Trigger prevent insert"),
 	CHECK_CONSTANT(3819, "Check constant");
 
 	public final int errCode;

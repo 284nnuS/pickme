@@ -5,18 +5,27 @@ import { VscChromeClose } from 'react-icons/vsc'
 
 const SwipeButton = ({ handleRepeatBtn, handleCloseBtn, handleStarBtn, handleHeartBtn }) => {
    return (
-      <div className="justify-evenly fixed bottom-[2vh] absolute w-full flex">
-         <button className=" border-yellow-400 border-2 p-[1vw] rounded-full " onClick={() => handleRepeatBtn()}>
+      <div className="absolute z-10 grid w-full grid-cols-4 gap-3 px-3 bottom-10">
+         <button
+            className="border-yellow-400 border-2 p-[1vw] rounded-full aspect-[1/1] flex items-center justify-center hover:bg-white/20"
+            onClick={() => handleRepeatBtn()}
+         >
             <BsArrowRepeat style={{ fontSize: '250%', color: 'rgb(250 204 21)' }} />
          </button>
-         <button className=" border-red-500 border-2 p-[1vw] rounded-full " onClick={() => handleCloseBtn()}>
+         <button
+            className="border-red-500 border-2 p-[1vw] rounded-full aspect-square flex items-center justify-center hover:bg-white/20"
+            onClick={() => handleCloseBtn()}
+         >
             <VscChromeClose style={{ fontSize: '250%', color: 'rgb(239 68 68)' }} />
          </button>
-         <button className=" border-green-500 border-2 p-[1vw] rounded-full " onClick={() => handleStarBtn()}>
+         <button
+            className="border-green-500 border-2 p-[1vw] rounded-full aspect-square flex items-center justify-center hover:bg-white/20"
+            onClick={() => handleStarBtn()}
+         >
             <GrStar style={{ fontSize: '250%', color: 'rgb(34 197 94)' }} />
          </button>
          <button
-            className=" border-2 border-blue-600 p-[1vw] rounded-full items-center justify-center"
+            className="border-2 border-blue-600 p-[1vw] rounded-full aspect-square flex items-center justify-center hover:bg-white/20"
             onClick={() => handleHeartBtn()}
          >
             <BsSuitHeartFill style={{ fontSize: '250%', color: 'rgb(37 99 235)' }} />

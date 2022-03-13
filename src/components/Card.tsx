@@ -1,23 +1,97 @@
+import { Image } from '@mantine/core'
+import { createRef, RefObject, useState } from 'react'
+import { useKeyPressEvent } from 'react-use'
+import ChipsInCardtsx from './ChipsInCard'
 import Player from './Player'
 
-function Card({ data }) {
-   return (
-      <div className="flex justify-center w-full h-full relative">
-         <div
-            style={{
-               backgroundImage: `url(https://scontent.fdad3-5.fna.fbcdn.net/v/t1.6435-9/146994747_2854728808188423_7615033960248435066_n.jpg?_nc_cat=106&ccb=1-5&_nc_sid=09cbfe&_nc_ohc=gtQZRbkkXwEAX-XNyGy&_nc_ht=scontent.fdad3-5.fna&oh=00_AT8N16aeFbtlFQ2wMA86wlHCqxM779f34tV0YBFpSUVwQQ&oe=62432D08)`,
-            }}
-            className="relative w-[410px] h-[720px] rounded-2xl bg-cover bg-center flex flex-col justify-between"
-         >
-            <Player url="/a.mp3" />
+function Card({
+   age,
+   userId,
+   name,
+   defaultInterests,
+   bio,
+   images,
+   voice,
+   interests,
+   isFirst,
+}: {
+   age: number
+   userId: number
+   name: string
+   defaultInterests: InterestChip[]
+   bio: string
+   images: Media[]
+   voice: Media
+   interests: string[]
+   isFirst: boolean
+}) {
+   const refs = images.reduce((acc, val, i) => {
+      acc[i] = createRef<HTMLDivElement>()
+      return acc
+   }, {} as Record<number, RefObject<HTMLDivElement>>)
 
-            <div className="absolute bottom-0 text-left">
-               <h3 className=" pl-2 font-sans text-white font-black text-4xl bottom-[20vh]  ">{data.name}</h3>
-               <h5 className=" pl-2 font-sans text-white text-xl mb-[15vh]  "> {data.bio} </h5>
+   const [currentImage, setCurrentImage] = useState(0)
+
+   const scrollToImage = (i: number) => {
+      setCurrentImage(i)
+      refs[i].current.scrollIntoView({
+         behavior: 'smooth',
+         block: 'nearest',
+         inline: 'start',
+      })
+   }
+
+   const nextImage = () => {
+      if (currentImage >= images.length - 1) scrollToImage(0)
+      else scrollToImage(currentImage + 1)
+   }
+
+   useKeyPressEvent(' ', isFirst && nextImage)
+
+   return (
+      <div className="relative flex flex-col justify-center w-full h-full bg-white">
+         <div className="w-full h-full carousel rounded-2xl">
+            {images.map((img, i) => (
+               <Image
+                  key={i}
+                  ref={refs[i]}
+                  src={`${window.location.origin}/api/restful/media/${userId}/${img.mediaName}`}
+                  alt={name}
+                  fit="cover"
+                  radius={15}
+                  className="flex-shrink-0 w-full h-full "
+                  classNames={{
+                     figure: 'w-full h-full',
+                     imageWrapper: 'w-full h-full',
+                  }}
+                  styles={{
+                     image: {
+                        height: '100% !important',
+                     },
+                  }}
+               />
+            ))}
+         </div>
+         <div className="absolute top-2 left-2">
+            {voice && (
+               <Player
+                  url={`${window.location.origin}/api/restful/media/${userId}/${voice.mediaName}`}
+                  isFirst={isFirst}
+               />
+            )}
+         </div>
+         <div className="absolute bottom-0 w-full rounded-b-2xl bg-gradient-to-t from-black h-1/2">
+            <div className="absolute bottom-0 flex flex-col p-4 text-left pb-36 gap-y-2">
+               <div className="flex items-end gap-x-4">
+                  <h3 className="font-sans text-4xl font-black text-white">{name}</h3>
+                  <h5 className="font-sans text-2xl font-black text-white">{age}</h5>
+               </div>
+               <ChipsInCardtsx values={defaultInterests.filter((el) => interests.indexOf(el.name) > -1)} />
+               <p className="w-full font-sans text-xl text-white break-words">{bio}</p>
             </div>
-            <div className="bottom-0 absolute bg-gradient-to-t from-black   h-1/3 w-full"></div>
          </div>
       </div>
    )
 }
+
 export default Card

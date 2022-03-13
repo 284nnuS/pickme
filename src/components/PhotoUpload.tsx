@@ -3,16 +3,16 @@ import { Dispatch, SetStateAction, useRef } from 'react'
 import { BsPlusCircleFill } from 'react-icons/bs'
 import { MdOutlineClose } from 'react-icons/md'
 
-function PhotoUpload({ photos, setPhotos }: { photos: File[]; setPhotos: Dispatch<SetStateAction<File[]>> }) {
+function PhotoUpload({ photos, setPhotos }: { photos: MediaFile[]; setPhotos: Dispatch<SetStateAction<MediaFile[]>> }) {
    const inputRef = useRef<HTMLInputElement>()
 
-   const handleFile = (file: globalThis.File, callback: (file: File) => void) => {
+   const handleFile = (file: globalThis.File, callback: (file: MediaFile) => void) => {
       const reader = new FileReader()
       reader.onload = (e) => {
          callback.call(null, {
             name: file.name,
             dataUrl: e.target.result,
-         } as File)
+         } as MediaFile)
       }
       reader.readAsDataURL(file)
    }
