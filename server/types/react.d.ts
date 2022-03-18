@@ -1,1 +1,1 @@
-type React = 'love' | 'haha' | 'wow' | 'sad' | 'angry'
+type React = 'love' | 'haha' | 'wow' | 'sad' | 'angry' | 'none'

@@ -2,6 +2,7 @@ import { Express } from 'express'
 import axios from 'axios'
 import env from '../../shared/env'
 import proxy from 'express-http-proxy'
+import { JWT } from 'next-auth/jwt'
 
 export default function routeAPI(app: Express) {
    const middleware = proxy(process.env.JAVA_SERVER_URL, {
@@ -11,21 +12,35 @@ export default function routeAPI(app: Express) {
       },
    })
 
-   app.get('/api/restful/media/*', middleware)
+   app.all('/api/restful/file/*', middleware)
    app.get('/api/restful/interest', middleware)
+   app.put('/api/restful/profile', middleware)
 
    app.post('/api/signUp', async (req, res) => {
-      const email = res.locals.token.email
+      const token: JWT = res.locals['token']
 
-      const json = {
-         ...req.body,
-         email,
-         cautionTimes: 0,
-         avatar: res.locals.token.picture,
-         role: 'user',
+      try {
+         const userInfo: UserInfo = (
+            await axios.post(`${env.javaServerUrl}/user`, {
+               email: token.email,
+               role: 'user',
+            })
+         ).data['data']
+
+         await axios.post(`${env.javaServerUrl}/profile`, {
+            userId: userInfo.userId,
+            name: req['name'],
+            avatar: token.picture,
+            gender: req['gender'],
+            bio: req['bio'],
+            birthday: req['birthday'],
+            interests: req['interests'],
+            medias: req['medias'],
+         })
+
+         res.status(200).send('OK!')
+      } catch {
+         res.status(400).send('Invalid request!')
       }
-      const result = await axios.post(`${env.javaServerUrl}/user`, json)
-
-      res.status(result.status).json(result.data)
    })
 }

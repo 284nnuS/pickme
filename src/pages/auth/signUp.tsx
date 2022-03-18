@@ -1,15 +1,12 @@
 import { DatePicker } from '@mantine/dates'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { BsPlus } from 'react-icons/bs'
 import { Chips, ChipsModal, SegmentedControl, PhotoUpload, VoiceUpload } from '~/src/components'
 import axios from 'axios'
-import { useSession } from 'next-auth/react'
 import getUuid from 'uuid-by-string'
 import env from '~/shared/env'
 
 export default function SignUp({ allInterests }) {
-   const { data: session } = useSession()
-
    const [fullName, setFullName] = useState('')
    const [gender, setGender] = useState(null)
    const [birthday, setBirthday] = useState(new Date())
@@ -20,9 +17,9 @@ export default function SignUp({ allInterests }) {
 
    const [opened, setOpened] = useState(false)
 
-   useEffect(() => {
-      if (session) setFullName(session.user.name)
-   }, [session])
+   // useEffect(() => {
+   //    if (session) setFullName()
+   // }, [session])
 
    const reg = /^data:.+\/(.+);base64,(.*)$/
 
@@ -169,7 +166,7 @@ export default function SignUp({ allInterests }) {
    )
 }
 
-export async function getStaticProps(context) {
+export async function getServerSideProps() {
    const res = await axios.get(`${env.javaServerUrl}/interest`)
    const data = res.data['data']
 

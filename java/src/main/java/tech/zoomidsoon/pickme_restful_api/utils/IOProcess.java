@@ -6,44 +6,22 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class IOProcess {
 	private static String storageFolder = Utils.getEnv("STORAGE_FOLDER", "./storage");
 
-	static {
-		try {
-			IOProcess.createFolder(Paths.get(storageFolder));
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
-	}
-
 	public static void writeToFile(byte[] buffer, String filePath, boolean overwrite)
 			throws FileAlreadyExistsException, IOException {
 		File file = Paths.get(IOProcess.storageFolder, filePath).toAbsolutePath().toFile();
+		file.getParentFile().mkdirs();
 
 		if (!overwrite && file.exists())
 			throw new FileAlreadyExistsException(file.getAbsolutePath());
 
-		try (FileOutputStream out = new FileOutputStream(file)) {
-			out.write(buffer);
+		try (FileOutputStream outputStream = new FileOutputStream(file)) {
+			outputStream.write(buffer);
 		}
-	}
-
-	public static void createFolderInStorage(String folderName) throws SecurityException, IOException {
-		Path path = Paths.get(IOProcess.storageFolder, "./" + folderName).toAbsolutePath();
-		createFolder(path);
-	}
-
-	public static void createFolder(Path path) throws SecurityException, IOException {
-		if (Files.exists(path) && !Files.isDirectory(path))
-			Files.delete(path);
-		else if (!Files.exists(path))
-			Files.createDirectory(path);
 	}
 
 	public static void deleteFile(String filePath)

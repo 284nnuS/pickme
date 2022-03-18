@@ -8,17 +8,8 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode(callSuper = false)
 @ToString
-public class MessageItem extends Entity {
+public class MatchedUser {
 	private Integer userId;
-	private Long messageId;
-	private Long time;
 	private String name;
 	private String avatar;
-	private Boolean isSender;
-	private String content;
-
-	@Override
-	public boolean isEmpty() {
-		return userId == null;
-	}
 }

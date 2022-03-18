@@ -7,8 +7,6 @@ import { has } from '../shared/utils'
 import nextAuthOptions from '../shared/nextAuthOptions'
 
 export async function authorize(req: Request, res: Response, next: NextFunction) {
-   if (req.url.startsWith('/_next') || req.url.startsWith('/static') || req.url.startsWith('/api/auth')) return next()
-
    const token = await getToken({ req: req as unknown as NextApiRequest, secret: process.env.SECRET_KEY })
 
    if (!token) return next()

@@ -7,10 +7,6 @@ html {
       Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
 }
 
-body {
-   overflow: hidden !important;
-}
-
 .carousel {
    display: inline-flex;
    overflow-x: hidden;

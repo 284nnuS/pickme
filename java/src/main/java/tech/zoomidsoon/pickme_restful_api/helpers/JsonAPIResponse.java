@@ -30,7 +30,7 @@ public class JsonAPIResponse {
 		JsonAPIResponse response = new JsonAPIResponse();
 		response.data = data;
 		byte[] output = mapper.writeValueAsBytes(response);
-		return Response.ok(output).build();
+		return Response.ok(output).type("application/json").build();
 	}
 
 	public static Response handleError(int code, String message, String details) {
@@ -41,7 +41,7 @@ public class JsonAPIResponse {
 	public static Response handleError(Error error) {
 		JsonAPIResponse response = new JsonAPIResponse();
 		response.error = error;
-		return Response.status(error.code).entity(response).build();
+		return Response.status(error.code).entity(response).type("application/json").build();
 	}
 
 	/**
@@ -60,7 +60,7 @@ public class JsonAPIResponse {
 		if (Arrays.asList(errors).contains(err)) {
 			JsonAPIResponse response = new JsonAPIResponse();
 			response.error = new Error(400, err.message, e.getMessage());
-			return Response.status(400).entity(response).build();
+			return Response.status(400).entity(response).type("application/json").build();
 		}
 
 		System.out.println(e.getErrorCode() + "\n" + e);
@@ -73,7 +73,7 @@ public class JsonAPIResponse {
 			return ok(result.getData());
 
 		Error error = result.getError();
-		return Response.status(error.getCode()).entity(error).build();
+		return Response.status(error.getCode()).entity(error).type("application/json").build();
 	}
 
 	@Getter

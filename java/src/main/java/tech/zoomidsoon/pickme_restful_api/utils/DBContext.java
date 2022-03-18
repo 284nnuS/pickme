@@ -13,7 +13,8 @@ public class DBContext {
 	private static final String password = System.getenv("DB_PASSWORD");
 	private static final String driver = "com.mysql.cj.jdbc.Driver";
 
-	private static final String connectionStr = "jdbc:mysql://" + hostname + ":" + port + "/" + dbName;
+	private static final String connectionStr = "jdbc:mysql://" + hostname + ":" + port + "/" + dbName
+			+ "?allowPublicKeyRetrieval=true&useSSL=false";
 
 	private static HikariConfig config = new HikariConfig();
 	private static HikariDataSource dataSource;

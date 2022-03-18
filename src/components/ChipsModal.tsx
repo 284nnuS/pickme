@@ -1,4 +1,5 @@
 import { Modal, Tooltip } from '@mantine/core'
+import classNames from 'classnames'
 import { Dispatch, SetStateAction } from 'react'
 
 function ChipsModal({
@@ -16,20 +17,30 @@ function ChipsModal({
 }) {
    return (
       <Modal opened={opened} onClose={() => setOpened(false)} centered title="Select your interest">
-         {Object.values(allChips)
-            .filter((el) => chips.indexOf(el) === -1)
-            .map((chip) => {
+         <div className="flex flex-wrap gap-1">
+            {Object.values(allChips).map((chip) => {
+               const idx = chips.indexOf(chip)
                return (
                   <Tooltip key={chip.name} label={`${chip.description}`} allowPointerEvents>
                      <button
-                        className="h-8 px-3 text-xs leading-8 capitalize border rounded-full bg-slate-100"
-                        onClick={() => setChips((cc) => [...cc, chip])}
+                        className={classNames(
+                           'h-8 px-3 text-xs leading-8 capitalize border rounded-full bg-slate-100',
+                           idx > -1 && 'border-blue-600',
+                        )}
+                        onClick={() =>
+                           setChips((cc) => {
+                              if (idx === -1) return [...cc, chip]
+                              cc.splice(idx, 1)
+                              return [...cc]
+                           })
+                        }
                      >
                         {chip.name}
                      </button>
                   </Tooltip>
                )
             })}
+         </div>
       </Modal>
    )
 }

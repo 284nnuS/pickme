@@ -15,12 +15,12 @@ function Index() {
             <title>Home</title>
          </Head>
          <div
-            className="relative w-full h-full bg-indigo-900 bg-no-repeat bg-cover"
+            className="relative w-screen h-screen p-2 bg-indigo-900 bg-no-repeat bg-cover"
             style={{
                backgroundImage: `url('/static/images/landingbg.jpg')`,
             }}
          >
-            <div className="container relative z-10 w-screen px-6 mx-auto md:px-12 ">
+            <div className="relative z-10 w-screen px-6 mx-auto md:px-12 ">
                <div className="flex items-center justify-between ">
                   <Image src="/static/images/pickme.png" className="w-[20vh] h-[20vh]" alt="" />
                   <button

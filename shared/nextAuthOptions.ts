@@ -1,8 +1,7 @@
 import GoogleProvider from 'next-auth/providers/google'
 import FacebookProvider from 'next-auth/providers/facebook'
 import axios from 'axios'
-import { NextAuthOptions, User } from 'next-auth'
-import { JWT } from 'next-auth/jwt'
+import { NextAuthOptions } from 'next-auth'
 
 export const getUserInfo = async (email: string) => {
    try {
@@ -31,10 +30,9 @@ const nextAuthOptions: NextAuthOptions = {
       signIn: '/auth/signIn',
    },
    callbacks: {
-      async signIn({ user }: { user: User }) {
-         console.log(user)
-         return true
-      },
+      // async signIn({ user }: { user: User }) {
+      //    return true
+      // },
       async redirect({ url, baseUrl }) {
          if (url.startsWith(baseUrl)) return url
          else if (url.startsWith('/')) return new URL(url, baseUrl).toString()

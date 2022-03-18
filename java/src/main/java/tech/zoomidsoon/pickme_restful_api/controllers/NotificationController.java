@@ -9,8 +9,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.mysql.cj.jdbc.exceptions.SQLError;
-
 import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
 import tech.zoomidsoon.pickme_restful_api.helpers.Result;
 import tech.zoomidsoon.pickme_restful_api.helpers.SQLErrors;

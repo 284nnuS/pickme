@@ -1,3 +1,4 @@
+import axios from 'axios'
 import env from '~/shared/env'
 
 function Index() {
@@ -33,12 +34,17 @@ function Index() {
 
 export async function getServerSideProps({ res }) {
    const { locals } = res
+
+   if (!locals.session) return { props: {} }
+
    const userId = +locals.session.userInfo.userId
 
-   let data: number
+   let conversationId: number
    try {
-      const result = await fetch(`${env.javaServerUrl}/message/latest/userId/${userId}`)
-      data = (await result.json()).data
+      const result: Conversation[] = (await axios.get(`${env.javaServerUrl}/conversation/${userId}`)).data['data']
+      conversationId = result.reduce((pre, cur) =>
+         pre ? (cur.latestTime > pre.latestTime ? cur : pre) : cur,
+      ).conversationId
    } catch {
       return {
          props: {},
@@ -46,7 +52,7 @@ export async function getServerSideProps({ res }) {
    }
 
    res.statusCode = 302
-   res.setHeader('Location', `/app/chat/${data}`)
+   res.setHeader('Location', `/app/chat/${conversationId}`)
    return { props: {} }
 }
 

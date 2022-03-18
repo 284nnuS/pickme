@@ -1,41 +1,58 @@
 import { useState, useEffect, useRef, useCallback, FormEvent } from 'react'
 import classNames from 'classnames'
-import { MdSend } from 'react-icons/md'
-import { io } from 'socket.io-client'
+import { MdEmojiEmotions, MdSend } from 'react-icons/md'
+import { io, Socket } from 'socket.io-client'
 import { useThrottle, useThrottleCallback } from '@react-hook/throttle'
-import { NotificationBox, ReactSelect } from '.'
-import { Image, Tooltip } from '@mantine/core'
+import { ReactSelect } from '.'
+import { Image, Popover, Tooltip } from '@mantine/core'
 import { AiOutlineRollback } from 'react-icons/ai'
+import Link from 'next/link'
+import { IEmojiPickerProps } from 'emoji-picker-react'
+import dynamic from 'next/dynamic'
+import { useScroll } from 'react-use'
+import NotificationBox from './NotificationBox'
+import MessageSearchBox from './MessageSearchBox'
+
+const EmojiPickerNoSSRWrapper = dynamic<IEmojiPickerProps>(() => import('emoji-picker-react'), {
+   ssr: false,
+   loading: () => <p>Loading ...</p>,
+})
 
 function ChatBox({
-   yourId,
-   other,
+   conversation,
+   yourProfile,
    deleted,
    updateCallBack,
-   unmatchCallback,
+   unMatchCallback,
 }: {
-   yourId: number
-   other: UserInfo
+   conversation: Conversation
+   init: boolean
+   socket: Socket
+   yourProfile: UserProfile
    deleted: boolean
    updateCallBack: (message: Message) => void
-   unmatchCallback: (id: number) => void
+   unMatchCallback: (conversationId: number) => void
 }) {
-   const socket = io('/chat')
-   const [init, setInit] = useState(false)
-   const [messageList, setMessageList] = useState<Message[]>([])
-   const [canLoadMore, setCanLoadMore] = useThrottle(false, 1, true)
-   const listRef = useRef<HTMLUListElement>()
+   const socket: Socket = io('/chat', {
+      query: {
+         conversationId: conversation.conversationId,
+      },
+      forceNew: true,
+      upgrade: false,
+      transports: ['websocket'],
+   })
 
+   const [messageList, setMessageList] = useState<Message[]>([])
+   const [init, setInit] = useState(false)
+   const [canLoadMore, setCanLoadMore] = useThrottle(false, 1, true)
+   const [messageContent, setMessageContent] = useState('')
+   const [openedPicker, setOpenedPicker] = useState(false)
    const [disableSpinner, setDisableSpinner] = useState(false)
 
    const process = (messages: Message[]) =>
       messages
          .filter((v: Message, i: number, a: Message[]) => a.findIndex((t) => t.messageId === v.messageId) === i)
-         .filter(
-            (el: Message) =>
-               (el.sender === yourId && el.receiver === other.userId) ||
-               (el.sender === other.userId && el.receiver === yourId),
-         )
+         .filter((el: Message) => el.conversationId === conversation.conversationId)
          .sort((a: Message, b: Message) => b.time - a.time)
 
    useEffect(() => {
@@ -51,28 +68,17 @@ function ChatBox({
             setMessageList((currentMessages) => process([newMessage, ...currentMessages]))
             updateCallBack(newMessage)
          })
-         .on('React to message', ({ messageId, sender, receiver, react }: ReactToMessage) =>
+         .on('React to message', (message: Message) =>
             setMessageList((current) => {
-               const index = current.findIndex((t) => t.messageId === messageId)
-               if (
-                  (current[index].sender === sender && current[index].receiver === receiver) ||
-                  (current[index].sender === receiver && current[index].receiver === sender)
-               ) {
-                  current[index].react = react
-               }
+               const index = current.findIndex((t) => t.messageId === message.messageId)
+               current[index].react = message.react
                return [...current]
             }),
          )
-         .on('Delete message', ({ messageId, sender, receiver }: DeleteMessage) =>
+         .on('Delete message', (message: Message) =>
             setMessageList((current) => {
-               const index = current.findIndex((t) => t.messageId === messageId)
-               if (
-                  (current[index].sender === sender && current[index].receiver === receiver) ||
-                  (current[index].sender === receiver && current[index].receiver === sender)
-               ) {
-                  current[index].content = null
-               }
-
+               const index = current.findIndex((t) => t.messageId === message.messageId)
+               current[index].content = null
                updateCallBack(current[index])
                return [...current]
             }),
@@ -87,86 +93,81 @@ function ChatBox({
       if (init) {
          const now = new Date()
          const currentTime = now.getTime() - now.getTimezoneOffset() * 60000
-         const req: GetMoreMessages = {
-            time: currentTime,
-            otherId: other.userId,
-            num: 15,
-         }
-         socket.emit('Get more messages', req)
-         listRef.current.scrollTop = listRef.current.scrollHeight
+         socket.emit('Get more messages', currentTime)
+         scrollRef.current.scrollTop = scrollRef.current.scrollHeight
       }
    }, [init])
 
-   const handleScroll = useCallback(
-      (e) => {
-         const getMoreMessages = (time: number, num: number) => {
-            const req: GetMoreMessages = { time, otherId: other.userId, num }
-            socket.emit('Get more messages', req)
-         }
-         const list = e.target
-         if (canLoadMore && list.scrollTop <= list.lastChild.offsetTop) {
-            getMoreMessages(messageList[messageList.length - 1].time, 15)
-            setCanLoadMore(false)
-         }
-      },
-      [other.userId, socket, canLoadMore, messageList, setCanLoadMore],
-   )
+   const scrollRef = useRef<HTMLUListElement>(null)
+   const { y: scrollY } = useScroll(scrollRef)
 
-   const throttledhandleScroll = useThrottleCallback(handleScroll, 0.5, true)
+   const handleScroll = useCallback(
+      () => socket.emit('Get more messages', messageList[messageList.length - 1].time),
+      [messageList],
+   )
+   const throttledHandleScroll = useThrottleCallback(handleScroll, 0.5, true)
+
+   useEffect(() => {
+      if (canLoadMore && scrollY <= scrollRef.current?.lastChild['offsetTop']) throttledHandleScroll()
+   }, [scrollY])
 
    const inputBoxRef = useRef<HTMLInputElement>()
 
    const sendMessage = (e: FormEvent) => {
-      const inputBox = inputBoxRef.current
-      const req: SendMessage = { otherId: other.userId, content: inputBox.value }
-      socket.emit('Send message', req)
-      inputBox.value = ''
+      socket.emit('Send message', messageContent)
+      setMessageContent('')
       e.preventDefault()
    }
-
-   useEffect(() => {
-      if (init) {
-         const list = listRef.current
-         list.addEventListener('scroll', throttledhandleScroll)
-         return () => {
-            list.removeEventListener('scroll', throttledhandleScroll)
-         }
-      }
-   }, [init, throttledhandleScroll])
 
    const abbreviate = (fullName: string) => {
       const words = fullName.split(' ')
       return (words[0][0] + (words.length > 1 ? '.' + words[1][0] : '')).toUpperCase()
    }
 
-   const abbreviateName = abbreviate(other.name)
+   const abbreviateName = abbreviate(conversation.otherName)
 
    return (
       <div className="w-full h-screen overflow-hidden">
          <div className="flex items-center h-16 px-6 py-2 border-b-2 gap-x-5 border-slate-200">
-            {!deleted && other.avatar ? (
-               <Image src={other.avatar} radius={100} alt="Avatar" width={48} height={48} />
+            {!deleted && conversation.otherAvatar ? (
+               <Image src={conversation.otherAvatar} radius={100} alt="Avatar" width={48} height={48} />
             ) : (
                <p className="w-12 h-12 text-lg font-bold text-center text-white bg-teal-600 rounded-full leading-[3rem]">
                   {abbreviateName}
                </p>
             )}
-            <p className={classNames('text-lg font-semibold', deleted && 'line-through')}>{other.name}</p>
+            <Link href={`/app/profile/${conversation.otherId}`} passHref>
+               <a className={classNames('text-lg font-semibold', deleted && 'line-through')}>
+                  {conversation.otherName}
+               </a>
+            </Link>
             <div className="flex-grow"></div>
-            <NotificationBox yourId={yourId} />
+            <MessageSearchBox
+               yourAvatar={yourProfile.avatar}
+               conversation={conversation}
+               messages={messageList}
+               scrollToMessage={(index) =>
+                  scrollRef.current?.children[index].scrollIntoView({
+                     behavior: 'smooth',
+                     block: 'center',
+                     inline: 'center',
+                  })
+               }
+            />
+            <NotificationBox yourId={yourProfile.userId} />
             {deleted || (
                <button
-                  className="p-2 text-sm font-bold uppercase bg-white border-2 rounded-full border-slate-400 hover:bg-slate-400 hover:text-white"
-                  onClick={() => unmatchCallback(other.userId)}
+                  className="p-1.5 text-sm font-bold text-teal-500 uppercase bg-white border-2 border-teal-500 rounded-full hover:bg-teal-500 hover:text-white"
+                  onClick={() => unMatchCallback(conversation.conversationId)}
                >
                   UnMatch
                </button>
             )}
          </div>
-         <ul className="flex flex-col-reverse p-6 overflow-y-auto h-[calc(100%-7.5rem)] relative" ref={listRef}>
+         <ul className="flex flex-col-reverse p-6 overflow-y-auto h-[calc(100%-7.5rem)] relative" ref={scrollRef}>
             {!deleted ? (
                Object.values(messageList).map((el, i, list) => {
-                  const youIsSender = yourId === el.sender
+                  const youIsSender = yourProfile.userId === el.sender
                   const currentTime = new Date()
                   const nextMessageTime = i < list.length - 1 && new Date(list[i + 1].time)
                   const currentMessageTime = new Date(el.time)
@@ -186,9 +187,9 @@ function ChatBox({
                         )}
                         <div className={classNames('flex relative', youIsSender && 'flex-row-reverse')}>
                            {youIsSender ||
-                              (other.avatar ? (
+                              (conversation.otherAvatar ? (
                                  <Image
-                                    src={other.avatar}
+                                    src={conversation.otherAvatar}
                                     alt="Avatar"
                                     className={
                                        i === 0 || list[i - 1].sender !== el.sender
@@ -235,7 +236,7 @@ function ChatBox({
                                     )}
                                  >
                                     {el.content ? el.content : 'This message is removed'}
-                                    {el.content && el.react && (
+                                    {el.content && el.react !== 'none' && (
                                        <div className="absolute flex items-center justify-center w-6 h-6 bg-white border rounded-full -right-2 -bottom-2 z-1">
                                           <Image
                                              src={`/static/images/${el.react}16.png`}
@@ -254,12 +255,7 @@ function ChatBox({
                                        <button
                                           className="relative p-1 bg-white rounded-full w-7 h-7 hover:bg-slate-300"
                                           onClick={() => {
-                                             const req: DeleteMessage = {
-                                                messageId: el.messageId,
-                                                sender: el.sender,
-                                                receiver: el.receiver,
-                                             }
-                                             socket.emit('Delete message', req)
+                                             socket.emit('Delete message', el.messageId)
                                           }}
                                        >
                                           <AiOutlineRollback className="w-full h-full text-gray-500" />
@@ -280,7 +276,9 @@ function ChatBox({
             )}
             <div
                className={classNames(
-                  disableSpinner || !listRef.current || listRef.current.scrollHeight <= listRef.current.offsetHeight
+                  disableSpinner ||
+                     !scrollRef.current ||
+                     scrollRef.current.scrollHeight <= scrollRef.current.offsetHeight
                      ? 'hidden'
                      : 'block',
                   'flex flex-col items-center',
@@ -306,17 +304,46 @@ function ChatBox({
          </ul>
          {deleted || (
             <form
-               className="flex items-center px-4 border-t-2 h-14 border-slate-200"
+               className="flex items-center px-4 border-t-2 h-14 border-slate-200 gap-x-4"
                action={null}
                onSubmit={sendMessage}
             >
+               <Popover
+                  opened={openedPicker}
+                  onClose={() => setOpenedPicker(false)}
+                  target={
+                     <button type="button" className="w-7 h-7" onClick={() => setOpenedPicker((c) => !c)}>
+                        <MdEmojiEmotions className="w-full h-full text-slate-500" />
+                     </button>
+                  }
+                  position="top"
+                  spacing={0}
+                  gutter={20}
+                  withArrow
+               >
+                  <EmojiPickerNoSSRWrapper
+                     onEmojiClick={(e, emojiObject) => {
+                        setMessageContent((c) => {
+                           const caretPosition = inputBoxRef.current?.selectionStart || 0
+                           const arr = c.split('')
+                           return [
+                              ...arr.slice(0, caretPosition),
+                              emojiObject.emoji,
+                              ...arr.slice(caretPosition, c.length),
+                           ].join('')
+                        })
+                     }}
+                  />
+               </Popover>
                <input
                   className="py-1.5 px-4 bg-gray-200 border-none rounded-full w-full focus:outline-none"
                   placeholder="Aa"
+                  value={messageContent}
+                  onChange={(e) => setMessageContent(e.target.value)}
                   ref={inputBoxRef}
                   required
                />
-               <button type="submit" className="p-2 ml-3 bg-teal-500 rounded-full">
+               <button type="submit" className="p-2 bg-teal-600 rounded-full">
                   <MdSend className="w-6 h-6 text-white" />
                </button>
             </form>

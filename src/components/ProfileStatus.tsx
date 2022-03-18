@@ -1,0 +1,75 @@
+import { Modal, Popover } from '@mantine/core'
+import { IEmojiPickerProps } from 'emoji-picker-react'
+import dynamic from 'next/dynamic'
+import { useState } from 'react'
+import { AiTwotoneEdit } from 'react-icons/ai'
+
+const EmojiPickerNoSSRWrapper = dynamic<IEmojiPickerProps>(() => import('emoji-picker-react'), {
+   ssr: false,
+   loading: () => <p>Loading ...</p>,
+})
+
+function ProfileStatus({
+   editable = false,
+   statusEmoji,
+   statusText,
+}: {
+   statusEmoji: string
+   statusText: string
+   editable: boolean
+}) {
+   const [opened, setOpened] = useState(false)
+   const [openedPicker, setOpenedPicker] = useState(false)
+
+   return (
+      <div className="flex items-center text-lg text-slate-500">
+         <div className="relative px-8 group">
+            {statusEmoji}
+            <span className="ml-3">{statusText}</span>
+            {editable && (
+               <button
+                  className="absolute top-0 bottom-0 right-0 hidden w-6 h-6 ml-6 rounded-full group-hover:block"
+                  onClick={() => setOpened(true)}
+               >
+                  <AiTwotoneEdit className="w-full h-full text-slate-500" />
+               </button>
+            )}
+            <Modal opened={opened} centered onClose={() => setOpened(false)} title="What happens?">
+               <div className="flex items-center justify-center gap-x-3">
+                  <Popover
+                     opened={openedPicker}
+                     onClose={() => setOpenedPicker(false)}
+                     target={
+                        <button
+                           className="w-10 h-10 text-2xl leading-10 text-center border rounded-full"
+                           onClick={() => setOpenedPicker((c) => !c)}
+                        >
+                           {statusEmoji}
+                        </button>
+                     }
+                     position="top"
+                     spacing={0}
+                     gutter={20}
+                     withArrow
+                  >
+                     <EmojiPickerNoSSRWrapper
+                        onEmojiClick={() => {
+                           //setEmoji(emojiObject.emoji)
+                           setOpenedPicker(false)
+                        }}
+                     />
+                  </Popover>
+                  <input
+                     type="text"
+                     value={statusText}
+                     //onChange={(e) => setStatusText(e.target.value)}
+                     className="h-10 px-3 border-b-2 border-slate-500 w-72 focus:outline-none focus:border-blue-500"
+                  />
+               </div>
+            </Modal>
+         </div>
+      </div>
+   )
+}
+
+export default ProfileStatus

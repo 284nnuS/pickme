@@ -1,9 +1,8 @@
 import TinderCard from 'react-tinder-card'
-import { useState, createRef, useMemo, useRef, useEffect, useCallback, RefObject } from 'react'
+import { useState, createRef, useEffect, RefObject } from 'react'
 import { SwipeButton } from '.'
 import Card from './Card'
-import axios from 'axios'
-import { useKeyPressEvent } from 'react-use'
+import { useKeyPressEvent, useSessionStorage } from 'react-use'
 import { Socket } from 'socket.io-client'
 import { useThrottleCallback } from '@react-hook/throttle'
 
@@ -17,7 +16,7 @@ function PickMeCard({
    init: boolean
 }) {
    const [peopleList, setPeopleList] = useState<Card[]>([])
-   const [needFetch, setNeedFetch] = useState(true)
+   const [needFetch] = useState(true)
    const [currentCard, setCurrentCard] = useState(0)
 
    const process = (peoples: Card[]) =>
@@ -30,39 +29,21 @@ function PickMeCard({
 
    useEffect(() => {
       socket.on('Reroll', (cards: Card[]) => {
-         setPeopleList(
-            cards.map((el) => {
-               const result = {
-                  ...el,
-                  voice: el.medias.find((el: Media) => el.mediaType === 'voice'),
-                  images: el.medias.filter((el: Media) => el.mediaType === 'image'),
-               }
-               delete result.medias
-               return result
-            }),
-         )
+         setPeopleList(cards)
       })
       socket.on('Cards', (cards: Card[]) => {
-         setPeopleList((current) =>
-            process([
-               ...current,
-               ...cards.map((el) => {
-                  const result = {
-                     ...el,
-                     voice: el.medias.find((el: Media) => el.mediaType === 'voice'),
-                     images: el.medias.filter((el: Media) => el.mediaType === 'image'),
-                  }
-                  delete result.medias
-                  return result
-               }),
-            ]),
-         )
+         setPeopleList((current) => process([...current, ...cards]))
       })
    }, [])
 
+   const [value, setValue] = useSessionStorage('persist-cards')
+
    useEffect(() => {
       if (!init || !needFetch) return
-      socket.emit('Get cards')
+      if (value) {
+         setPeopleList(value as Card[])
+         setValue(null)
+      } else socket.emit('Get cards')
    }, [init, needFetch])
 
    const swipe = (dir: string, id: number) => {
@@ -86,7 +67,10 @@ function PickMeCard({
    const cardRef = peopleList.reduce((acc, val, i) => {
       acc[i] = createRef()
       return acc
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
    }, {} as Record<number, RefObject<any>>)
+
+   const reroll = useThrottleCallback(() => socket.emit('Reroll'), 1, true)
 
    return (
       <div className=" h-[75%] aspect-[5/9] m-2 rounded-2xl bg-slate-200 relative">
@@ -104,13 +88,13 @@ function PickMeCard({
                      setPeopleList((current) => [...current.slice(1, current.length)])
                      setCurrentCard((current) => current - 1)
                   }}
-                  // onCardLeftScreen={() => outOfFrame(person.name, index)}
                >
                   <Card
                      {...person}
                      age={calcAge(person.birthday)}
                      defaultInterests={defaultInterests}
                      isFirst={currentCard === l.length - 1 - i}
+                     onNavigate={() => setValue(peopleList)}
                   />
                </TinderCard>
             ))}
@@ -119,7 +103,7 @@ function PickMeCard({
                /**/
             }}
             handleHeartBtn={superLike}
-            handleRepeatBtn={() => socket.emit('Reroll', peopleList[currentCard].userId)}
+            handleRepeatBtn={reroll}
             handleStarBtn={() => {
                /**/
             }}

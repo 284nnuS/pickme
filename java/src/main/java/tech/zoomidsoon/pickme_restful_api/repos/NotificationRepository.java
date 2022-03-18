@@ -49,7 +49,7 @@ public class NotificationRepository implements Repository<Notification> {
 			}
 
 			ResultSet rs2 = stmt
-					.executeQuery("SELECT avatar from tblUser WHERE userId = " + notification.getSourceUID());
+					.executeQuery("SELECT avatar from tblUserProfile WHERE userId = " + notification.getSourceUID());
 			rs2.next();
 			notification.setAvatar(rs2.getString(1));
 
@@ -102,10 +102,10 @@ public class NotificationRepository implements Repository<Notification> {
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
 			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT * FROM tblNotification a \n"
-							+ "LEFT OUTER JOIN tblUser b \n"
-							+ "ON a.sourceUID = b.userId \n"
-							+ "WHERE a.targetUID = ?",
+					"SELECT * FROM tblNotification tn \n"
+							+ "LEFT OUTER JOIN tblUserProfile tup \n"
+							+ "ON tn.sourceUID = tup.userId \n"
+							+ "WHERE tn.targetUID = ?",
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 			stmt.setInt(1, userId);

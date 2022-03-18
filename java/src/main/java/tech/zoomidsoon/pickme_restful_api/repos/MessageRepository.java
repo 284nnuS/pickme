@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.List;
 
 import lombok.*;
@@ -15,7 +14,6 @@ import tech.zoomidsoon.pickme_restful_api.mappers.MessageRowMapper;
 import tech.zoomidsoon.pickme_restful_api.helpers.JsonAPIResponse;
 import tech.zoomidsoon.pickme_restful_api.helpers.Result;
 import tech.zoomidsoon.pickme_restful_api.models.Message;
-import tech.zoomidsoon.pickme_restful_api.utils.Utils;
 
 public class MessageRepository implements Repository<Message> {
 	private static final Repository<Message> singleton = new MessageRepository();
@@ -30,15 +28,12 @@ public class MessageRepository implements Repository<Message> {
 	@Override
 	public Result<Message, Error> create(Connection conn, Message message) throws Exception {
 		try (PreparedStatement stmt = conn.prepareStatement(
-				"INSERT INTO tblMessage (time, sender, receiver, content, react) VALUES (?,?,?,?,?)",
+				"INSERT INTO tblMessage (conversationId, time, content, sender) VALUES (?,?,?,?)",
 				Statement.RETURN_GENERATED_KEYS)) {
-			Timestamp now = Timestamp.from(Instant.now());
-			message.setTime(now.getTime());
-			stmt.setTimestamp(1, now);
-			stmt.setInt(2, message.getSender());
-			stmt.setInt(3, message.getReceiver());
-			stmt.setString(4, message.getContent());
-			stmt.setString(5, message.getReact());
+			stmt.setLong(1, message.getConversationId());
+			stmt.setTimestamp(2, new Timestamp(message.getTime()));
+			stmt.setString(3, message.getContent());
+			stmt.setInt(4, message.getSender());
 
 			if (stmt.executeUpdate() != 1)
 				return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
@@ -78,22 +73,25 @@ public class MessageRepository implements Repository<Message> {
 
 		Message inDB = list.get(0);
 
-		if (message.getReact() != null && inDB.getContent() == null)
+		if (message.getReact() != "none" && inDB.getContent() == null)
 			return new Result<>(null, new JsonAPIResponse.Error(400, "Can't react to deleted message'", ""));
 
 		if (message.getContent() != null && !message.getContent().equals(inDB.getContent()))
 			return new Result<>(null, new JsonAPIResponse.Error(400, "Not allow to change content of message'", ""));
-
-		Utils.copyNonNullFields(inDB, message, "messageId", "time", "sender, receiver");
+		Message newMessage = inDB;
+		if (message.getReact() == null)
+			newMessage.setContent(message.getContent());
+		else
+			newMessage.setReact(message.getReact());
 
 		try (PreparedStatement stmt = conn.prepareStatement(
 				"UPDATE tblMessage SET content = ?, react = ? WHERE messageId = ?")) {
-			stmt.setString(1, message.getContent());
-			stmt.setString(2, message.getReact());
-			stmt.setLong(3, message.getMessageId());
+			stmt.setString(1, newMessage.getContent());
+			stmt.setString(2, newMessage.getReact());
+			stmt.setLong(3, newMessage.getMessageId());
 
 			if (stmt.executeUpdate() > 0)
-				return new Result<>(message, null);
+				return new Result<>(newMessage, null);
 
 			return new Result<>(null, new JsonAPIResponse.Error(400, "messageId not found", ""));
 		}
@@ -125,53 +123,19 @@ public class MessageRepository implements Repository<Message> {
 	}
 
 	@AllArgsConstructor
-	public static class FindLatestMessageByUserId implements Criteria {
-		private int userId;
-
-		@Override
-		public ResultSet query(Connection conn) throws Exception {
-			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT * FROM tblMessage tm \n"
-							+ "INNER JOIN (SELECT tms1.userIdTwo as matchedId FROM tblMatchStatus tms1 \n"
-							+ "INNER JOIN tblMatchStatus tms2 \n"
-							+ "ON tms1.userIdOne = tms2.userIdTwo AND tms1.userIdTwo = tms2.userIdOne AND tms1.`like` = 1 AND tms2.`like` = 1 AND tms1.userIdOne = ?) ma \n"
-							+ "ON tm.sender = ma.matchedId OR tm.receiver = ma.matchedId \n"
-							+ "WHERE tm.sender = ? OR tm.receiver = ? \n"
-							+ "ORDER BY tm.`time` DESC \n"
-							+ "LIMIT 1",
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			stmt.setInt(1, userId);
-			stmt.setInt(2, userId);
-			stmt.setInt(3, userId);
-			return stmt.executeQuery();
-		}
-	}
-
-	@NoArgsConstructor
-	@Getter
-	@Setter
-	public static class FindByTimeAndUserId implements Criteria {
+	public static class FindByConversationIdAndTime implements Criteria {
+		private long conversationId;
 		private long time;
-		private int userIdOne;
-		private int userIdTwo;
-		private int num;
 
 		@Override
 		public ResultSet query(Connection conn) throws Exception {
 			PreparedStatement stmt = conn.prepareStatement(
-					"SELECT * FROM tblMessage WHERE ((sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)) AND time < ? ORDER BY time DESC LIMIT "
-							+ num,
+					"SELECT * FROM tblMessage WHERE conversationId = ? AND time < ? ORDER BY time DESC LIMIT 25",
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
-			Timestamp timestamp = new Timestamp(time);
-			stmt.setInt(1, userIdOne);
-			stmt.setInt(2, userIdTwo);
-			stmt.setInt(3, userIdTwo);
-			stmt.setInt(4, userIdOne);
-			stmt.setTimestamp(5, timestamp);
+			stmt.setLong(1, conversationId);
+			stmt.setTimestamp(2, new Timestamp(time));
 			return stmt.executeQuery();
 		}
 	}
-
 }

@@ -8,6 +8,5 @@
       "rootDir": "./",
       "typeRoots": ["./types"]
    },
-   "include": ["server"],
-   "files": ["./types/*.d.ts"]
+   "include": ["server"]
 }

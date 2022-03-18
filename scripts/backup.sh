@@ -1,1 +1,0 @@
-docker exec pickme-database /usr/bin/mysqldump -u root --password=$PASS DATABASE > backup.sql

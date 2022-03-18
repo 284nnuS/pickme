@@ -8,14 +8,10 @@ function ReactSelect({ message, socket }: { message: Message; socket: Socket }) 
    const [opened, setOpened] = useState(false)
 
    const reactToMessage = (react: React) => {
-      const req: ReactToMessage = {
+      socket.emit('React to message', {
          messageId: message.messageId,
-         sender: message.sender,
-         receiver: message.receiver,
-         content: message.content,
-         react: react === message.react ? null : react,
-      }
-      socket.emit('React to message', req)
+         react: react === message.react ? 'none' : react,
+      })
       setOpened(false)
    }
 

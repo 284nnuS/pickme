@@ -1,5 +1,3 @@
-import facebook from 'next-auth/providers/facebook'
-
 const env = {
    javaServerUrl: process.env.JAVA_SERVER_URL,
    googleClientId: process.env.GOOGLE_CLIENT_ID,

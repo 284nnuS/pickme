@@ -14,7 +14,6 @@ import tech.zoomidsoon.pickme_restful_api.helpers.Pair;
 import tech.zoomidsoon.pickme_restful_api.helpers.Result;
 import tech.zoomidsoon.pickme_restful_api.helpers.SQLErrors;
 import tech.zoomidsoon.pickme_restful_api.mixin.MediaMixin;
-import tech.zoomidsoon.pickme_restful_api.mixin.UserBasicInfoMixin;
 import tech.zoomidsoon.pickme_restful_api.models.User;
 import tech.zoomidsoon.pickme_restful_api.repos.UserRepository;
 import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
@@ -69,55 +68,6 @@ public class UserController {
 	}
 
 	@GET
-	@Path("/matched/id/{id}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getMatchedUsers(@PathParam("id") int userId) {
-		try {
-			try (Connection conn = DBContext.getConnection()) {
-				UserRepository.FindMatchedUsersById findMatchedUsersById = new UserRepository.FindMatchedUsersById(userId);
-				List<User> users = UserRepository.getInstance().read(conn, findMatchedUsersById);
-
-				return JsonAPIResponse.ok(users, new Pair(Media.class, MediaMixin.class));
-			} catch (SQLException e) {
-				Response response = JsonAPIResponse.handleSQLError(e);
-				if (response != null)
-					return response;
-			}
-		} catch (Exception e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}
-
-		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
-	}
-
-	@GET
-	@Path("/basic/id/{id}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getBasicUserInfoById(@PathParam("id") int userId) {
-		try {
-			try (Connection conn = DBContext.getConnection()) {
-				UserRepository.FindById findById = new UserRepository.FindById(userId);
-				List<User> users = UserRepository.getInstance().read(conn, findById);
-
-				if (users.isEmpty())
-					return JsonAPIResponse.handleError(404, "User does not exist", "");
-				return JsonAPIResponse.ok(users.get(0), new Pair(Media.class, MediaMixin.class), new Pair(User.class,
-						UserBasicInfoMixin.class));
-			} catch (SQLException e) {
-				Response response = JsonAPIResponse.handleSQLError(e);
-				if (response != null)
-					return response;
-			}
-		} catch (Exception e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}
-
-		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
-	}
-
-	@GET
 	@Path("/email/{email}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response findByEmail(@PathParam("email") String email) {
@@ -129,29 +79,6 @@ public class UserController {
 				if (users.isEmpty())
 					return JsonAPIResponse.handleError(404, "User does not exist", "");
 				return JsonAPIResponse.ok(users.get(0));
-			} catch (SQLException e) {
-				Response response = JsonAPIResponse.handleSQLError(e);
-				if (response != null)
-					return response;
-			}
-		} catch (Exception e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}
-
-		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
-	}
-
-	@GET
-	@Path("/card/id/{userId}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response findByEmail(@PathParam("userId") int userId) {
-		try {
-			try (Connection conn = DBContext.getConnection()) {
-				UserRepository.FindUsersNotMeet findUsersNotMeet = new UserRepository.FindUsersNotMeet(userId);
-				List<User> users = UserRepository.getInstance().read(conn, findUsersNotMeet);
-				return JsonAPIResponse.ok(users, new Pair<>(Media.class, MediaMixin.class), new Pair(User.class,
-						UserBasicInfoMixin.class));
 			} catch (SQLException e) {
 				Response response = JsonAPIResponse.handleSQLError(e);
 				if (response != null)

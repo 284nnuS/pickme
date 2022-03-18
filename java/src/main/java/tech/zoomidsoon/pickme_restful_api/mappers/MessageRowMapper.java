@@ -22,11 +22,11 @@ public class MessageRowMapper extends RowMapper<Message> {
 		Timestamp time = rs.getTimestamp("time");
 
 		obj.setMessageId(messageId);
+		obj.setConversationId(rs.getLong("conversationId"));
 		obj.setTime(time != null ? time.getTime() : null);
-		obj.setSender(rs.getInt("sender"));
-		obj.setReceiver(rs.getInt("receiver"));
 		obj.setContent(rs.getString("content"));
 		obj.setReact(rs.getString("react"));
+		obj.setSender(rs.getInt("sender"));
 
 		return null;
 	}
