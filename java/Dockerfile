@@ -11,6 +11,7 @@ WORKDIR /app
 RUN addgroup -g 1001 -S appgroup
 RUN adduser -S appuser -u 1001
 COPY --from=builder --chown=appuser:appgroup /app/target/ .
+RUN mkdir /app/storage && chown -R appuser:appgroup /app/storage
 
 USER appuser
 EXPOSE 3001
