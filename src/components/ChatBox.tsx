@@ -4,7 +4,7 @@ import { MdEmojiEmotions, MdSend } from 'react-icons/md'
 import { io, Socket } from 'socket.io-client'
 import { useThrottle, useThrottleCallback } from '@react-hook/throttle'
 import { ReactSelect } from '.'
-import { Image, Popover, Tooltip } from '@mantine/core'
+import { Avatar, Image, Popover, Tooltip } from '@mantine/core'
 import { AiOutlineRollback } from 'react-icons/ai'
 import Link from 'next/link'
 import { IEmojiPickerProps } from 'emoji-picker-react'
@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic'
 import { useScroll } from 'react-use'
 import NotificationBox from './NotificationBox'
 import MessageSearchBox from './MessageSearchBox'
+import { IoMdArrowBack } from 'react-icons/io'
 
 const EmojiPickerNoSSRWrapper = dynamic<IEmojiPickerProps>(() => import('emoji-picker-react'), {
    ssr: false,
@@ -19,12 +20,14 @@ const EmojiPickerNoSSRWrapper = dynamic<IEmojiPickerProps>(() => import('emoji-p
 })
 
 function ChatBox({
+   scrollCallback,
    conversation,
    yourProfile,
    deleted,
    updateCallBack,
    unMatchCallback,
 }: {
+   scrollCallback: () => void
    conversation: Conversation
    init: boolean
    socket: Socket
@@ -129,8 +132,11 @@ function ChatBox({
    return (
       <div className="w-full h-screen overflow-hidden">
          <div className="flex items-center h-16 px-6 py-2 border-b-2 gap-x-5 border-slate-200">
+            <button className="w-7 h-7 md:hidden" onClick={() => scrollCallback()}>
+               <IoMdArrowBack className="w-full h-full text-emerald-500" />
+            </button>
             {!deleted && conversation.otherAvatar ? (
-               <Image src={conversation.otherAvatar} radius={100} alt="Avatar" width={48} height={48} />
+               <Avatar src={conversation.otherAvatar} radius={100} alt={conversation.otherName} size={48} />
             ) : (
                <p className="w-12 h-12 text-lg font-bold text-center text-white bg-teal-600 rounded-full leading-[3rem]">
                   {abbreviateName}

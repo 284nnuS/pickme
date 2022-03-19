@@ -6,7 +6,7 @@ import { IoMdNotifications } from 'react-icons/io'
 import { io } from 'socket.io-client'
 import NotificationForm from './NotificationForm'
 
-function NotificationBox({ yourId, inProfile = false }) {
+function NotificationBox({ yourId, inProfile = false, gutter = 16 }) {
    const [notificationList, setNotificationList] = useState([])
 
    const socket = io('/notify', {
@@ -81,9 +81,9 @@ function NotificationBox({ yourId, inProfile = false }) {
          opened={opened}
          position="bottom"
          spacing={0}
-         radius={10}
+         gutter={gutter}
          classNames={{
-            body: 'border border-teal-500',
+            body: 'rounded-none md:rounded-md border border-teal-500 w-screen md:w-[28rem]',
          }}
          onClose={() => setOpened(false)}
          target={
@@ -103,7 +103,7 @@ function NotificationBox({ yourId, inProfile = false }) {
             </button>
          }
       >
-         <div className="w-[28rem] flex flex-col">
+         <div className="flex flex-col w-full">
             <div className="flex w-full border-b border-teal-500">
                <button
                   className={classNames(

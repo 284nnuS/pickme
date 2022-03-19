@@ -21,8 +21,6 @@ services:
             - DB_HOSTNAME=database
         env_file:
             - configs/java.env
-        volumes:
-            - ./java/storage:/app/storage
     database:
         image: mysql:8.0.28
         container_name: pickme-database

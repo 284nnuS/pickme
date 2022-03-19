@@ -8,9 +8,13 @@ import { FaUserAlt } from 'react-icons/fa'
 import { IoIosHelpCircle } from 'react-icons/io'
 import { RiMoreFill, RiSettings4Fill } from 'react-icons/ri'
 import { VscSignOut } from 'react-icons/vsc'
+import { useMedia } from 'react-use'
+import NotificationBox from './NotificationBox'
 
 function SidebarHeader({ userProfile, tab }: { userProfile: UserProfile; tab: string }) {
    const router = useRouter()
+
+   const isWide = useMedia('(min-width: 768px)')
 
    return (
       <>
@@ -18,6 +22,7 @@ function SidebarHeader({ userProfile, tab }: { userProfile: UserProfile; tab: st
             <Avatar src={userProfile.avatar} radius="xl" size="lg" alt={userProfile.name} />
             <div className="ml-2 text-2xl font-bold text-white">{userProfile.name}</div>
             <div className="flex-grow"></div>
+            {isWide || <NotificationBox yourId={userProfile.userId} inProfile={true} gutter={27} />}
             <Menu
                trigger="hover"
                delay={500}

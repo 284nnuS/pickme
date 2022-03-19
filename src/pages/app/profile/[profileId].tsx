@@ -3,7 +3,7 @@ import axios from 'axios'
 import classNames from 'classnames'
 import { signOut } from 'next-auth/react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AiFillInfoCircle, AiFillMobile, AiFillWarning } from 'react-icons/ai'
 import { BsFillFlagFill } from 'react-icons/bs'
 import { FaUserAlt, FaUserFriends } from 'react-icons/fa'
@@ -11,6 +11,7 @@ import { IoIosHelpCircle, IoMdArrowBack } from 'react-icons/io'
 import { MdLocationOn, MdOutlinePhotoCameraBack, MdWebStories } from 'react-icons/md'
 import { RiSettings4Fill } from 'react-icons/ri'
 import { VscSignOut } from 'react-icons/vsc'
+import { useMedia, useWindowScroll } from 'react-use'
 import env from '~/shared/env'
 import { ChipsInProfile, EditProfile, NotificationBox, ProfileStatus } from '~/src/components'
 
@@ -31,6 +32,8 @@ function Profile({
 
    useEffect(() => setProfile(initProfile), [initProfile])
 
+   const { y } = useWindowScroll()
+
    if (!profile) return <></>
 
    return (
@@ -38,7 +41,12 @@ function Profile({
          <div className="absolute top-0 bottom-0 left-0 right-0 -z-50">
             <Image src="/static/images/profileBackground.jpg" alt="" />
          </div>
-         <div className="fixed z-50 flex items-center w-full p-6 gap-x-4">
+         <div
+            className={classNames('fixed z-50 flex items-center w-full px-6 py-3 gap-x-4')}
+            style={{
+               backgroundColor: `rgba(5,150,105,${Math.min(1.0, (y - 20.0) / 20.0)})`,
+            }}
+         >
             <Link href="/app" passHref>
                <a className="w-10 h-10 rounded-full hover:bg-slate-300/60" onClick={() => window.history.back()}>
                   <IoMdArrowBack className="w-full h-full text-white" />
@@ -82,8 +90,8 @@ function Profile({
             <div className="absolute left-0 right-0 z-10 flex justify-center h-48 -top-24">
                <Avatar size={192} src={profile.avatar} radius="md" alt={profile.name} />
             </div>
-            <div className="flex items-center justify-between">
-               <div className="w-[calc(50%-6rem)] pt-10 flex px-4 justify-center gap-x-12 flex-wrap">
+            <div className="items-center justify-between hidden md:flex">
+               <div className="w-[calc(50%-6rem)] pt-10 flex px-4 justify-center md:gap-x-3 lg:gap-x-12 flex-wrap">
                   {Object.entries({
                      Matches: profile.matches.length,
                      Likes: profile.likes,
@@ -91,7 +99,7 @@ function Profile({
                      Interests: profile.interests.length,
                   }).map(([label, value]) => {
                      return (
-                        <div key={label} className="flex flex-col items-center">
+                        <div key={label} className="flex flex-col items-center w-16">
                            <div className="text-3xl font-semibold text-slate-700">{value}</div>
                            <div className="text-sm text-slate-500">{label}</div>
                         </div>
@@ -112,6 +120,7 @@ function Profile({
                   </Link>
                   {isYourProfile ? (
                      <EditProfile
+                        key={profile}
                         initProfile={profile}
                         defaultInterests={defaultInterests}
                         onEditedSuccess={(n) => setProfile(n)}
@@ -123,7 +132,7 @@ function Profile({
                   )}
                </div>
             </div>
-            <div className="flex flex-col items-center w-full px-3 mt-3 gap-y-2">
+            <div className="flex flex-col items-center w-full px-3 mt-[7rem] md:mt-3 gap-y-2">
                <div className="text-3xl font-bold text-center">{profile.name}</div>
                <div className="flex flex-col items-center gap-y-2">
                   {profile.address && (
@@ -144,6 +153,7 @@ function Profile({
                      />
                   )}
                   <ProfileStatus
+                     key={profile}
                      editable={isYourProfile}
                      userId={isYourProfile ? profile.userId : -1}
                      initStatusEmoji={profile.statusEmoji}
@@ -158,6 +168,45 @@ function Profile({
                         })
                      }
                   />
+                  <div className="flex flex-col items-center gap-y-3 md:hidden ">
+                     <div className="flex justify-center w-full px-2 pt-6">
+                        {Object.entries({
+                           Matches: profile.matches.length,
+                           Likes: profile.likes,
+                           Photos: profile.photos.length,
+                           Interests: profile.interests.length,
+                        }).map(([label, value]) => {
+                           return (
+                              <div key={label} className="flex flex-col items-center w-16">
+                                 <div className="text-3xl font-semibold text-slate-700">{value}</div>
+                                 <div className="text-sm text-slate-500">{label}</div>
+                              </div>
+                           )
+                        })}
+                     </div>
+                     {isYourProfile || (
+                        <Link href={`/app/chat/${conversationId}`} passHref>
+                           <a
+                              className="w-32 h-10 text-lg font-semibold leading-10 text-center text-white uppercase rounded-md bg-gradient-to-r from-indigo-300 to-cyan-300 hover:to-indigo-300 hover:from-cyan-300"
+                              onClick={(e) => isYourProfile && e.preventDefault()}
+                           >
+                              Message
+                           </a>
+                        </Link>
+                     )}
+                     {isYourProfile ? (
+                        <EditProfile
+                           key={profile}
+                           initProfile={profile}
+                           defaultInterests={defaultInterests}
+                           onEditedSuccess={(n) => setProfile(n)}
+                        />
+                     ) : (
+                        <button className="w-10 h-10 p-1.5 rounded-full hover:bg-slate-300/60">
+                           <BsFillFlagFill className="w-full h-full text-red-700" />
+                        </button>
+                     )}
+                  </div>
                </div>
                <div className="w-full p-6 mt-5 text-lg text-center border-t-2 border-t-slate-300 text-slate-600">
                   {profile.bio}
@@ -206,7 +255,7 @@ function Profile({
                   </Tabs.Tab>
                )}
                <Tabs.Tab label="Gallery" icon={<MdOutlinePhotoCameraBack className="w-5 h-5" />}>
-                  <div className="grid w-full grid-cols-6 gap-3 p-12">
+                  <div className="grid w-full grid-cols-1 gap-2 p-12 md:grid-cols-5 lg:grid-cols-6">
                      {profile.photos.map((el, i) => {
                         return (
                            <Link

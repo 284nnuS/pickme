@@ -5,7 +5,7 @@ function Guide() {
    const [onShow, setShow] = useState(true)
 
    return (
-      <div className="flex select-none gap-x-10">
+      <div className="hidden select-none md:flex gap-x-10">
          {onShow || (
             <div>
                <button

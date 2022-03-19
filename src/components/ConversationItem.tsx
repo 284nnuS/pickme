@@ -5,7 +5,15 @@ import React from 'react'
 import { TiArrowBack } from 'react-icons/ti'
 import { getDiffTimeToString } from '~/src/utils/time'
 
-function ConversationItem({ item, selected }: { item: Conversation; selected: boolean }) {
+function ConversationItem({
+   item,
+   selected,
+   scrollCallback,
+}: {
+   item: Conversation
+   selected: boolean
+   scrollCallback: (now: boolean) => void
+}) {
    const { conversationId, otherName, otherAvatar, latestTime, latestMessage, sender } = item
    const router = useRouter()
 
@@ -16,7 +24,10 @@ function ConversationItem({ item, selected }: { item: Conversation; selected: bo
             'flex items-center justify-start w-full px-6 py-3 gap-x-6 hover:rounded-2xl hover:bg-slate-300 focus:rounded-2xl',
             selected && 'rounded-2xl bg-slate-300',
          )}
-         onClick={() => selected || router.push(`/app/chat/${conversationId}`)}
+         onClick={async () => {
+            scrollCallback(selected)
+            if (!selected) await router.push(`/app/chat/${conversationId}`)
+         }}
       >
          <Image src={otherAvatar} alt={otherName} radius={100} width={60} height={60} />
          <div className="flex flex-col">

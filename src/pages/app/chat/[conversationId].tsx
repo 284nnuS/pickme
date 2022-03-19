@@ -2,12 +2,13 @@ import { Image } from '@mantine/core'
 import axios from 'axios'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FaUserAlt } from 'react-icons/fa'
 import { io } from 'socket.io-client'
 import env from '~/shared/env'
 import { ChatBox, ConversationItem, SidebarHeader } from '~/src/components'
 import Fuse from 'fuse.js'
+import { useRouter } from 'next/router'
 
 function Index({
    userProfile,
@@ -71,13 +72,35 @@ function Index({
          })
    }
 
+   const router = useRouter()
+
+   const chatBoxRef = useRef<HTMLDivElement>()
+   const conversationListRef = useRef<HTMLDivElement>()
+
+   const scrollToChatBox = () => {
+      chatBoxRef.current?.scrollIntoView({
+         behavior: 'smooth',
+      })
+      router.events.off('routeChangeComplete', scrollToChatBox)
+   }
+
+   const scrollToConversationList = () => {
+      conversationListRef.current?.scrollIntoView({
+         behavior: 'smooth',
+      })
+      router.events.off('routeChangeComplete', scrollToConversationList)
+   }
+
    return (
       <>
          <Head>
             <title>Pickme | Chat with {currentConversation.otherName.split(' ')[0]}</title>
          </Head>
-         <div className="flex w-screen h-screen overflow-hidden">
-            <div className="w-[30rem] min-w-[30rem] h-screen z-50 bg-slate-100">
+         <div className="flex w-[200%] h-screen overflow-hidden md:w-screen">
+            <div
+               className="w-screen min-w-screen md:w-[30rem] md:min-w-[30rem] h-screen z-50 bg-slate-100"
+               ref={conversationListRef}
+            >
                <SidebarHeader userProfile={userProfile} tab="messages" />
                <div className="w-full px-6 pt-6">
                   <input
@@ -94,6 +117,9 @@ function Index({
                         .sort((a, b) => b.latestTime - a.latestTime)
                         .map((m) => (
                            <ConversationItem
+                              scrollCallback={(e) =>
+                                 e ? scrollToChatBox() : router.events.on('routeChangeComplete', scrollToChatBox)
+                              }
                               key={m.conversationId}
                               item={m}
                               selected={m.conversationId === currentConversation.conversationId}
@@ -102,6 +128,9 @@ function Index({
                   {result && result.length > 0
                      ? result.map((m) => (
                           <ConversationItem
+                             scrollCallback={(e) =>
+                                e ? scrollToChatBox() : router.events.on('routeChangeComplete', scrollToChatBox)
+                             }
                              key={m.item.conversationId}
                              item={m.item}
                              selected={m.item.conversationId === currentConversation.conversationId}
@@ -114,9 +143,10 @@ function Index({
                        )}
                </div>
             </div>
-            <div className="flex flex-col items-center justify-center flex-grow gap-y-8">
+            <div className="flex flex-col items-center justify-center w-screen md:flex-grow gap-y-8" ref={chatBoxRef}>
                {currentConversation.conversationId && (
                   <ChatBox
+                     scrollCallback={scrollToConversationList}
                      key={currentConversation.conversationId}
                      yourProfile={userProfile}
                      init={init}
