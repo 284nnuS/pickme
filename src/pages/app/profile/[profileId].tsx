@@ -1,26 +1,38 @@
-import { Image, Tabs } from '@mantine/core'
+import { Avatar, Divider, Image, Menu, Tabs } from '@mantine/core'
 import axios from 'axios'
 import classNames from 'classnames'
+import { signOut } from 'next-auth/react'
 import Link from 'next/link'
-import { AiFillMobile } from 'react-icons/ai'
+import { useEffect, useState } from 'react'
+import { AiFillInfoCircle, AiFillMobile, AiFillWarning } from 'react-icons/ai'
 import { BsFillFlagFill } from 'react-icons/bs'
-import { FaUserFriends } from 'react-icons/fa'
-import { IoMdArrowBack } from 'react-icons/io'
+import { FaUserAlt, FaUserFriends } from 'react-icons/fa'
+import { IoIosHelpCircle, IoMdArrowBack } from 'react-icons/io'
 import { MdLocationOn, MdOutlinePhotoCameraBack, MdWebStories } from 'react-icons/md'
+import { RiSettings4Fill } from 'react-icons/ri'
+import { VscSignOut } from 'react-icons/vsc'
 import env from '~/shared/env'
 import { ChipsInProfile, EditProfile, NotificationBox, ProfileStatus } from '~/src/components'
 
 function Profile({
-   profile,
+   yourProfile,
+   initProfile,
    conversationId,
    defaultInterests,
    isYourProfile,
 }: {
-   profile: UserProfile
+   yourProfile: UserProfile
+   initProfile: UserProfile
    conversationId?: number
    defaultInterests: InterestChip[]
    isYourProfile: boolean
 }) {
+   const [profile, setProfile] = useState(null)
+
+   useEffect(() => setProfile(initProfile), [initProfile])
+
+   if (!profile) return <></>
+
    return (
       <div className="flex flex-col items-center min-h-screen">
          <div className="absolute top-0 bottom-0 left-0 right-0 -z-50">
@@ -33,19 +45,49 @@ function Profile({
                </a>
             </Link>
             <div className="flex-grow"></div>
-            <NotificationBox yourId={profile.userId} inProfile={true} />
-            <Image src={profile.avatar} alt={profile.name} radius={100} width={40} height={40} />
+            <NotificationBox yourId={yourProfile.userId} inProfile={true} />
+            <Menu
+               trigger="hover"
+               delay={500}
+               control={
+                  <button className="rounded-full">
+                     <Avatar src={yourProfile.avatar} alt={yourProfile.name} radius="xl" size="md" />
+                  </button>
+               }
+               classNames={{
+                  itemHovered: 'bg-slate-100',
+               }}
+               placement="end"
+            >
+               <Menu.Item icon={<RiSettings4Fill className="w-5 h-5 text-emerald-600" />}>Preferences</Menu.Item>
+               <Divider />
+               <Menu.Item icon={<IoIosHelpCircle className="w-5 h-5 text-lime-600" />}>Help</Menu.Item>
+               <Menu.Item icon={<AiFillWarning className="w-5 h-5 text-yellow-600" />}>Report a problem</Menu.Item>
+               <Menu.Item icon={<AiFillInfoCircle className="w-5 h-5 text-cyan-600" />}>About</Menu.Item>
+               <Divider />
+               <Menu.Item
+                  icon={<VscSignOut className="w-5 h-5 text-red-600" />}
+                  onClick={() =>
+                     signOut({
+                        callbackUrl: '/',
+                        redirect: true,
+                     })
+                  }
+               >
+                  Sign Out
+               </Menu.Item>
+            </Menu>
          </div>
          <div className="relative max-w-[calc(1280px-3rem)] mt-48 w-full bg-white rounded-lg flex flex-col mb-20 z-0">
             <div className="absolute left-0 right-0 z-10 flex justify-center h-48 -top-24">
-               <Image width={192} height={192} radius={10} src={profile.avatar} alt="" />
+               <Avatar size={192} src={profile.avatar} radius="md" alt={profile.name} />
             </div>
             <div className="flex items-center justify-between">
                <div className="w-[calc(50%-6rem)] pt-10 flex px-4 justify-center gap-x-12 flex-wrap">
                   {Object.entries({
                      Matches: profile.matches.length,
                      Likes: profile.likes,
-                     Photos: profile.images.length,
+                     Photos: profile.photos.length,
                      Interests: profile.interests.length,
                   }).map(([label, value]) => {
                      return (
@@ -69,7 +111,11 @@ function Profile({
                      </a>
                   </Link>
                   {isYourProfile ? (
-                     <EditProfile initProfile={profile} defaultInterests={defaultInterests} />
+                     <EditProfile
+                        initProfile={profile}
+                        defaultInterests={defaultInterests}
+                        onEditedSuccess={(n) => setProfile(n)}
+                     />
                   ) : (
                      <button className="w-10 h-10 p-1.5 rounded-full hover:bg-slate-300/60">
                         <BsFillFlagFill className="w-full h-full text-red-700" />
@@ -97,13 +143,21 @@ function Profile({
                         values={defaultInterests.filter((el) => profile.interests.indexOf(el.name) > -1)}
                      />
                   )}
-                  {profile.statusEmoji && (
-                     <ProfileStatus
-                        editable={isYourProfile}
-                        statusEmoji={profile.statusEmoji}
-                        statusText={profile.statusText}
-                     />
-                  )}
+                  <ProfileStatus
+                     editable={isYourProfile}
+                     userId={isYourProfile ? profile.userId : -1}
+                     initStatusEmoji={profile.statusEmoji}
+                     initStatusText={profile.statusText}
+                     onEditedSuccess={(emoji, text) =>
+                        setProfile((c) => {
+                           return {
+                              ...c,
+                              statusEmoji: emoji,
+                              statusText: text,
+                           }
+                        })
+                     }
+                  />
                </div>
                <div className="w-full p-6 mt-5 text-lg text-center border-t-2 border-t-slate-300 text-slate-600">
                   {profile.bio}
@@ -153,10 +207,10 @@ function Profile({
                )}
                <Tabs.Tab label="Gallery" icon={<MdOutlinePhotoCameraBack className="w-5 h-5" />}>
                   <div className="grid w-full grid-cols-6 gap-3 p-12">
-                     {profile.images.map((el, i) => {
+                     {profile.photos.map((el, i) => {
                         return (
                            <Link
-                              href={`/app/photo/?profileId=${profile.userId}&bucketName=${el.bucketName}&currentPhotoName=${el.fileName}`}
+                              href={`/app/imgViewer/?profileId=${profile.userId}&bucketName=${el.bucketName}&currentPhotoName=${el.fileName}`}
                               passHref
                               key={i}
                            >
@@ -179,23 +233,33 @@ function Profile({
 
 export async function getServerSideProps({ query, res }) {
    const { locals } = res
+
+   if (!locals.session) {
+      return {
+         notFound: true,
+      }
+   }
+
    const userInfo: UserInfo = locals.session.userInfo
    const userId = userInfo.userId
 
    const profileId = +query.profileId
 
    let profile: UserProfile
+   let yourProfile: UserProfile
    // eslint-disable-next-line @typescript-eslint/no-explicit-any
    let defaultInterests: any[]
    let conversationId: number = null
 
    try {
       profile = (await axios.get(`${env.javaServerUrl}/profile/id/${profileId}`)).data['data']
-      profile.images = (await axios.get(`${env.javaServerUrl}/file/${profileId}/photo`)).data['data']
-      if (profileId !== userId)
+      profile.photos = (await axios.get(`${env.javaServerUrl}/file/${profileId}/photo`)).data['data']
+      if (profileId !== userId) {
+         yourProfile = (await axios.get(`${env.javaServerUrl}/profile/id/${userId}`)).data['data']
          conversationId = (await axios.get(`${env.javaServerUrl}/conversation/${userId}/${profileId}`)).data['data'][
             'conversationId'
          ]
+      } else yourProfile = profile
       defaultInterests = (await axios.get(`${env.javaServerUrl}/interest`)).data['data']
    } catch {
       return {
@@ -219,7 +283,8 @@ export async function getServerSideProps({ query, res }) {
 
    return {
       props: {
-         profile,
+         yourProfile,
+         initProfile: profile,
          conversationId,
          defaultInterests: defaultInterests.map((el) => {
             return {

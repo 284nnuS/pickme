@@ -3,62 +3,116 @@ import { useState } from 'react'
 import { BsPlus } from 'react-icons/bs'
 import { Chips, ChipsModal, SegmentedControl, PhotoUpload, VoiceUpload } from '~/src/components'
 import axios from 'axios'
-import getUuid from 'uuid-by-string'
 import env from '~/shared/env'
+import { JWT } from 'next-auth/jwt'
+import { useNotifications } from '@mantine/notifications'
 
-export default function SignUp({ allInterests }) {
-   const [fullName, setFullName] = useState('')
+export function SignUp({ allInterests, name }) {
+   const [fullName, setFullName] = useState(name)
    const [gender, setGender] = useState(null)
    const [birthday, setBirthday] = useState(new Date())
    const [biography, setBiography] = useState('')
-   const [photos, setPhotos] = useState([])
-   const [voice, setVoice] = useState<MediaFile>({ name: '', dataUrl: null })
-   const [interests, setInterests] = useState([])
+   const [photos, setPhotos] = useState<string[]>([])
+   const [voice, setVoice] = useState<FileInfo>({ name: '', dataUrl: null })
+   const [interests, setInterests] = useState<InterestChip[]>([])
 
    const [opened, setOpened] = useState(false)
 
-   // useEffect(() => {
-   //    if (session) setFullName()
-   // }, [session])
+   const reg = /^data:(.+);base64,(.*)$/
 
-   const reg = /^data:.+\/(.+);base64,(.*)$/
+   const notifications = useNotifications()
 
-   const convert = (el, type) => {
-      const matches = el.dataUrl.match(reg)
+   const convert = (el: string) => {
+      const matches = el.match(reg)
       return {
-         mediaName: getUuid(matches[2]) + '.' + matches[1],
-         mediaType: type,
+         type: matches[1],
          payload: matches[2],
       }
    }
 
    const submit = (e) => {
+      e.preventDefault()
+
+      if (!gender) {
+         notifications.showNotification({
+            title: 'Error',
+            message: 'Please select your gender',
+            color: 'red',
+         })
+         e.preventDefault()
+         return
+      }
+
+      if (photos.length < 2) {
+         notifications.showNotification({
+            title: 'Error',
+            message: 'Please add at least two photos to continue',
+            color: 'red',
+         })
+         e.preventDefault()
+         return
+      }
+
+      if (!voice.dataUrl || voice.dataUrl.match(reg).length !== 3) {
+         notifications.showNotification({
+            title: 'Error',
+            message: 'Please add your voice to continue',
+            color: 'red',
+         })
+         return
+      }
+
+      if (interests.length === 0) {
+         notifications.showNotification({
+            title: 'Error',
+            message: 'Please add at least one interest to continue',
+            color: 'red',
+         })
+         return
+      }
+
       const data = {
          name: fullName,
          birthday: birthday.getTime(),
          gender,
          bio: biography,
          interests: interests.map((el) => el.name),
-         medias: [...photos.map((el) => convert(el, 'image')), convert(voice, 'voice')],
       }
 
-      axios
-         .post('/api/signUp', data)
-         .then(() => {
+      axios.post('/api/signUp', data).then((el) => {
+         const userId = el.data['data']
+
+         Promise.all([
+            ...photos.map(async (el) => {
+               const obj = convert(el)
+
+               await axios.post(
+                  `${window.location.origin}/api/restful/file/${userId}/photo/${encodeURIComponent(obj.type)}`,
+                  {
+                     payload: obj.payload,
+                  },
+               )
+            }),
+            async () => {
+               const obj = convert(voice.dataUrl)
+
+               await axios.post(
+                  `${window.location.origin}/api/restful/file/${userId}/voice/${encodeURIComponent(obj.type)}`,
+                  {
+                     payload: obj.payload,
+                  },
+               )
+            },
+         ]).then(() => {
             window.location.href = '/app'
          })
-         .catch((err) => {
-            console.log(err.response.data)
-         })
-
-      e.preventDefault()
+      })
    }
 
    return (
       <div className="flex items-center justify-center w-screen min-h-screen">
          <form className="flex flex-col items-center w-full px-6 py-10 md:w-auto" onSubmit={submit}>
             <h1 className="mb-6 text-3xl font-bold text-center md:mb-16">CREATE ACCOUNT</h1>
-
             <div className="flex flex-col md:flex-row gap-x-10 gap-y-5 w-full md:w-[55rem]">
                <div className="flex flex-col md:w-1/2 gap-y-5">
                   <div>
@@ -140,6 +194,7 @@ export default function SignUp({ allInterests }) {
                      </label>
                      <Chips values={interests} setValues={setInterests} />
                      <button
+                        type="button"
                         className="w-8 h-8 ml-0 border-none rounded-full bg-slate-100"
                         onClick={() => setOpened(true)}
                      >
@@ -166,13 +221,14 @@ export default function SignUp({ allInterests }) {
    )
 }
 
-export async function getServerSideProps() {
-   const res = await axios.get(`${env.javaServerUrl}/interest`)
-   const data = res.data['data']
+export async function getServerSideProps({ res }) {
+   const { locals } = res
+   const token: JWT = locals['token']
 
    return {
       props: {
-         allInterests: data.map((el) => {
+         name: token.name,
+         allInterests: (await axios.get(`${env.javaServerUrl}/interest`)).data['data'].map((el) => {
             return {
                name: el.interestName,
                description: el.description,
@@ -181,3 +237,5 @@ export async function getServerSideProps() {
       },
    }
 }
+
+export default SignUp

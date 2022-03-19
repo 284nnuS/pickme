@@ -1,4 +1,5 @@
 import { Modal, Popover } from '@mantine/core'
+import axios from 'axios'
 import { IEmojiPickerProps } from 'emoji-picker-react'
 import dynamic from 'next/dynamic'
 import { useState } from 'react'
@@ -11,21 +12,30 @@ const EmojiPickerNoSSRWrapper = dynamic<IEmojiPickerProps>(() => import('emoji-p
 
 function ProfileStatus({
    editable = false,
-   statusEmoji,
-   statusText,
+   userId,
+   initStatusEmoji,
+   initStatusText,
+   onEditedSuccess,
 }: {
-   statusEmoji: string
-   statusText: string
    editable: boolean
+   userId: number
+   initStatusEmoji: string
+   initStatusText: string
+   onEditedSuccess: (emoji: string, text: string) => void
 }) {
    const [opened, setOpened] = useState(false)
    const [openedPicker, setOpenedPicker] = useState(false)
 
+   const [statusEmoji, setStatusEmoji] = useState(initStatusEmoji)
+   const [statusText, setStatusText] = useState(initStatusText)
+
+   if (!editable && !statusEmoji) return <></>
+
    return (
       <div className="flex items-center text-lg text-slate-500">
          <div className="relative px-8 group">
-            {statusEmoji}
-            <span className="ml-3">{statusText}</span>
+            {statusEmoji || 'No status'}
+            {!!statusText && <span className="ml-3">{statusText}</span>}
             {editable && (
                <button
                   className="absolute top-0 bottom-0 right-0 hidden w-6 h-6 ml-6 rounded-full group-hover:block"
@@ -34,7 +44,26 @@ function ProfileStatus({
                   <AiTwotoneEdit className="w-full h-full text-slate-500" />
                </button>
             )}
-            <Modal opened={opened} centered onClose={() => setOpened(false)} title="What happens?">
+            <Modal
+               opened={opened}
+               centered
+               onClose={async () => {
+                  try {
+                     await axios.put(`${window.location.origin}/api/restful/profile`, {
+                        statusText,
+                        statusEmoji,
+                        userId,
+                     })
+
+                     onEditedSuccess(statusEmoji, statusText)
+                  } catch {
+                     setStatusEmoji(initStatusEmoji)
+                     setStatusText(initStatusText)
+                  }
+                  setOpened(false)
+               }}
+               title="What happens?"
+            >
                <div className="flex items-center justify-center gap-x-3">
                   <Popover
                      opened={openedPicker}
@@ -53,8 +82,8 @@ function ProfileStatus({
                      withArrow
                   >
                      <EmojiPickerNoSSRWrapper
-                        onEmojiClick={() => {
-                           //setEmoji(emojiObject.emoji)
+                        onEmojiClick={(_, emojiObject) => {
+                           setStatusEmoji(emojiObject.emoji)
                            setOpenedPicker(false)
                         }}
                      />
@@ -62,7 +91,7 @@ function ProfileStatus({
                   <input
                      type="text"
                      value={statusText}
-                     //onChange={(e) => setStatusText(e.target.value)}
+                     onChange={(e) => setStatusText(e.target.value)}
                      className="h-10 px-3 border-b-2 border-slate-500 w-72 focus:outline-none focus:border-blue-500"
                   />
                </div>

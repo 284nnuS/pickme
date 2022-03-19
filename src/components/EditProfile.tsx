@@ -2,7 +2,6 @@ import { Modal } from '@mantine/core'
 import { DatePicker } from '@mantine/dates'
 import axios from 'axios'
 import { diff } from 'deep-object-diff'
-import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import { AiFillMobile } from 'react-icons/ai'
 import { FaBirthdayCake, FaUser } from 'react-icons/fa'
@@ -15,9 +14,11 @@ import { fromUint8Array } from 'js-base64'
 function EditProfile({
    initProfile,
    defaultInterests,
+   onEditedSuccess,
 }: {
    initProfile: UserProfile
    defaultInterests: InterestChip[]
+   onEditedSuccess: (newProfile: UserProfile) => void
 }) {
    const [profile, setProfile] = useState(initProfile)
 
@@ -41,8 +42,6 @@ function EditProfile({
          }
       })
    }, [chips])
-
-   const router = useRouter()
 
    return (
       <>
@@ -68,7 +67,6 @@ function EditProfile({
                const diffObj = diff(initProfile, profile)
                if (uploadBlob) {
                   const b64 = fromUint8Array(new Uint8Array(await uploadBlob.arrayBuffer()), false)
-                  console.log(b64.toString())
 
                   diffObj['avatar'] =
                      `/api/restful/file/${initProfile.userId}/avatar/` +
@@ -85,14 +83,17 @@ function EditProfile({
                }
 
                if (Object.keys(diffObj).length !== 0) {
-                  if (diffObj['interests'])
-                     diffObj['interests'] = [...Object.values(diffObj['interests']), ...initProfile.interests]
+                  if (diffObj['interests']) diffObj['interests'] = profile['interests']
 
-                  await axios.put(`${window.location.origin}/api/restful/profile`, {
-                     ...diffObj,
-                     userId: profile.userId,
-                  })
-                  router.reload()
+                  const newProfile: UserProfile = (
+                     await axios.put(`${window.location.origin}/api/restful/profile`, {
+                        ...diffObj,
+                        userId: profile.userId,
+                     })
+                  ).data['data']
+                  newProfile.photos = initProfile.photos
+
+                  onEditedSuccess(newProfile)
                }
             }}
             title="Edit profile"
@@ -126,7 +127,9 @@ function EditProfile({
                            accept="image/png, image/jpeg"
                            className="hidden"
                            ref={fileInputRef}
-                           onChange={(e) => setUploadBlob(e.target.files[0])}
+                           onChange={(e) => {
+                              setUploadBlob(e.target.files[0])
+                           }}
                         />
                         <button
                            className="w-full h-10 text-blue-600 bg-blue-200 rounded-md"
@@ -228,6 +231,14 @@ function EditProfile({
                               placeholder="Pick date"
                               inputFormat="MM/DD/YYYY"
                               value={new Date(profile.birthday)}
+                              onChange={(e) =>
+                                 setProfile((c) => {
+                                    return {
+                                       ...c,
+                                       birthday: e.getTime(),
+                                    }
+                                 })
+                              }
                               radius="md"
                               size="md"
                               classNames={{

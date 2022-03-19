@@ -1,12 +1,9 @@
-import { MatchesItem, PickMeCard, Guide, NotificationBox } from '~/src/components'
-import { FaUserAlt } from 'react-icons/fa'
+import { MatchesItem, PickMeCard, Guide, NotificationBox, SidebarHeader } from '~/src/components'
 import env from '~/shared/env'
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import axios from 'axios'
 import { io } from 'socket.io-client'
-import { Image } from '@mantine/core'
 
 function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; defaultInterests: InterestChip[] }) {
    const [userProfiles, setUserProfile] = useState<UserProfile[]>([])
@@ -24,13 +21,13 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
    useEffect(() => {
       socket.open()
       socket
-         .on('Match list', (users: UserProfile[]) => {
+         .on('match:list', (users: UserProfile[]) => {
             setUserProfile((current: UserProfile[]) => process([...current, ...users]))
          })
-         .on('New match', (user: UserProfile) =>
+         .on('match:new', (user: UserProfile) =>
             setUserProfile((current: UserProfile[]) => process([...current, user])),
          )
-         .on('Remove match list', (id: number) => {
+         .on('match:remove', (id: number) => {
             setUserProfile((current) => {
                const idx = current.findIndex((e) => e.userId === id)
                current.splice(idx, 1)
@@ -49,7 +46,7 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
 
    useEffect(() => {
       if (init) {
-         socket.emit('Get matched users')
+         socket.emit('matched:get')
       }
    }, [init])
 
@@ -59,37 +56,13 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
             <title>Pickme | Match</title>
          </Head>
          <div className="flex w-screen h-screen overflow-hidden">
-            <div className="w-[30rem] min-w-[30rem] h-screen z-50">
-               <div className="w-full h-[6rem] bg-gradient-to-r from-teal-600 to-cyan-600 flex p-5 items-center gap-x-3">
-                  <Image src={userProfile.avatar} radius={100} width={60} height={60} alt="" />
-                  <div className="ml-2 text-2xl font-bold text-white">{userProfile.name}</div>
-                  <div className="flex-grow"></div>
-                  <Link href={`/app/profile/${userProfile.userId}`} passHref>
-                     <a className="grid grid-cols-1 bg-white rounded-full w-14 h-14 place-items-center">
-                        <FaUserAlt className="w-6 h-6 text-teal-600" />
-                     </a>
-                  </Link>
-               </div>
+            <div className="w-[30rem] min-w-[30rem] h-screen z-50 bg-slate-100">
+               <SidebarHeader userProfile={userProfile} tab="matches" />
 
-               <div className="w-full h-full bg-slate-100">
-                  <div className="flex justify-around pt-3 pb-1">
-                     <Link href="/app" passHref>
-                        <a className="w-24 text-xl font-semibold text-center text-teal-700 no-underline border-b-2 border-b-teal-700">
-                           Matches
-                        </a>
-                     </Link>
-                     <Link href="/app/chat" passHref>
-                        <a className="w-24 text-xl font-semibold text-center text-teal-800 no-underline border-b-2 border-b-transparent hover:border-b-teal-800">
-                           Messages
-                        </a>
-                     </Link>
-                  </div>
-
-                  <div className="grid grid-cols-3 pt-6 ml-5 gap-x-1 gap-y-5">
-                     {userProfiles.map((match) => (
-                        <MatchesItem key={match.userId} userId={match.userId} name={match.name} images={match.images} />
-                     ))}
-                  </div>
+               <div className="grid w-full grid-cols-3 pt-6 ml-5 gap-x-1 gap-y-5">
+                  {userProfiles.map((match) => (
+                     <MatchesItem key={match.userId} userId={match.userId} name={match.name} photos={match.photos} />
+                  ))}
                </div>
             </div>
             <div className="relative flex flex-col items-center justify-center flex-grow gap-y-8">
@@ -106,6 +79,12 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
 
 export async function getServerSideProps({ res }) {
    const { locals } = res
+
+   if (!locals.session) {
+      return {
+         notFound: true,
+      }
+   }
 
    const userInfo: UserInfo = locals.session.userInfo
    const userId = userInfo.userId

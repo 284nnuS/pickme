@@ -52,9 +52,9 @@ public class UserProfileController {
 	public Response findUnmatchedUsersById(@PathParam("id") int userId) {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
-				UserProfileRepository.FindUnMatchedUsersById findUnMatchedUsersById = new UserProfileRepository.FindUnMatchedUsersById(
+				UserProfileRepository.FindUnmatchedUsersById findUnmatchedUsersById = new UserProfileRepository.FindUnmatchedUsersById(
 						userId);
-				List<UserProfile> profiles = UserProfileRepository.getInstance().read(conn, findUnMatchedUsersById);
+				List<UserProfile> profiles = UserProfileRepository.getInstance().read(conn, findUnmatchedUsersById);
 
 				return JsonAPIResponse.ok(profiles, new Pair(Media.class, MediaMixin.class));
 			} catch (SQLException e) {

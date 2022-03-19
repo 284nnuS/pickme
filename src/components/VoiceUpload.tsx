@@ -2,16 +2,16 @@ import { Dispatch, SetStateAction, useRef } from 'react'
 import { BsPlus } from 'react-icons/bs'
 import { MdKeyboardVoice } from 'react-icons/md'
 
-function VoiceUpload({ voice, setVoice }: { voice: MediaFile; setVoice: Dispatch<SetStateAction<MediaFile>> }) {
+function VoiceUpload({ voice, setVoice }: { voice: FileInfo; setVoice: Dispatch<SetStateAction<FileInfo>> }) {
    const inputRef = useRef<HTMLInputElement>()
 
-   const handleFile = (file: globalThis.File, callback: (file: MediaFile) => void) => {
+   const handleFile = (file: globalThis.File, callback: (file: FileInfo) => void) => {
       const reader = new FileReader()
       reader.onload = (e) => {
          callback.call(null, {
             name: file.name,
             dataUrl: e.target.result,
-         } as MediaFile)
+         } as FileInfo)
       }
       reader.readAsDataURL(file)
    }
@@ -32,9 +32,12 @@ function VoiceUpload({ voice, setVoice }: { voice: MediaFile; setVoice: Dispatch
                onKeyDown={() => false}
                onPaste={() => false}
                onMouseDown={() => false}
-               required
             ></input>
-            <button className="z-50 bg-gray-800 rounded-full w-7 h-7" onClick={() => inputRef.current.click()}>
+            <button
+               type="button"
+               className="z-50 bg-gray-800 rounded-full w-7 h-7"
+               onClick={() => inputRef.current.click()}
+            >
                <BsPlus className="w-full h-full text-white" />
             </button>
          </div>

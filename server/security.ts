@@ -7,6 +7,8 @@ import { has } from '../shared/utils'
 import nextAuthOptions from '../shared/nextAuthOptions'
 
 export async function authorize(req: Request, res: Response, next: NextFunction) {
+   const skipCheck = req.url.startsWith('/_next') || req.url.startsWith('/static') || req.url.startsWith('/api/auth')
+
    const token = await getToken({ req: req as unknown as NextApiRequest, secret: process.env.SECRET_KEY })
 
    if (!token) return next()
@@ -16,7 +18,12 @@ export async function authorize(req: Request, res: Response, next: NextFunction)
       nextAuthOptions,
    )
 
-   if (!req.url.startsWith('/auth/signUp') && !req.url.startsWith('/api/signUp') && !has(session, 'userInfo.userId')) {
+   if (
+      !skipCheck &&
+      !req.url.startsWith('/auth/signUp') &&
+      !req.url.startsWith('/api/signUp') &&
+      !has(session, 'userInfo.userId')
+   ) {
       res.redirect('/auth/signUp')
       return
    }

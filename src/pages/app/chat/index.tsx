@@ -35,7 +35,11 @@ function Index() {
 export async function getServerSideProps({ res }) {
    const { locals } = res
 
-   if (!locals.session) return { props: {} }
+   if (!locals.session) {
+      return {
+         notFound: true,
+      }
+   }
 
    const userId = +locals.session.userInfo.userId
 

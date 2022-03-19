@@ -3,16 +3,13 @@ import { Dispatch, SetStateAction, useRef } from 'react'
 import { BsPlusCircleFill } from 'react-icons/bs'
 import { MdOutlineClose } from 'react-icons/md'
 
-function PhotoUpload({ photos, setPhotos }: { photos: MediaFile[]; setPhotos: Dispatch<SetStateAction<MediaFile[]>> }) {
+function PhotoUpload({ photos, setPhotos }: { photos: string[]; setPhotos: Dispatch<SetStateAction<string[]>> }) {
    const inputRef = useRef<HTMLInputElement>()
 
-   const handleFile = (file: globalThis.File, callback: (file: MediaFile) => void) => {
+   const handleFile = (file: globalThis.File, callback: (file: string) => void) => {
       const reader = new FileReader()
       reader.onload = (e) => {
-         callback.call(null, {
-            name: file.name,
-            dataUrl: e.target.result,
-         } as MediaFile)
+         callback.call(null, e.target.result)
       }
       reader.readAsDataURL(file)
    }
@@ -25,8 +22,9 @@ function PhotoUpload({ photos, setPhotos }: { photos: MediaFile[]; setPhotos: Di
                return (
                   <div key={i} className="flex items-center justify-center">
                      <div className="relative w-32 aspect-[2/3] border rounded-md bg-slate-100">
-                        <Image src={photo.dataUrl} alt={`Image ${i}`} width={128} height={192} fit="contain" />
+                        <Image src={photo} alt={`Image ${i}`} width={128} height={192} fit="contain" />
                         <button
+                           type="button"
                            className="absolute w-5 h-5 p-1 bg-red-600 rounded-full hover:bg-red-800 -right-2 -bottom-2"
                            onClick={() =>
                               setPhotos((currentPhotos) => {
@@ -43,6 +41,7 @@ function PhotoUpload({ photos, setPhotos }: { photos: MediaFile[]; setPhotos: Di
             })}
             <div className="flex items-center justify-center">
                <button
+                  type="button"
                   className="w-32 aspect-[2/3] border rounded-md bg-slate-100 z-1"
                   onClick={() => inputRef.current.click()}
                >

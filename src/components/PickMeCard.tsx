@@ -28,7 +28,7 @@ function PickMeCard({
    }
 
    useEffect(() => {
-      socket.on('Reroll', (cards: Card[]) => {
+      socket.on('reroll', (cards: Card[]) => {
          setPeopleList(cards)
       })
       socket.on('Cards', (cards: Card[]) => {
@@ -43,17 +43,17 @@ function PickMeCard({
       if (value) {
          setPeopleList(value as Card[])
          setValue(null)
-      } else socket.emit('Get cards')
+      } else socket.emit('card:get')
    }, [init, needFetch])
 
    const swipe = (dir: string, id: number) => {
       setCurrentCard((current) => current + 1)
-      socket.emit('Swipe', { id, like: dir === 'right' })
+      socket.emit('card:swipe', { id, like: dir === 'right' })
    }
 
    const superLike = useThrottleCallback(
       () => {
-         socket.emit('React', { id: peopleList[currentCard].userId, name: peopleList[currentCard].name })
+         socket.emit('profile:react', { id: peopleList[currentCard].userId, name: peopleList[currentCard].name })
          cardRef[peopleList.length - 1 - currentCard].current?.swipe('right')
       },
       1,
@@ -70,7 +70,7 @@ function PickMeCard({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
    }, {} as Record<number, RefObject<any>>)
 
-   const reroll = useThrottleCallback(() => socket.emit('Reroll'), 1, true)
+   const reroll = useThrottleCallback(() => socket.emit('reroll'), 1, true)
 
    return (
       <div className=" h-[75%] aspect-[5/9] m-2 rounded-2xl bg-slate-200 relative">

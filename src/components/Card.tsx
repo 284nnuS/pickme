@@ -10,7 +10,7 @@ function Card({
    name,
    defaultInterests,
    bio,
-   images,
+   photos,
    interests,
    isFirst,
    onNavigate,
@@ -20,20 +20,20 @@ function Card({
    name: string
    defaultInterests: InterestChip[]
    bio: string
-   images: File[]
+   photos: File[]
    interests: string[]
    isFirst: boolean
    onNavigate: () => void
 }) {
-   const refs = images.reduce((acc, val, i) => {
+   const refs = photos.reduce((acc, val, i) => {
       acc[i] = createRef<HTMLDivElement>()
       return acc
    }, {} as Record<number, RefObject<HTMLDivElement>>)
 
-   const [currentImage, setCurrentImage] = useState(0)
+   const [current, setCurrent] = useState(0)
 
    const scrollToImage = (i: number) => {
-      setCurrentImage(i)
+      setCurrent(i)
       refs[i].current.scrollIntoView({
          behavior: 'smooth',
          block: 'nearest',
@@ -41,14 +41,14 @@ function Card({
       })
    }
 
-   const nextImage = () => {
-      if (currentImage >= images.length - 1) scrollToImage(0)
-      else scrollToImage(currentImage + 1)
+   const nextPhoto = () => {
+      if (current >= photos.length - 1) scrollToImage(0)
+      else scrollToImage(current + 1)
    }
 
    const router = useRouter()
 
-   useKeyPressEvent(' ', isFirst && nextImage)
+   useKeyPressEvent(' ', isFirst && nextPhoto)
 
    const [dragging, setDragging] = useState(false)
 
@@ -61,13 +61,13 @@ function Card({
             if (!dragging) {
                onNavigate()
                router.push(
-                  `/app/photo/?profileId=${userId}&bucketName=${images[currentImage].bucketName}&currentPhotoName=${images[currentImage].fileName}`,
+                  `/app/imgViewer/?profileId=${userId}&bucketName=${photos[current].bucketName}&currentPhotoName=${photos[current].fileName}`,
                )
             }
          }}
       >
          <div className="w-full h-full carousel rounded-2xl">
-            {images.map((img, i) => (
+            {photos.map((img, i) => (
                <Image
                   key={i}
                   ref={refs[i]}

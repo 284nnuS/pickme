@@ -30,7 +30,7 @@ function NotificationBox({ yourId, inProfile = false }) {
          .on('Notifications', (notifications: Notification[]) => {
             setNotificationList((current: Notification[]) => process([...current, ...notifications]))
          })
-         .on('Seen all', () => {
+         .on('notification:seenAll', () => {
             setNotificationList((current) =>
                current.map((el: Notification) => {
                   return { ...el, seen: true }
@@ -64,7 +64,7 @@ function NotificationBox({ yourId, inProfile = false }) {
 
    useEffect(() => {
       if (init) {
-         socket.emit('Get notifications')
+         socket.emit('notification:get')
       }
    }, [init])
 
@@ -137,7 +137,7 @@ function NotificationBox({ yourId, inProfile = false }) {
                <button
                   className="self-center px-2 mb-2 text-sm border-b-1 text-slate-400 border-b-slate-400 hover:font-semibold"
                   onClick={() => {
-                     socket.emit('Seen all')
+                     socket.emit('notification:seenAll')
                      setOpened(false)
                   }}
                >

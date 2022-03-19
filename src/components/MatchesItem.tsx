@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import React from 'react'
 
-function MatchesForm({ userId, name, images }: { userId: number; name: string; images: File[] }) {
-   const img = images[Math.trunc(Math.random() * images.length)]
+function MatchesForm({ userId, name, photos }: { userId: number; name: string; photos: File[] }) {
+   const img = photos[Math.trunc(Math.random() * photos.length)]
    return (
       <div className="relative">
          <Link href={`/app/profile/${userId}`} passHref>

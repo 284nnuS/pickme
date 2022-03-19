@@ -18,6 +18,7 @@ export default function routeAPI(app: Express) {
 
    app.post('/api/signUp', async (req, res) => {
       const token: JWT = res.locals['token']
+      const obj = req.body
 
       try {
          const userInfo: UserInfo = (
@@ -29,18 +30,19 @@ export default function routeAPI(app: Express) {
 
          await axios.post(`${env.javaServerUrl}/profile`, {
             userId: userInfo.userId,
-            name: req['name'],
+            name: obj['name'],
             avatar: token.picture,
-            gender: req['gender'],
-            bio: req['bio'],
-            birthday: req['birthday'],
-            interests: req['interests'],
-            medias: req['medias'],
+            gender: obj['gender'],
+            bio: obj['bio'],
+            birthday: obj['birthday'],
+            interests: obj['interests'],
          })
 
-         res.status(200).send('OK!')
-      } catch {
-         res.status(400).send('Invalid request!')
+         res.status(200).send({
+            data: userInfo.userId,
+         })
+      } catch (err) {
+         res.status(400).send()
       }
    })
 }

@@ -135,13 +135,13 @@ public class UserProfileRepository implements Repository<UserProfile> {
 			List<String> removedInterests = new ArrayList<>();
 			List<String> mergedInterests = new ArrayList<>();
 
-			if (profile.getInterests() != null)
-				ListUtils.diffList(inDB.getInterests(), profile.getInterests(), addedInterests, removedInterests,
-						mergedInterests);
+			ListUtils.diffList(inDB.getInterests(), profile.getInterests(), addedInterests, removedInterests,
+					mergedInterests);
 
 			Utils.copyNonNullFields(inDB, profile, "userId", "medias", "interest");
 
 			UserProfile newProfile = inDB;
+
 			newProfile.setInterests(mergedInterests);
 
 			// Update userProfile in database
@@ -275,7 +275,7 @@ public class UserProfileRepository implements Repository<UserProfile> {
 	}
 
 	@AllArgsConstructor
-	public static class FindUnMatchedUsersById implements Criteria {
+	public static class FindUnmatchedUsersById implements Criteria {
 		private int userId;
 
 		@Override

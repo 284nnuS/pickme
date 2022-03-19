@@ -11,7 +11,7 @@ function SafeHydrate({ children }) {
    return <div suppressHydrationWarning>{typeof window === 'undefined' ? null : children}</div>
 }
 
-function ViewPhoto({
+function ViewImage({
    userId,
    bucketName,
    images,
@@ -116,4 +116,4 @@ export async function getServerSideProps({ query }) {
    }
 }
 
-export default ViewPhoto
+export default ViewImage

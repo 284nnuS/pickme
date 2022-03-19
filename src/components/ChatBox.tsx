@@ -68,14 +68,14 @@ function ChatBox({
             setMessageList((currentMessages) => process([newMessage, ...currentMessages]))
             updateCallBack(newMessage)
          })
-         .on('React to message', (message: Message) =>
+         .on('message:react', (message: Message) =>
             setMessageList((current) => {
                const index = current.findIndex((t) => t.messageId === message.messageId)
                current[index].react = message.react
                return [...current]
             }),
          )
-         .on('Delete message', (message: Message) =>
+         .on('message:delete', (message: Message) =>
             setMessageList((current) => {
                const index = current.findIndex((t) => t.messageId === message.messageId)
                current[index].content = null
@@ -93,7 +93,7 @@ function ChatBox({
       if (init) {
          const now = new Date()
          const currentTime = now.getTime() - now.getTimezoneOffset() * 60000
-         socket.emit('Get more messages', currentTime)
+         socket.emit('message:get+', currentTime)
          scrollRef.current.scrollTop = scrollRef.current.scrollHeight
       }
    }, [init])
@@ -102,7 +102,7 @@ function ChatBox({
    const { y: scrollY } = useScroll(scrollRef)
 
    const handleScroll = useCallback(
-      () => socket.emit('Get more messages', messageList[messageList.length - 1].time),
+      () => socket.emit('message:get+', messageList[messageList.length - 1].time),
       [messageList],
    )
    const throttledHandleScroll = useThrottleCallback(handleScroll, 0.5, true)
@@ -114,7 +114,7 @@ function ChatBox({
    const inputBoxRef = useRef<HTMLInputElement>()
 
    const sendMessage = (e: FormEvent) => {
-      socket.emit('Send message', messageContent)
+      socket.emit('message:send', messageContent)
       setMessageContent('')
       e.preventDefault()
    }
@@ -160,7 +160,7 @@ function ChatBox({
                   className="p-1.5 text-sm font-bold text-teal-500 uppercase bg-white border-2 border-teal-500 rounded-full hover:bg-teal-500 hover:text-white"
                   onClick={() => unMatchCallback(conversation.conversationId)}
                >
-                  UnMatch
+                  Unmatch
                </button>
             )}
          </div>
@@ -255,7 +255,7 @@ function ChatBox({
                                        <button
                                           className="relative p-1 bg-white rounded-full w-7 h-7 hover:bg-slate-300"
                                           onClick={() => {
-                                             socket.emit('Delete message', el.messageId)
+                                             socket.emit('message:delete', el.messageId)
                                           }}
                                        >
                                           <AiOutlineRollback className="w-full h-full text-gray-500" />

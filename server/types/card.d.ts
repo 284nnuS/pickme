@@ -6,5 +6,5 @@ interface Card {
    bio: string
    avatar: string
    interests: string[]
-   images: Media[]
+   photos: File[]
 }

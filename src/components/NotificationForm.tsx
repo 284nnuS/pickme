@@ -28,7 +28,7 @@ const NotificationForm = ({ notification, socket }: { notification: Notification
          onClick={() => {
             notification.link && linkRef.current?.click()
             notification.seen ||
-               socket.emit('Seen', {
+               socket.emit('notification:seen', {
                   userId: notification.targetUID,
                   notificationId: notification.notificationId,
                })

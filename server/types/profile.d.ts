@@ -7,7 +7,7 @@ interface UserProfile {
    bio: string
    avatar: string
    interests: string[]
-   images?: File[]
+   photos?: File[]
    matches: {
       userId: number
       name: string

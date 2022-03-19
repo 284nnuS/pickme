@@ -43,7 +43,6 @@
       "react-icons": "^4.3.1",
       "react-tinder-card": "^1.4.5",
       "react-use": "^17.3.2",
-      "sharp": "^0.30.2",
       "socket.io": "^4.4.1",
       "socket.io-client": "^4.4.1",
       "uuid-by-string": "^3.0.6"

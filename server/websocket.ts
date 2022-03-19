@@ -35,7 +35,7 @@ sio.of('/match')
       socket.join('match-' + socket['userId'])
 
       socket
-         .on('Get matched users', async () => {
+         .on('matched:get', async () => {
             try {
                let matchedUsers: UserProfile[] = (
                   await axios.get(`${env.javaServerUrl}/profile/matched/id/${socket['userId']}`)
@@ -43,38 +43,38 @@ sio.of('/match')
 
                matchedUsers = await Promise.all(
                   matchedUsers.map(async (el) => {
-                     el.images = (await axios.get(`${env.javaServerUrl}/file/${el.userId}/photo`)).data['data']
+                     el.photos = (await axios.get(`${env.javaServerUrl}/file/${el.userId}/photo`)).data['data']
                      return el
                   }),
                )
 
-               socket.to('match-' + socket['userId']).emit('Match list', matchedUsers)
+               socket.to('match-' + socket['userId']).emit('match:list', matchedUsers)
             } catch (err) {
                //
             }
          })
-         .on('Reroll', async () => {
+         .on('reroll', async () => {
             let cards: Card[] = (await axios.get(`${env.javaServerUrl}/profile/unmatched/id/${socket['userId']}`)).data[
                'data'
             ]
 
             cards = await Promise.all(
                cards.map(async (el) => {
-                  el.images = (await axios.get(`${env.javaServerUrl}/file/${el.userId}/photo`)).data['data']
+                  el.photos = (await axios.get(`${env.javaServerUrl}/file/${el.userId}/photo`)).data['data']
                   return el
                }),
             )
 
-            socket.to('match-' + socket['userId']).emit('Reroll', cards)
+            socket.to('match-' + socket['userId']).emit('reroll', cards)
          })
-         .on('Get cards', async () => {
+         .on('card:get', async () => {
             try {
                let cards: Card[] = (await axios.get(`${env.javaServerUrl}/profile/unmatched/id/${socket['userId']}`))
                   .data['data']
 
                cards = await Promise.all(
                   cards.map(async (el) => {
-                     el.images = (await axios.get(`${env.javaServerUrl}/file/${el.userId}/photo`)).data['data']
+                     el.photos = (await axios.get(`${env.javaServerUrl}/file/${el.userId}/photo`)).data['data']
                      return el
                   }),
                )
@@ -84,7 +84,7 @@ sio.of('/match')
                //
             }
          })
-         .on('Swipe', async ({ id, like }: { id: number; like: boolean }) => {
+         .on('card:swipe', async ({ id, like }: { id: number; like: boolean }) => {
             try {
                await axios.post(`${env.javaServerUrl}/matchStatus`, {
                   userIdOne: socket['userId'],
@@ -118,11 +118,11 @@ sio.of('/match')
                         let profile: UserProfile = (
                            await axios.get(`${env.javaServerUrl}/profile/id/${socket['userId']}`)
                         ).data['data']
-                        profile.images = (await axios.get(`${env.javaServerUrl}/file/${socket['userId']}/photo`)).data[
+                        profile.photos = (await axios.get(`${env.javaServerUrl}/file/${socket['userId']}/photo`)).data[
                            'data'
                         ]
 
-                        socket.to('match-' + id).emit('New match', profile)
+                        socket.to('match-' + id).emit('match:new', profile)
 
                         // Send matched notification to user two
                         res = await axios.post(`${env.javaServerUrl}/notify`, {
@@ -137,9 +137,9 @@ sio.of('/match')
                            .emit('New notification', notification)
 
                         profile = (await axios.get(`${env.javaServerUrl}/profile/id/${id}`)).data['data']
-                        profile.images = (await axios.get(`${env.javaServerUrl}/file/${id}/photo`)).data['data']
+                        profile.photos = (await axios.get(`${env.javaServerUrl}/file/${id}/photo`)).data['data']
 
-                        socket.to('match-' + socket['userId']).emit('New match', profile)
+                        socket.to('match-' + socket['userId']).emit('match:new', profile)
                      }
                   } catch (err) {
                      console.log(err)
@@ -149,8 +149,10 @@ sio.of('/match')
                console.log(err)
             }
          })
-         .on('React', async ({ id, name }: { id: number; name: string }) => {
+         .on('profile:react', async ({ id, name }: { id: number; name: string }) => {
             try {
+               await axios.post(`${env.javaServerUrl}/superLike/${socket['userId']}/${id}`)
+
                const res = await axios.post(`${env.javaServerUrl}/notify`, {
                   time: new Date().getTime(),
                   sourceUID: socket['userId'],
@@ -179,11 +181,11 @@ sio.of('/match')
                   })
             }
          })
-         .on('UnMatch', async ({ id, name }: { id: number; name: string }) => {
+         .on('unmatch', async ({ userId, name }: { userId: number; name: string }) => {
             try {
                await axios.put(`${env.javaServerUrl}/matchStatus`, {
                   userIdOne: socket['userId'],
-                  userIdTwo: id,
+                  userIdTwo: userId,
                   like: false,
                })
 
@@ -194,7 +196,7 @@ sio.of('/match')
                      message: 'You unmatched with ' + name.split(' ')[0] + ' ☹️',
                   })
 
-               socket.to('match-' + id).emit('Remove match list', socket['userId'])
+               socket.to('match-' + userId).emit('match:remove', socket['userId'])
             } catch {
                sio.of('/notify')
                   .to('notify-' + socket['userId'])
@@ -215,7 +217,7 @@ sio.of('/notify')
       socket.join('notify-' + socket['userId'])
 
       socket
-         .on('Get notifications', async () => {
+         .on('notification:get', async () => {
             const res = await axios.get(`${env.javaServerUrl}/notify/userId/${socket['userId']}`)
             const notifications = res.data.data
             socket.to('notify-' + socket['userId']).emit(
@@ -227,13 +229,13 @@ sio.of('/notify')
                }),
             )
          })
-         .on('Seen', async ({ userId, notificationId }: { userId: number; notificationId: number }) => {
+         .on('notification:seen', async ({ userId, notificationId }: { userId: number; notificationId: number }) => {
             if (userId !== socket['userId']) return
             await axios.get(`${env.javaServerUrl}/notify/seen/${userId}/${notificationId}`)
          })
-         .on('Seen all', async () => {
+         .on('notification:seenAll', async () => {
             await axios.get(`${env.javaServerUrl}/notify/seenAll/userId/${socket['userId']}`)
-            socket.to('notify-' + socket['userId']).emit('Seen all')
+            socket.to('notify-' + socket['userId']).emit('notification:seenAll')
          })
          .on('disconnect', () => {
             socket.removeAllListeners()
@@ -262,18 +264,7 @@ sio.of('/chat')
       socket.join('chat-' + socket['userId'])
 
       socket
-         .on('Get conversations', async () => {
-            if (!socket.handshake.query['conversationId']) return
-            try {
-               const conversations = (await axios.get(`${env.javaServerUrl}/conversation/${socket['userId']}`)).data[
-                  'data'
-               ]
-               socket.to('chat-' + socket['userId']).emit('Conversations', conversations)
-            } catch {
-               //
-            }
-         })
-         .on('Get more messages', async (time: number) => {
+         .on('message:get+', async (time: number) => {
             if (!socket.handshake.query['conversationId']) return
 
             try {
@@ -286,7 +277,7 @@ sio.of('/chat')
                //
             }
          })
-         .on('Send message', async (content: string) => {
+         .on('message:send', async (content: string) => {
             if (!socket.handshake.query['conversationId']) return
 
             try {
@@ -309,7 +300,7 @@ sio.of('/chat')
                //
             }
          })
-         .on('React to message', async ({ messageId, react }: { messageId: number; react: string }) => {
+         .on('message:react', async ({ messageId, react }: { messageId: number; react: string }) => {
             if (!socket.handshake.query['conversationId']) return
 
             try {
@@ -324,12 +315,12 @@ sio.of('/chat')
                socket
                   .to('chat-' + socket['userId'])
                   .to('chat-' + socket['otherId'])
-                  .emit('React to message', message)
+                  .emit('message:react', message)
             } catch {
                //
             }
          })
-         .on('Delete message', async (messageId: string) => {
+         .on('message:delete', async (messageId: string) => {
             if (!socket.handshake.query['conversationId']) return
 
             const message = (
@@ -342,7 +333,7 @@ sio.of('/chat')
             socket
                .to('chat-' + socket['userId'])
                .to('chat-' + socket['otherId'])
-               .emit('Delete message', message)
+               .emit('message:delete', message)
          })
          .on('disconnect', () => {
             socket.removeAllListeners()
