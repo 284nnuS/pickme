@@ -91,13 +91,13 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
          <Head>
             <title>Pickme | Match</title>
          </Head>
-         <div className="flex w-[200%] md:w-screen h-screen pb-20 md:pb-0 overflow-hidden">
+         <div className="flex w-[200%] md:w-screen h-screen pb-16 md:pb-0 overflow-hidden">
             <div
                className="w-screen min-w-screen md:w-[30rem] md:min-w-[30rem] h-full z-50 bg-slate-100"
                ref={matchListRef}
             >
                <SidebarHeader userProfile={userProfile} tab="matches" />
-               <div className="grid w-full grid-cols-3 pt-6 mx-2 md:mx-5 md:gap-x-1 gap-y-5">
+               <div className="grid w-full grid-cols-2 pt-6 mx-2 md:grid-cols-3 md:mx-5 md:gap-x-1 gap-y-5">
                   {userProfiles.map((match) => (
                      <div key={match.userId} className="flex items-center justify-center w-full h-full">
                         <MatchesItem userId={match.userId} name={match.name} photos={match.photos} />
@@ -109,7 +109,7 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
                className="flex flex-col items-center justify-center w-screen md:flex-grow md:gap-y-8"
                ref={cardViewerRef}
             >
-               <div className="flex items-center w-screen px-8 pt-4 pb-2">
+               <div className="flex items-center w-full px-8 pt-2 pb-4">
                   <div className="flex-grow"></div>
                   <NotificationBox yourId={userProfile.userId} />
                </div>
@@ -117,7 +117,7 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
                <Guide />
             </div>
          </div>
-         <div className="fixed bottom-0 left-0 right-0 top-auto z-50 flex items-center w-full h-16 bg-slate-200 md:hidden justify-evenly">
+         <div className="fixed top-[calc(100vh-4rem)] left-0 right-0	 z-50 flex items-center h-16 bg-slate-200 md:hidden justify-evenly">
             {Object.values([
                {
                   children: (

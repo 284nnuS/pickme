@@ -73,7 +73,7 @@ function PickMeCard({
    const reroll = useThrottleCallback(() => socket.emit('reroll'), 1, true)
 
    return (
-      <div className="h-full md:h-[75%] aspect-[5/9] max-w-screen m-2 rounded-2xl bg-slate-200 relative">
+      <div className="h-[85%] md:h-[75%] aspect-[5/9] max-w-screen m-2 rounded-2xl bg-slate-200 relative">
          {peopleList
             .slice()
             .reverse()
