@@ -7,4 +7,5 @@ interface Card {
    avatar: string
    interests: string[]
    photos: File[]
+   voices: File[]
 }

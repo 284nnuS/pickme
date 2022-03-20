@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react'
 import { BsFillVolumeDownFill, BsFillVolumeMuteFill } from 'react-icons/bs'
 import { useKeyPressEvent } from 'react-use'
-const Player = ({ url, isFirst }: { url: string; isFirst: boolean }) => {
+
+function Player({ voices, isFirst }: { voices: File[]; isFirst: boolean }) {
    const [audio, setAudio] = useState<HTMLAudioElement>(null)
    const [paused, setPaused] = useState(true)
+
+   const [index, setIndex] = useState(voices.length - 1)
 
    const endAudio = () => {
       setPaused(true)
@@ -14,17 +17,23 @@ const Player = ({ url, isFirst }: { url: string; isFirst: boolean }) => {
    useKeyPressEvent('ArrowDown', isFirst && toggle)
 
    useEffect(() => {
-      const audio = new Audio(url)
-      audio.addEventListener('ended', endAudio)
-      setAudio(audio)
+      const file = voices[index]
+      const newAudio = new Audio(
+         `${window.location.origin}/api/restful/file/${file.userId}/${file.bucketName}/${file.fileName}`,
+      )
+      if (audio) audio.removeEventListener('ended', endAudio)
+      newAudio.addEventListener('ended', endAudio)
+      setAudio(newAudio)
       return () => {
-         audio.removeEventListener('ended', endAudio)
+         audio?.removeEventListener('ended', endAudio)
       }
-   }, [])
+   }, [index])
 
    useEffect(() => {
-      if (paused) audio?.pause()
-      else audio?.play()
+      if (paused) {
+         audio?.pause()
+         setIndex((c) => (c + 1) % voices.length)
+      } else audio?.play()
    }, [paused])
 
    return (

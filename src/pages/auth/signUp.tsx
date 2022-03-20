@@ -6,6 +6,7 @@ import axios from 'axios'
 import env from '~/shared/env'
 import { JWT } from 'next-auth/jwt'
 import { useNotifications } from '@mantine/notifications'
+import { useRouter } from 'next/router'
 
 export function SignUp({ allInterests, name }) {
    const [fullName, setFullName] = useState(name)
@@ -15,6 +16,8 @@ export function SignUp({ allInterests, name }) {
    const [photos, setPhotos] = useState<string[]>([])
    const [voice, setVoice] = useState<FileInfo>({ name: '', dataUrl: null })
    const [interests, setInterests] = useState<InterestChip[]>([])
+
+   const router = useRouter()
 
    const [opened, setOpened] = useState(false)
 
@@ -79,10 +82,10 @@ export function SignUp({ allInterests, name }) {
          interests: interests.map((el) => el.name),
       }
 
-      axios.post('/api/signUp', data).then((el) => {
+      axios.post('/api/signUp', data).then(async (el) => {
          const userId = el.data['data']
 
-         Promise.all([
+         await Promise.all([
             ...photos.map(async (el) => {
                const obj = convert(el)
 
@@ -93,19 +96,17 @@ export function SignUp({ allInterests, name }) {
                   },
                )
             }),
-            async () => {
-               const obj = convert(voice.dataUrl)
+         ])
 
-               await axios.post(
-                  `${window.location.origin}/api/restful/file/${userId}/voice/${encodeURIComponent(obj.type)}`,
-                  {
-                     payload: obj.payload,
-                  },
-               )
+         const obj = convert(voice.dataUrl)
+
+         await axios.post(
+            `${window.location.origin}/api/restful/file/${userId}/voice/${encodeURIComponent(obj.type)}`,
+            {
+               payload: obj.payload,
             },
-         ]).then(() => {
-            window.location.href = '/app'
-         })
+         )
+         router.replace(`${window.location.origin}/app`)
       })
    }
 

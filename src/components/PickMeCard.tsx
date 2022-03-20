@@ -31,7 +31,7 @@ function PickMeCard({
       socket.on('reroll', (cards: Card[]) => {
          setPeopleList(cards)
       })
-      socket.on('Cards', (cards: Card[]) => {
+      socket.on('cards', (cards: Card[]) => {
          setPeopleList((current) => process([...current, ...cards]))
       })
    }, [])
@@ -48,21 +48,28 @@ function PickMeCard({
 
    const swipe = (dir: string, id: number) => {
       setCurrentCard((current) => current + 1)
-      socket.emit('card:swipe', { id, like: dir === 'right' })
+      socket.emit('card:swipe', { id, like: dir !== 'left' })
    }
 
    const superLike = useThrottleCallback(
       () => {
+         if (currentCard >= peopleList.length) return
          socket.emit('profile:react', { id: peopleList[currentCard].userId, name: peopleList[currentCard].name })
-         cardRef[peopleList.length - 1 - currentCard].current?.swipe('right')
+         cardRef[peopleList.length - 1 - currentCard].current?.swipe('up')
       },
       1,
       true,
    )
 
    useKeyPressEvent('ArrowUp', superLike)
-   useKeyPressEvent('ArrowLeft', () => cardRef[peopleList.length - 1 - currentCard].current?.swipe('left'))
-   useKeyPressEvent('ArrowRight', () => cardRef[peopleList.length - 1 - currentCard].current?.swipe('right'))
+   useKeyPressEvent(
+      'ArrowLeft',
+      () => currentCard < peopleList.length && cardRef[peopleList.length - 1 - currentCard].current?.swipe('left'),
+   )
+   useKeyPressEvent(
+      'ArrowRight',
+      () => currentCard < peopleList.length && cardRef[peopleList.length - 1 - currentCard].current?.swipe('right'),
+   )
 
    const cardRef = peopleList.reduce((acc, val, i) => {
       acc[i] = createRef()
@@ -82,7 +89,7 @@ function PickMeCard({
                   ref={cardRef[i]}
                   className="absolute z-10 w-full h-full select-none"
                   key={person.name}
-                  preventSwipe={['up', 'down']}
+                  preventSwipe={['down']}
                   onSwipe={(dir) => swipe(dir, person.userId)}
                   onCardLeftScreen={() => {
                      setPeopleList((current) => [...current.slice(1, current.length)])
@@ -99,14 +106,10 @@ function PickMeCard({
                </TinderCard>
             ))}
          <SwipeButton
-            handleCloseBtn={() => {
-               /**/
-            }}
+            handleCloseBtn={() => cardRef[peopleList.length - 1 - currentCard].current?.swipe('left')}
             handleHeartBtn={superLike}
             handleRepeatBtn={reroll}
-            handleStarBtn={() => {
-               /**/
-            }}
+            handleStarBtn={() => cardRef[peopleList.length - 1 - currentCard].current?.swipe('right')}
          />
          <div className="absolute top-0 bottom-0 left-0 right-0 flex items-center justify-center text-2xl font-semibold text-slate-500">
             No card left

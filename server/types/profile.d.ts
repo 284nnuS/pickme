@@ -8,6 +8,7 @@ interface UserProfile {
    avatar: string
    interests: string[]
    photos?: File[]
+   voices?: File[]
    matches: {
       userId: number
       name: string

@@ -1,12 +1,21 @@
+import { setupCache } from 'axios-cache-adapter'
 import GoogleProvider from 'next-auth/providers/google'
 import FacebookProvider from 'next-auth/providers/facebook'
-import axios from 'axios'
 import { NextAuthOptions } from 'next-auth'
+import axios from 'axios'
+
+const cache = setupCache({
+   maxAge: 15 * 60 * 100,
+})
+
+const api = axios.create({
+   adapter: cache.adapter,
+})
 
 export const getUserInfo = async (email: string) => {
    try {
       return await (
-         await axios.get(`${process.env.JAVA_SERVER_URL}/user/email/${encodeURI(email)}`)
+         await api({ url: `${process.env.JAVA_SERVER_URL}/user/email/${encodeURI(email)}`, method: 'GET' })
       ).data
    } catch (e) {
       return e.response.data

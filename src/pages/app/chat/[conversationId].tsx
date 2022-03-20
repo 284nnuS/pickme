@@ -21,13 +21,12 @@ function Index({
 }) {
    const socket = io('/match', {
       forceNew: true,
-      upgrade: false,
       transports: ['websocket'],
+      upgrade: false,
    })
 
    const [keywords, setKeywords] = useState('')
 
-   const [init, setInit] = useState(false)
    const [conversations, setConversations] = useState<Conversation[]>(preConversations)
 
    const fuse = new Fuse(conversations, {
@@ -47,7 +46,9 @@ function Index({
             })
             if (otherId === currentConversation.otherId) setDeleted(true)
          })
-         .on('connect', () => setInit(true))
+         .on('connect', () => {
+            /** */
+         })
          .on('disconnect', () => {
             socket.removeAllListeners()
          })
@@ -144,30 +145,26 @@ function Index({
                </div>
             </div>
             <div className="flex flex-col items-center justify-center w-screen md:flex-grow gap-y-8" ref={chatBoxRef}>
-               {currentConversation.conversationId && (
-                  <ChatBox
-                     scrollCallback={scrollToConversationList}
-                     key={currentConversation.conversationId}
-                     yourProfile={userProfile}
-                     init={init}
-                     socket={socket}
-                     deleted={deleted}
-                     conversation={currentConversation}
-                     updateCallBack={updateCallBack}
-                     unMatchCallback={() => {
-                        socket.emit('unmatch', {
-                           userId: currentConversation.otherId,
-                           name: currentConversation.otherName,
-                        })
-                        setConversations((current) => {
-                           const idx = current.findIndex((e) => e.conversationId === currentConversation.conversationId)
-                           current.splice(idx, 1)
-                           return [...current]
-                        })
-                        setDeleted(true)
-                     }}
-                  />
-               )}
+               <ChatBox
+                  key={currentConversation.conversationId}
+                  scrollCallback={scrollToConversationList}
+                  yourProfile={userProfile}
+                  deleted={deleted}
+                  conversation={currentConversation}
+                  updateCallBack={updateCallBack}
+                  unMatchCallback={() => {
+                     socket.emit('unmatch', {
+                        userId: currentConversation.otherId,
+                        name: currentConversation.otherName,
+                     })
+                     setConversations((current) => {
+                        const idx = current.findIndex((e) => e.conversationId === currentConversation.conversationId)
+                        current.splice(idx, 1)
+                        return [...current]
+                     })
+                     setDeleted(true)
+                  }}
+               />
             </div>
          </div>
       </>

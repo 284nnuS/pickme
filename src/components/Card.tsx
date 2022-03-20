@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { createRef, RefObject, useState } from 'react'
 import { useKeyPressEvent } from 'react-use'
 import ChipsInCardtsx from './ChipsInCard'
+import Player from './Player'
 
 function Card({
    age,
@@ -11,6 +12,7 @@ function Card({
    defaultInterests,
    bio,
    photos,
+   voices,
    interests,
    isFirst,
    onNavigate,
@@ -21,6 +23,7 @@ function Card({
    defaultInterests: InterestChip[]
    bio: string
    photos: File[]
+   voices: File[]
    interests: string[]
    isFirst: boolean
    onNavigate: () => void
@@ -54,22 +57,21 @@ function Card({
 
    return (
       <div
-         className="relative flex flex-col justify-center w-full h-full bg-slate-700 pointer rounded-2xl"
-         onMouseDown={() => setDragging(false)}
-         onMouseMove={() => setDragging(true)}
-         onMouseUp={() => {
-            if (!dragging) {
-               onNavigate()
-               router.push(
-                  `/app/imgViewer/?profileId=${userId}&bucketName=${photos[current].bucketName}&currentPhotoName=${photos[current].fileName}`,
-               )
-            }
+         className="relative z-50 flex flex-col justify-center w-full h-full cursor-pointer bg-slate-700 rounded-2xl"
+         onTouchStart={() => setDragging(false)}
+         onTouchMove={() => setDragging(true)}
+         onTouchEnd={() => {
+            if (dragging) return
+            onNavigate()
+            router.push(
+               `/app/imgViewer/?profileId=${userId}&bucketName=${photos[current].bucketName}&currentPhotoName=${photos[current].fileName}`,
+            )
          }}
       >
          <div className="w-full h-full carousel rounded-2xl">
             {photos.map((img, i) => (
                <Image
-                  key={i}
+                  key={img.fileName}
                   ref={refs[i]}
                   src={`${window.location.origin}/api/restful/file/${userId}/photo/${img.fileName}`}
                   alt={name}
@@ -88,14 +90,9 @@ function Card({
                />
             ))}
          </div>
-         {/* <div className="absolute top-2 left-2">
-            {voice && (
-               <Player
-                  url={`${window.location.origin}/api/restful/media/${userId}/${voice.mediaName}`}
-                  isFirst={isFirst}
-               />
-            )}
-         </div> */}
+         <div className="absolute top-2 left-2">
+            {voices && voices.length > 0 && <Player voices={voices} isFirst={isFirst} />}
+         </div>
          <div className="absolute bottom-0 w-full rounded-b-2xl bg-gradient-to-t from-black h-1/2">
             <div className="absolute bottom-0 flex flex-col p-4 text-left pb-36 gap-y-2">
                <div className="flex items-end gap-x-4">

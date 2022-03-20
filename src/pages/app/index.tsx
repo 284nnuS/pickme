@@ -14,8 +14,8 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
 
    const socket = io('/match', {
       forceNew: true,
-      upgrade: false,
       transports: ['websocket'],
+      upgrade: false,
    })
    const [init, setInit] = useState(false)
 
@@ -97,7 +97,7 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
                ref={matchListRef}
             >
                <SidebarHeader userProfile={userProfile} tab="matches" />
-               <div className="grid w-full grid-cols-2 pt-6 mx-2 md:grid-cols-3 md:mx-5 md:gap-x-1 gap-y-5">
+               <div className="grid w-full grid-cols-2 pt-6 mx-2 md:mx-0 md:grid-cols-3 md:gap-x-1 gap-y-5">
                   {userProfiles.map((match) => (
                      <div key={match.userId} className="flex items-center justify-center w-full h-full">
                         <MatchesItem userId={match.userId} name={match.name} photos={match.photos} />

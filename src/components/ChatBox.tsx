@@ -29,8 +29,6 @@ function ChatBox({
 }: {
    scrollCallback: () => void
    conversation: Conversation
-   init: boolean
-   socket: Socket
    yourProfile: UserProfile
    deleted: boolean
    updateCallBack: (message: Message) => void
@@ -41,8 +39,8 @@ function ChatBox({
          conversationId: conversation.conversationId,
       },
       forceNew: true,
-      upgrade: false,
       transports: ['websocket'],
+      upgrade: false,
    })
 
    const [messageList, setMessageList] = useState<Message[]>([])
@@ -51,6 +49,29 @@ function ChatBox({
    const [messageContent, setMessageContent] = useState('')
    const [openedPicker, setOpenedPicker] = useState(false)
    const [disableSpinner, setDisableSpinner] = useState(false)
+   const [otherIsTyping, setOtherIsTyping] = useState(false)
+
+   const [isTyping, setTyping] = useState(false)
+
+   useEffect(() => {
+      if (messageContent.length === 0) {
+         socket.emit('message:typing', false)
+         setTyping(false)
+         return
+      }
+
+      if (!isTyping) {
+         socket.emit('message:typing', true)
+         setTyping(true)
+      }
+
+      const delayDebounceFn = setTimeout(() => {
+         socket.emit('message:typing', false)
+         setTyping(false)
+      }, 3000)
+
+      return () => clearTimeout(delayDebounceFn)
+   }, [messageContent])
 
    const process = (messages: Message[]) =>
       messages
@@ -61,13 +82,13 @@ function ChatBox({
    useEffect(() => {
       socket.open()
       socket
-         .on('Messages', (messages: Message[]) => {
+         .on('messages', (messages: Message[]) => {
             if (messages && messages.length > 0) {
                setCanLoadMore(true)
                setMessageList((currentMessages) => process([...currentMessages, ...messages]))
             } else setDisableSpinner(true)
          })
-         .on('New message', (newMessage: Message) => {
+         .on('message:new', (newMessage: Message) => {
             setMessageList((currentMessages) => process([newMessage, ...currentMessages]))
             updateCallBack(newMessage)
          })
@@ -86,17 +107,22 @@ function ChatBox({
                return [...current]
             }),
          )
+         .on('message:typing', (state: boolean) => setOtherIsTyping(state))
          .on('connect', () => setInit(true))
          .on('disconnect', () => {
             socket.removeAllListeners()
          })
+
+      return () => {
+         socket.disconnect()
+      }
    }, [])
 
    useEffect(() => {
       if (init) {
          const now = new Date()
          const currentTime = now.getTime() - now.getTimezoneOffset() * 60000
-         socket.emit('message:get+', currentTime)
+         socket.emit('message:getMore', currentTime)
          scrollRef.current.scrollTop = scrollRef.current.scrollHeight
       }
    }, [init])
@@ -129,7 +155,7 @@ function ChatBox({
 
    const abbreviateName = abbreviate(conversation.otherName)
 
-   const isWide = useMedia('(min-width: 768px)') || true
+   const isWide = useMedia('(min-width: 768px)', true)
 
    return (
       <div className="w-full h-screen overflow-hidden">
@@ -177,7 +203,7 @@ function ChatBox({
                </button>
             )}
          </div>
-         <ul className="flex flex-col-reverse p-6 overflow-y-auto h-[calc(100%-7.5rem)] relative" ref={scrollRef}>
+         <ul className="flex flex-col-reverse p-6 overflow-y-auto h-[calc(100%-8rem)] mb-2 relative" ref={scrollRef}>
             {!deleted ? (
                Object.values(messageList).map((el, i, list) => {
                   const youIsSender = yourProfile.userId === el.sender
@@ -317,7 +343,7 @@ function ChatBox({
          </ul>
          {deleted || (
             <form
-               className="flex items-center px-4 border-t-2 h-14 border-slate-200 gap-x-4"
+               className="relative flex items-center px-4 border-t-2 h-14 border-slate-200 gap-x-4"
                action={null}
                onSubmit={sendMessage}
             >
@@ -359,6 +385,19 @@ function ChatBox({
                <button type="submit" className="p-2 bg-teal-600 rounded-full">
                   <MdSend className="w-6 h-6 text-white" />
                </button>
+               {otherIsTyping && (
+                  <div className="absolute flex items-center text-sm text-teal-500 select-none -top-7 gap-x-2">
+                     <div className="ticontainer">
+                        <div className="tiblock">
+                           <div className="bg-pink-500 tidot"></div>
+                           <div className="bg-orange-500 tidot"></div>
+                           <div className="bg-yellow-500 tidot"></div>
+                           <div className="bg-green-500 tidot"></div>
+                        </div>
+                     </div>
+                     {conversation.otherName} is typing...
+                  </div>
+               )}
             </form>
          )}
       </div>

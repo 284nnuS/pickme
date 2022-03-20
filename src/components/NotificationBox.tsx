@@ -11,8 +11,8 @@ function NotificationBox({ yourId, inProfile = false, gutter = 16 }) {
 
    const socket = io('/notify', {
       forceNew: true,
-      upgrade: false,
       transports: ['websocket'],
+      upgrade: false,
    })
    const [init, setInit] = useState(false)
 
@@ -27,7 +27,7 @@ function NotificationBox({ yourId, inProfile = false, gutter = 16 }) {
    useEffect(() => {
       socket.open()
       socket
-         .on('Notifications', (notifications: Notification[]) => {
+         .on('notifications', (notifications: Notification[]) => {
             setNotificationList((current: Notification[]) => process([...current, ...notifications]))
          })
          .on('notification:seenAll', () => {
@@ -37,16 +37,16 @@ function NotificationBox({ yourId, inProfile = false, gutter = 16 }) {
                }),
             )
          })
-         .on('New notification', (notification: Notification) =>
+         .on('notification:new', (notification: Notification) =>
             setNotificationList((current: Notification[]) => process([...current, notification])),
          )
-         .on('Success', (res: { title: string; message: string }) => {
+         .on('notification:success', (res: { title: string; message: string }) => {
             notify.showNotification({
                ...res,
                color: 'green',
             })
          })
-         .on('Error', (res: { title: string; message: string }) => {
+         .on('notification:error', (res: { title: string; message: string }) => {
             notify.showNotification({
                ...res,
                color: 'red',
