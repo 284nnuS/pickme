@@ -1,0 +1,9 @@
+[Unit]
+Description=Pickme service
+
+[Service]
+User=nez21
+ExecStart=/home/nez21/pickme/scripts/start.sh
+
+[Install]
+WantedBy=multi-user.target
