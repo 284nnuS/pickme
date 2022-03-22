@@ -15,7 +15,7 @@ function Index() {
             <title>Home</title>
          </Head>
          <div
-            className="relative w-screen h-screen p-2 bg-indigo-900 bg-no-repeat bg-cover"
+            className="relative w-screen h-full p-2 bg-indigo-900 bg-no-repeat bg-cover"
             style={{
                backgroundImage: `url('/static/images/landingbg.jpg')`,
             }}

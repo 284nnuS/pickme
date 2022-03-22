@@ -49,7 +49,7 @@ function MessageSearchBox({
                                    scrollToMessage(el.refIndex)
                                    setOpened(false)
                                 }}
-                                className="flex items-center justify-start w-full px-6 py-3 gap-x-6 hover:rounded-2xl hover:bg-slate-200 focus:rounded-2xl"
+                                className="flex items-center justify-start w-full py-3 gap-x-6 hover:rounded-2xl hover:bg-slate-200 focus:rounded-2xl"
                              >
                                 <Image
                                    src={el.item.sender === conversation.otherId ? conversation.otherAvatar : yourAvatar}

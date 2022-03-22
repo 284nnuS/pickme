@@ -91,7 +91,7 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
          <Head>
             <title>Pickme | Match</title>
          </Head>
-         <div className="flex w-[200%] md:w-screen h-screen pb-16 md:pb-0 overflow-hidden">
+         <div className="flex w-[200%] md:w-screen h-full pb-16 md:pb-0 overflow-hidden">
             <div
                className="w-screen min-w-screen md:w-[30rem] md:min-w-[30rem] h-full z-50 bg-slate-100"
                ref={matchListRef}
@@ -116,34 +116,36 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
                <PickMeCard defaultInterests={defaultInterests} socket={socket} init={init} />
                <Guide />
             </div>
-         </div>
-         <div className="fixed top-[calc(100vh-4rem)] left-0 right-0	 z-50 flex items-center h-16 bg-slate-200 md:hidden justify-evenly">
-            {Object.values([
-               {
-                  children: (
-                     <>
-                        <FaUserFriends className={classNames('w-6 h-6', currentTab === 'match' && 'text-blue-600')} />
-                        <div className={classNames(currentTab === 'match' && 'text-blue-600')}>Match List</div>
-                     </>
-                  ),
-                  callback: () => setCurrentTab('match'),
-               },
-               {
-                  children: (
-                     <>
-                        <GiCardRandom className={classNames('w-6 h-6', currentTab === 'card' && 'text-teal-600')} />
-                        <div className={classNames(currentTab === 'card' && 'text-teal-600')}>Cards</div>
-                     </>
-                  ),
-                  callback: () => setCurrentTab('card'),
-               },
-            ]).map((el, i) => {
-               return (
-                  <button key={i} onClick={el.callback} className="text-slate-500">
-                     <div className="flex flex-col items-center">{el.children}</div>
-                  </button>
-               )
-            })}
+            <div className="fixed bottom-0 left-0 right-0 top-auto z-50 flex items-center h-16 bg-slate-200 md:hidden justify-evenly">
+               {Object.values([
+                  {
+                     children: (
+                        <>
+                           <FaUserFriends
+                              className={classNames('w-6 h-6', currentTab === 'match' && 'text-blue-600')}
+                           />
+                           <div className={classNames(currentTab === 'match' && 'text-blue-600')}>Match List</div>
+                        </>
+                     ),
+                     callback: () => setCurrentTab('match'),
+                  },
+                  {
+                     children: (
+                        <>
+                           <GiCardRandom className={classNames('w-6 h-6', currentTab === 'card' && 'text-teal-600')} />
+                           <div className={classNames(currentTab === 'card' && 'text-teal-600')}>Cards</div>
+                        </>
+                     ),
+                     callback: () => setCurrentTab('card'),
+                  },
+               ]).map((el, i) => {
+                  return (
+                     <button key={i} onClick={el.callback} className="text-slate-500">
+                        <div className="flex flex-col items-center">{el.children}</div>
+                     </button>
+                  )
+               })}
+            </div>
          </div>
       </>
    )

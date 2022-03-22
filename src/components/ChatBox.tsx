@@ -4,7 +4,7 @@ import { MdEmojiEmotions, MdSend } from 'react-icons/md'
 import { io, Socket } from 'socket.io-client'
 import { useThrottle, useThrottleCallback } from '@react-hook/throttle'
 import { ReactSelect } from '.'
-import { Avatar, Image, Popover, Tooltip } from '@mantine/core'
+import { Avatar, Image, Modal, Popover, Tooltip } from '@mantine/core'
 import { AiOutlineRollback } from 'react-icons/ai'
 import Link from 'next/link'
 import { IEmojiPickerProps } from 'emoji-picker-react'
@@ -20,14 +20,16 @@ const EmojiPickerNoSSRWrapper = dynamic<IEmojiPickerProps>(() => import('emoji-p
 })
 
 function ChatBox({
-   scrollCallback,
+   scrollToConversationList,
+   scrollToChatBox,
    conversation,
    yourProfile,
    deleted,
    updateCallBack,
    unMatchCallback,
 }: {
-   scrollCallback: () => void
+   scrollToConversationList: () => void
+   scrollToChatBox: () => void
    conversation: Conversation
    yourProfile: UserProfile
    deleted: boolean
@@ -52,26 +54,6 @@ function ChatBox({
    const [otherIsTyping, setOtherIsTyping] = useState(false)
 
    const [isTyping, setTyping] = useState(false)
-
-   useEffect(() => {
-      if (messageContent.length === 0) {
-         socket.emit('message:typing', false)
-         setTyping(false)
-         return
-      }
-
-      if (!isTyping) {
-         socket.emit('message:typing', true)
-         setTyping(true)
-      }
-
-      const delayDebounceFn = setTimeout(() => {
-         socket.emit('message:typing', false)
-         setTyping(false)
-      }, 3000)
-
-      return () => clearTimeout(delayDebounceFn)
-   }, [messageContent])
 
    const process = (messages: Message[]) =>
       messages
@@ -108,7 +90,10 @@ function ChatBox({
             }),
          )
          .on('message:typing', (state: boolean) => setOtherIsTyping(state))
-         .on('connect', () => setInit(true))
+         .on('connect', () => {
+            setInit(true)
+            scrollToChatBox()
+         })
          .on('disconnect', () => {
             socket.removeAllListeners()
          })
@@ -117,6 +102,28 @@ function ChatBox({
          socket.disconnect()
       }
    }, [])
+
+   useEffect(() => {
+      if (!init) return
+
+      if (messageContent.length === 0) {
+         socket.emit('message:typing', false)
+         setTyping(false)
+         return
+      }
+
+      if (!isTyping) {
+         socket.emit('message:typing', true)
+         setTyping(true)
+      }
+
+      const delayDebounceFn = setTimeout(() => {
+         socket.emit('message:typing', false)
+         setTyping(false)
+      }, 3000)
+
+      return () => clearTimeout(delayDebounceFn)
+   }, [messageContent])
 
    useEffect(() => {
       if (init) {
@@ -131,7 +138,7 @@ function ChatBox({
    const { y: scrollY } = useScroll(scrollRef)
 
    const handleScroll = useCallback(
-      () => socket.emit('message:get+', messageList[messageList.length - 1].time),
+      () => init && socket.emit('message:get+', messageList[messageList.length - 1].time),
       [messageList],
    )
    const throttledHandleScroll = useThrottleCallback(handleScroll, 0.5, true)
@@ -143,6 +150,8 @@ function ChatBox({
    const inputBoxRef = useRef<HTMLInputElement>()
 
    const sendMessage = (e: FormEvent) => {
+      if (!init) return
+
       socket.emit('message:send', messageContent)
       setMessageContent('')
       e.preventDefault()
@@ -156,11 +165,12 @@ function ChatBox({
    const abbreviateName = abbreviate(conversation.otherName)
 
    const isWide = useMedia('(min-width: 768px)', true)
+   const [unmatchModalOpened, setUnmatchModalOpened] = useState(false)
 
    return (
-      <div className="w-full h-screen overflow-hidden">
+      <div className="w-full h-full overflow-hidden">
          <div className="flex items-center h-16 px-2 py-2 border-b-2 md:px-6 gap-x-2 md:gap-x-5 border-slate-200">
-            <button className="w-7 h-7 md:hidden" onClick={() => scrollCallback()}>
+            <button className="w-7 h-7 md:hidden" onClick={() => scrollToConversationList()}>
                <IoMdArrowBack className="w-full h-full text-emerald-500" />
             </button>
             {!deleted && conversation.otherAvatar ? (
@@ -195,12 +205,48 @@ function ChatBox({
             />
             <NotificationBox yourId={yourProfile.userId} />
             {deleted || (
-               <button
-                  className="p-1.5 text-sm font-bold text-teal-500 uppercase bg-white border-2 border-teal-500 rounded-full hover:bg-teal-500 hover:text-white"
-                  onClick={() => unMatchCallback(conversation.conversationId)}
-               >
-                  Unmatch
-               </button>
+               <>
+                  <button
+                     className="p-1.5 text-sm font-bold text-teal-500 uppercase bg-white border-2 border-teal-500 rounded-full hover:bg-teal-500 hover:text-white"
+                     onClick={() => setUnmatchModalOpened(true)}
+                  >
+                     Unmatch
+                  </button>
+                  <Modal
+                     opened={unmatchModalOpened}
+                     onClose={() => setUnmatchModalOpened(false)}
+                     centered
+                     size={400}
+                     title="Unmatch"
+                     radius={20}
+                     classNames={{
+                        title: 'text-xl font-semibold',
+                     }}
+                  >
+                     <div className="flex flex-col items-center w-full px-3 gap-y-3">
+                        <div className="w-full">
+                           Do you want to unmatch with
+                           <span className="font-semibold"> {conversation.otherName}</span>?
+                           <br />
+                           This aciton won&#39;t be revertable
+                        </div>
+                        <div className="flex justify-around w-full">
+                           <button
+                              className="w-32 h-10 text-lg font-semibold text-white bg-red-600 rounded-md"
+                              onClick={() => unMatchCallback(conversation.conversationId)}
+                           >
+                              Yes
+                           </button>
+                           <button
+                              className="w-32 h-10 text-lg font-semibold border-2 rounded-md text-slate-500 border-slate-500 hover:bg-slate-500 hover:text-white"
+                              onClick={() => setUnmatchModalOpened(false)}
+                           >
+                              No
+                           </button>
+                        </div>
+                     </div>
+                  </Modal>
+               </>
             )}
          </div>
          <ul className="flex flex-col-reverse p-6 overflow-y-auto h-[calc(100%-8rem)] mb-2 relative" ref={scrollRef}>
@@ -301,7 +347,7 @@ function ChatBox({
                                        </button>
                                     </div>
                                  ) : (
-                                    <ReactSelect socket={socket} message={el} />
+                                    <ReactSelect socket={socket} message={el} init={init} />
                                  ))}
                            </div>
                         </div>

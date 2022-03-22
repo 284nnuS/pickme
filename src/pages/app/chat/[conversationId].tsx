@@ -97,9 +97,9 @@ function Index({
          <Head>
             <title>Pickme | Chat with {currentConversation.otherName.split(' ')[0]}</title>
          </Head>
-         <div className="flex w-[200%] h-screen overflow-hidden md:w-screen">
+         <div className="flex w-[200%] h-full overflow-hidden md:w-screen">
             <div
-               className="w-screen min-w-screen md:w-[30rem] md:min-w-[30rem] h-screen z-50 bg-slate-100"
+               className="w-screen min-w-screen md:w-[30rem] md:min-w-[30rem] h-full z-50 bg-slate-100"
                ref={conversationListRef}
             >
                <SidebarHeader userProfile={userProfile} tab="messages" />
@@ -118,9 +118,7 @@ function Index({
                         .sort((a, b) => b.latestTime - a.latestTime)
                         .map((m) => (
                            <ConversationItem
-                              scrollCallback={(e) =>
-                                 e ? scrollToChatBox() : router.events.on('routeChangeComplete', scrollToChatBox)
-                              }
+                              scrollCallback={() => scrollToChatBox()}
                               key={m.conversationId}
                               item={m}
                               selected={m.conversationId === currentConversation.conversationId}
@@ -129,9 +127,7 @@ function Index({
                   {result && result.length > 0
                      ? result.map((m) => (
                           <ConversationItem
-                             scrollCallback={(e) =>
-                                e ? scrollToChatBox() : router.events.on('routeChangeComplete', scrollToChatBox)
-                             }
+                             scrollCallback={() => scrollToChatBox()}
                              key={m.item.conversationId}
                              item={m.item}
                              selected={m.item.conversationId === currentConversation.conversationId}
@@ -147,7 +143,8 @@ function Index({
             <div className="flex flex-col items-center justify-center w-screen md:flex-grow gap-y-8" ref={chatBoxRef}>
                <ChatBox
                   key={currentConversation.conversationId}
-                  scrollCallback={scrollToConversationList}
+                  scrollToConversationList={scrollToConversationList}
+                  scrollToChatBox={scrollToChatBox}
                   yourProfile={userProfile}
                   deleted={deleted}
                   conversation={currentConversation}

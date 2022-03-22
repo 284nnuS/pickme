@@ -4,10 +4,12 @@ import { useState } from 'react'
 import { RiEmotionLine } from 'react-icons/ri'
 import { Socket } from 'socket.io-client'
 
-function ReactSelect({ message, socket }: { message: Message; socket: Socket }) {
+function ReactSelect({ message, socket, init }: { message: Message; socket: Socket; init: boolean }) {
    const [opened, setOpened] = useState(false)
 
    const reactToMessage = (react: React) => {
+      if (!init) return
+
       socket.emit('message:react', {
          messageId: message.messageId,
          react: react === message.react ? 'none' : react,

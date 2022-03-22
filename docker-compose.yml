@@ -10,7 +10,7 @@ services:
         env_file:
           - configs/nextjs.env
         ports:
-            - 3000:3000
+            - 80:3000
     java_server:
         build: java/
         container_name: pickme-java-server
@@ -21,6 +21,8 @@ services:
             - DB_HOSTNAME=database
         env_file:
             - configs/java.env
+        volumes:
+            - file_storage:/app/storage
     database:
         image: mysql:8.0.28
         container_name: pickme-database
@@ -36,5 +38,6 @@ services:
             - 3306:3306
 volumes:
     database_data:
+    file_storage:
 networks:
     internal:

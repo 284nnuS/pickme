@@ -3,6 +3,7 @@ import axios from 'axios'
 import env from '../../shared/env'
 import proxy from 'express-http-proxy'
 import { JWT } from 'next-auth/jwt'
+import { permit } from '../security'
 
 export default function routeAPI(app: Express) {
    const middleware = proxy(process.env.JAVA_SERVER_URL, {
@@ -12,11 +13,37 @@ export default function routeAPI(app: Express) {
       },
    })
 
-   app.all('/api/restful/file/*', middleware)
+   app.all(
+      '/api/restful/file/*',
+      permit('user', 'mod', 'admin'),
+      (req, res, next) => {
+         if (req.method !== 'GET') {
+            if (req.url.match(/.*\/file\/(\d{1,})\/.*/)[1] != res.locals.session.userInfo.userId) {
+               res.sendStatus(403)
+               return
+            }
+         }
+         next()
+      },
+      middleware,
+   )
    app.get('/api/restful/interest', middleware)
-   app.put('/api/restful/profile', middleware)
+   app.put(
+      '/api/restful/profile',
+      (req, res, next) => {
+         if (req.method !== 'GET') {
+            if (req.body.userId != res.locals.session.userInfo.userId) {
+               res.sendStatus(403)
+               return
+            }
+         }
+         next()
+      },
+      permit('user', 'mod', 'admin'),
+      middleware,
+   )
 
-   app.post('/api/signUp', async (req, res) => {
+   app.post('/api/signUp', permit('none'), async (req, res) => {
       const token: JWT = res.locals['token']
       const obj = req.body
 

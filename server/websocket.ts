@@ -104,13 +104,15 @@ sio.of('/match')
                })
                if (like) {
                   try {
-                     let res = await axios.get(`${env.javaServerUrl}/matchStatus/${socket['userId']}/${id}`)
-                     const match: boolean = res.data['data']
-                     if (match) {
+                     let res = await axios.get(`${env.javaServerUrl}/conversation/${socket['userId']}/${id}`)
+                     const conversationId: number = res.data['data']['conversationId']
+
+                     try {
                         const req = {
                            time: new Date().getTime(),
                            eventType: 'match',
                            seen: false,
+                           link: '/app/chat/' + conversationId,
                         }
 
                         // Send matched notification to user one
@@ -151,9 +153,11 @@ sio.of('/match')
                         profile.photos = (await axios.get(`${env.javaServerUrl}/file/${id}/photo`)).data['data']
 
                         socket.to('match-' + socket['userId']).emit('match:new', profile)
+                     } catch (err) {
+                        console.log(err)
                      }
                   } catch (err) {
-                     console.log(err)
+                     //
                   }
                }
             } catch (err) {

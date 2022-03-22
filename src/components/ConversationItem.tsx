@@ -12,7 +12,7 @@ function ConversationItem({
 }: {
    item: Conversation
    selected: boolean
-   scrollCallback: (now: boolean) => void
+   scrollCallback: () => void
 }) {
    const { conversationId, otherName, otherAvatar, latestTime, latestMessage, sender } = item
    const router = useRouter()
@@ -25,8 +25,8 @@ function ConversationItem({
             selected && 'rounded-2xl bg-slate-300',
          )}
          onClick={async () => {
-            scrollCallback(selected)
             if (!selected) await router.push(`/app/chat/${conversationId}`)
+            else scrollCallback()
          }}
       >
          <Image src={otherAvatar} alt={otherName} radius={100} width={60} height={60} />

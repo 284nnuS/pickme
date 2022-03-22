@@ -13,7 +13,9 @@ export default function route(app: Express, nextApp: NextServer) {
 
    app.all('/auth/signUp/', permit('none'), handler)
 
-   app.all('/app/*', permit('user'), handler)
+   app.all('/app/*', permit('user', 'mod'), handler)
+
+   app.all('/reports/*', permit('mod', 'admin'), handler)
 
    app.all('/*', handler)
 }

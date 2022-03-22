@@ -1,18 +1,16 @@
 import { IoMdNotifications } from 'react-icons/io'
-import React, { useRef } from 'react'
 import { Image } from '@mantine/core'
-import Link from 'next/link'
 import { getDiffTimeToString } from '~/src/utils/time'
 import { Socket } from 'socket.io-client'
+import { useRouter } from 'next/router'
 
 const NotificationForm = ({ notification, socket }: { notification: Notification; socket: Socket }) => {
-   const linkRef = useRef<HTMLAnchorElement>()
+   const router = useRouter()
 
    if (notification.eventType === 'match')
       notification = {
          ...notification,
          message: 'You have a new matched!',
-         link: '/app/chat/' + notification.sourceUID,
       }
 
    if (notification.eventType === 'react')
@@ -22,11 +20,13 @@ const NotificationForm = ({ notification, socket }: { notification: Notification
          avatar: '/static/images/pickme.png',
       }
 
+   console.log(notification)
+
    return (
       <button
          type="button"
          onClick={() => {
-            notification.link && linkRef.current?.click()
+            notification.link && router.push(notification.link)
             notification.seen ||
                socket.emit('notification:seen', {
                   userId: notification.targetUID,
@@ -44,11 +44,6 @@ const NotificationForm = ({ notification, socket }: { notification: Notification
             <div className="text-left text-gray-400">{getDiffTimeToString(notification.time)}</div>
          </div>
          {notification.seen || <div className="w-5 h-5 bg-teal-400 rounded-full"></div>}
-         <div className="hidden">
-            <Link href={notification.link || ''} passHref>
-               <a ref={linkRef}>Link</a>
-            </Link>
-         </div>
       </button>
    )
 }

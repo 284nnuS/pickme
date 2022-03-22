@@ -104,6 +104,25 @@ CREATE TABLE `tblNotification` (
   CONSTRAINT `tblNotification_FK_1` FOREIGN KEY (`targetUID`) REFERENCES `tblUser` (`userId`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- `DATABASE`.tblReport definition
+
+CREATE TABLE `tblReport` (
+  `reportId` mediumint NOT NULL AUTO_INCREMENT,
+  `reporter` int DEFAULT NULL,
+  `reported` int NOT NULL,
+  `time` varchar(100) DEFAULT NULL,
+  `message` longtext,
+  `done` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`reportId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- `DATABASE`.tblTag definition
+
+CREATE TABLE `tblTag` (
+  `tagName` varchar(20) NOT NULL,
+  `description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  PRIMARY KEY (`tagName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- `DATABASE`.tblReportTag definition
 
