@@ -19,14 +19,16 @@ public class ReportRowMapper extends RowMapper<Report> {
 	@Override
 	public Boolean mapRow(ResultSet rs, Report obj) throws SQLException {
 		Long reportId = rs.getLong("reportId");
+
 		Timestamp time = rs.getTimestamp("time");
 		obj.setReportId(reportId);
 		obj.setTime(time.getTime());
 		obj.setReporter(rs.getInt("reporter"));
 		obj.setReported(rs.getInt("reported"));
-		obj.setMessage(rs.getString("message"));
-		obj.setDone(rs.getBoolean("done"));
-		return true;
-	}
+		obj.setTag(rs.getString("tag"));
+		obj.setAdditionalInfo(rs.getString("additionalInfo"));
+		obj.setResolved(rs.getString("resolved"));
 
+		return null;
+	}
 }

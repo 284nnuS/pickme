@@ -43,6 +43,7 @@ public class UserRepository implements Repository<User> {
 				try (ResultSet rs = stmt.getGeneratedKeys()) {
 					rs.next();
 					user.setUserId(rs.getInt(1));
+					user.setDisabled(false);
 				}
 			}
 
@@ -84,20 +85,18 @@ public class UserRepository implements Repository<User> {
 			User newUser = inDB;
 
 			try (PreparedStatement stmt = conn.prepareStatement(
-					"UPDATE tblUser SET role = ?, cautionTimes = ? WHERE userId = ?")) {
+					"UPDATE tblUser SET role = ?, cautionTimes = ?, disabled = ? WHERE userId = ?")) {
 				stmt.setString(1, newUser.getRole());
 				stmt.setInt(2, newUser.getCautionTimes());
-				stmt.setInt(3, newUser.getUserId());
+				stmt.setBoolean(3, newUser.getDisabled());
+				stmt.setInt(4, newUser.getUserId());
 
-				if (stmt.executeUpdate() != 1) {
-					conn.rollback();
+				if (stmt.executeUpdate() != 1)
 					return new Result<>(null, JsonAPIResponse.SERVER_ERROR);
-				}
 			}
 
 			return new Result<>(newUser, null);
 		} catch (Exception e) {
-			conn.rollback();
 			throw e;
 		}
 	}

@@ -7,6 +7,7 @@ import { getUserInfo } from '../shared/nextAuthOptions'
 import env from '../shared/env'
 import { setupCache } from 'axios-cache-adapter'
 import axios from 'axios'
+import { cache as userCache } from '../shared/nextAuthOptions'
 
 const cache = setupCache({
    maxAge: 60 * 1000,
@@ -29,8 +30,11 @@ const authMiddleware = async (socket: Socket, next: () => void) => {
       })
       const res = await getUserInfo(token.email)
       if (res && 'data' in res) {
-         const userId = res['data'].userId
-         socket['userId'] = userId
+         const user = res['data']
+
+         socket['userId'] = user.userId
+         socket['email'] = user.email
+         socket['role'] = user.role
          next()
       }
    } catch {
@@ -358,6 +362,144 @@ sio.of('/chat')
          .on('disconnect', () => {
             socket.removeAllListeners()
          })
+   })
+
+sio.of('/report')
+   .use(authMiddleware)
+   .on('connection', (socket: Socket) => {
+      if (socket['role'] !== 'user') socket.join('report-' + socket['role'])
+      else socket.join('report-user-' + socket['userId'])
+
+      socket
+         .on(
+            'report:request',
+            async ({ reported, tag, additionalInfo }: { reported: number; tag: string; additionalInfo: string }) => {
+               try {
+                  const report: Report = (
+                     await axios.post(`${env.javaServerUrl}/report`, {
+                        reporter: socket['userId'],
+                        reported,
+                        tag,
+                        additionalInfo,
+                     })
+                  ).data['data']
+
+                  report.reporterProfile = (await axios.get(`${env.javaServerUrl}/profile/id/${report.reporter}`)).data[
+                     'data'
+                  ]
+                  report.reportedProfile = (await axios.get(`${env.javaServerUrl}/profile/id/${report.reported}`)).data[
+                     'data'
+                  ]
+                  report.reportedUserInfo = (await axios.get(`${env.javaServerUrl}/user/id/${report.reported}`)).data[
+                     'data'
+                  ]
+
+                  socket.to('report-mod').to('report-admin').emit('report:new', report)
+
+                  sio.of('/notify')
+                     .to('notify-' + socket['userId'])
+                     .emit('notification:success', {
+                        title: 'Report',
+                        message:
+                           'Thank you for reporting the offending user so that PICKME can take action. We appreciate your contribution to the development of the application',
+                     })
+               } catch (err) {
+                  sio.of('/notify')
+                     .to('notify-' + socket['userId'])
+                     .emit('notification:error', {
+                        title: 'Report',
+                        message: 'You have already reported this user. Please wait us to prcoess your submitted report',
+                     })
+               }
+            },
+         )
+         .on(
+            'report:resolve',
+            async ({ reportId, action }: { reportId: number; action: 'ban' | 'warn' | 'decline' }) => {
+               if (socket['role'] === 'user') return
+
+               try {
+                  const status = action === 'decline' ? 'decline' : 'approve'
+                  const report: Report = (await axios.put(`${env.javaServerUrl}/report/${reportId}/${status}`)).data[
+                     'data'
+                  ]
+
+                  report.reporterProfile = (await axios.get(`${env.javaServerUrl}/profile/id/${report.reporter}`)).data[
+                     'data'
+                  ]
+                  report.reportedProfile = (await axios.get(`${env.javaServerUrl}/profile/id/${report.reported}`)).data[
+                     'data'
+                  ]
+                  report.reportedUserInfo = (await axios.get(`${env.javaServerUrl}/user/id/${report.reported}`)).data[
+                     'data'
+                  ]
+                  let message: string
+
+                  switch (action) {
+                     case 'ban':
+                        await axios.put(`${env.javaServerUrl}/user`, {
+                           userId: report.reported,
+                           disabled: true,
+                        })
+                        message = `Your report about ${report.reportedProfile.name} was approved`
+                        delete userCache.store['store'][
+                           `${env.javaServerUrl}/user/email/${report.reportedUserInfo.email}`
+                        ]
+                        console.log(
+                           userCache.store['store'],
+                           userCache.store['store'][`${env.javaServerUrl}/user/email/${report.reportedUserInfo.email}`],
+                           `${env.javaServerUrl}/user/email/${report.reportedUserInfo.email}`,
+                        )
+                        break
+                     case 'warn':
+                        await axios.put(`${env.javaServerUrl}/user`, {
+                           userId: report.reported,
+                           cautionTimes: report.reportedUserInfo.cautionTimes + 1,
+                        })
+                        message = `Your report about ${report.reportedProfile.name} was approved`
+
+                        sio.of('/notify')
+                           .to('notify-' + report.reported)
+                           .emit(
+                              'notification:new',
+                              (
+                                 await axios.post(`${env.javaServerUrl}/notify`, {
+                                    time: new Date().getTime(),
+                                    sourceUID: null,
+                                    targetUID: report.reported,
+                                    eventType: 'warn',
+                                    seen: false,
+                                    message: 'You have been warned from Moderator due to ' + report.tag.toUpperCase(),
+                                 })
+                              ).data['data'],
+                           )
+                        break
+                     case 'decline':
+                        message = `Your report about ${report.reportedProfile.name} was rejected`
+                        break
+                  }
+
+                  const notification = (
+                     await axios.post(`${env.javaServerUrl}/notify`, {
+                        time: new Date().getTime(),
+                        sourceUID: null,
+                        targetUID: report.reporter,
+                        eventType: 'info',
+                        seen: false,
+                        message,
+                     })
+                  ).data['data']
+
+                  sio.of('/notify')
+                     .to('notify-' + report.reporter)
+                     .emit('notification:new', notification)
+
+                  socket.to('report-mod').to('report-admin').emit('report:update', report)
+               } catch (err) {
+                  console.log(err)
+               }
+            },
+         )
    })
 
 export default function attach(server: http.Server) {

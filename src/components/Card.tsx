@@ -4,6 +4,7 @@ import { createRef, RefObject, useState } from 'react'
 import { useKeyPressEvent } from 'react-use'
 import ChipsInCardtsx from './ChipsInCard'
 import Player from './Player'
+import ReportButton from './ReportButton'
 
 function Card({
    age,
@@ -90,8 +91,10 @@ function Card({
                />
             ))}
          </div>
-         <div className="absolute top-2 left-2">
+         <div className="absolute flex top-2 left-2 right-2">
             {voices && voices.length > 0 && <Player voices={voices} isFirst={isFirst} />}
+            <div className="flex-grow"></div>
+            <ReportButton reported={userId} inCard={true} />
          </div>
          <div className="absolute bottom-0 w-full rounded-b-2xl bg-gradient-to-t from-black h-1/2">
             <div className="absolute bottom-0 flex flex-col p-4 text-left pb-36 gap-y-2">

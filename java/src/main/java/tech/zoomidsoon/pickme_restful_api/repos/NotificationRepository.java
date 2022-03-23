@@ -48,10 +48,12 @@ public class NotificationRepository implements Repository<Notification> {
 				notification.setNotificationId(rs.getInt(1));
 			}
 
-			ResultSet rs2 = stmt
-					.executeQuery("SELECT avatar from tblUserProfile WHERE userId = " + notification.getSourceUID());
-			rs2.next();
-			notification.setAvatar(rs2.getString(1));
+			if (notification.getSourceUID() != null) {
+				ResultSet rs2 = stmt
+						.executeQuery("SELECT avatar from tblUserProfile WHERE userId = " + notification.getSourceUID());
+				rs2.next();
+				notification.setAvatar(rs2.getString(1));
+			}
 
 			return new Result<>(notification, null);
 		}

@@ -1,20 +1,17 @@
-import { Avatar, Divider, Image, Menu, Tabs } from '@mantine/core'
+import { Avatar, Image, Tabs } from '@mantine/core'
 import axios from 'axios'
 import classNames from 'classnames'
-import { signOut } from 'next-auth/react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { AiFillInfoCircle, AiFillMobile, AiFillWarning } from 'react-icons/ai'
+import { AiFillMobile } from 'react-icons/ai'
 import { BsFillFlagFill } from 'react-icons/bs'
 import { FaUserFriends } from 'react-icons/fa'
-import { IoIosHelpCircle, IoMdArrowBack } from 'react-icons/io'
+import { IoMdArrowBack } from 'react-icons/io'
 import { MdLocationOn, MdOutlinePhotoCameraBack, MdWebStories } from 'react-icons/md'
-import { RiSettings4Fill } from 'react-icons/ri'
-import { VscSignOut } from 'react-icons/vsc'
 import { useWindowScroll } from 'react-use'
 import env from '~/shared/env'
-import { ChipsInProfile, EditProfile, NotificationBox, ProfileStatus } from '~/src/components'
+import { AvatarMenu, ChipsInProfile, EditProfile, NotificationBox, ProfileStatus, ReportButton } from '~/src/components'
 
 function Profile({
    yourProfile,
@@ -22,12 +19,14 @@ function Profile({
    conversationId,
    defaultInterests,
    isYourProfile,
+   role,
 }: {
    yourProfile: UserProfile
    initProfile: UserProfile
    conversationId?: number
    defaultInterests: InterestChip[]
    isYourProfile: boolean
+   role: string
 }) {
    const [profile, setProfile] = useState(null)
 
@@ -59,37 +58,15 @@ function Profile({
                </Link>
                <div className="flex-grow"></div>
                <NotificationBox yourId={yourProfile.userId} inProfile={true} />
-               <Menu
-                  trigger="hover"
-                  delay={500}
+               <AvatarMenu
+                  profile={yourProfile}
+                  role={role}
                   control={
                      <button className="rounded-full">
-                        <Avatar src={yourProfile.avatar} alt={yourProfile.name} radius="xl" size="md" />
+                        <Avatar src={profile.avatar} alt={profile.name} radius="xl" size="md" />
                      </button>
                   }
-                  classNames={{
-                     itemHovered: 'bg-slate-100',
-                  }}
-                  placement="end"
-               >
-                  <Menu.Item icon={<RiSettings4Fill className="w-5 h-5 text-emerald-600" />}>Preferences</Menu.Item>
-                  <Divider />
-                  <Menu.Item icon={<IoIosHelpCircle className="w-5 h-5 text-lime-600" />}>Help</Menu.Item>
-                  <Menu.Item icon={<AiFillWarning className="w-5 h-5 text-yellow-600" />}>Report a problem</Menu.Item>
-                  <Menu.Item icon={<AiFillInfoCircle className="w-5 h-5 text-cyan-600" />}>About</Menu.Item>
-                  <Divider />
-                  <Menu.Item
-                     icon={<VscSignOut className="w-5 h-5 text-red-600" />}
-                     onClick={() =>
-                        signOut({
-                           callbackUrl: '/',
-                           redirect: true,
-                        })
-                     }
-                  >
-                     Sign Out
-                  </Menu.Item>
-               </Menu>
+               />
             </div>
             <div className="relative max-w-[calc(1280px-3rem)] mt-48 w-full bg-white rounded-lg flex flex-col mb-20 z-0">
                <div className="absolute left-0 right-0 z-10 flex justify-center h-48 -top-24">
@@ -131,9 +108,7 @@ function Profile({
                            onEditedSuccess={(n) => setProfile(n)}
                         />
                      ) : (
-                        <button className="w-10 h-10 p-1.5 rounded-full hover:bg-slate-300/60">
-                           <BsFillFlagFill className="w-full h-full text-red-700" />
-                        </button>
+                        <ReportButton reported={profile.userId} inCard={false} />
                      )}
                   </div>
                </div>
@@ -341,6 +316,7 @@ export async function getServerSideProps({ query, res }) {
          yourProfile,
          initProfile: profile,
          conversationId,
+         role: userInfo.role,
          defaultInterests: defaultInterests.map((el) => {
             return {
                name: el['interestName'],

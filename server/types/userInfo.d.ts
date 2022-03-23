@@ -3,4 +3,5 @@ interface UserInfo {
    email: string
    role?: string
    cautionTimes: number
+   disabled: boolean
 }

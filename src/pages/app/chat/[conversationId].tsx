@@ -14,10 +14,12 @@ function Index({
    userProfile,
    currentConversation,
    preConversations,
+   role,
 }: {
    userProfile: UserProfile
    currentConversation: Conversation
    preConversations: Conversation[]
+   role: string
 }) {
    const socket = io('/match', {
       forceNew: true,
@@ -102,7 +104,7 @@ function Index({
                className="w-screen min-w-screen md:w-[30rem] md:min-w-[30rem] h-full z-50 bg-slate-100"
                ref={conversationListRef}
             >
-               <SidebarHeader userProfile={userProfile} tab="messages" />
+               <SidebarHeader userProfile={userProfile} tab="messages" role={role} />
                <div className="w-full px-6 pt-6">
                   <input
                      type="text"
@@ -205,6 +207,7 @@ export async function getServerSideProps({ query, res }) {
          userProfile,
          currentConversation,
          preConversations,
+         role: userInfo.role,
       },
    }
 }

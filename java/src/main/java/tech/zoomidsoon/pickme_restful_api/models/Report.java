@@ -10,19 +10,20 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = false)
 public class Report extends Entity {
 
-    private Long reportId;
-    private Integer reporter;
-    private Integer reported;
-    private Long time;
-    private String message;
-    private Boolean done;
+	private Long reportId;
+	private Integer reporter;
+	private Integer reported;
+	private Long time;
+	private String tag;
+	private String additionalInfo;
+	private String resolved;
 
-    @Override
-    public boolean isEmpty() {
+	@Override
+	public boolean isEmpty() {
 
-        if (reportId == null)
-            return true;
-        return false;
-    }
+		if (reportId == null)
+			return true;
+		return false;
+	}
 
 }

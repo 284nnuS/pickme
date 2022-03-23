@@ -26,4 +26,17 @@ BEGIN
 END$$
 DELIMITER ;
 
+DELIMITER $$
+CREATE TRIGGER check_report
+BEFORE INSERT
+ON tblReport FOR EACH ROW
+BEGIN
+	IF EXISTS (SELECT 1 FROM tblReport tr
+		WHERE tr.reporter = NEW.reporter
+			AND tr.reported = NEW.reported
+			AND tr.resolved = 'none') THEN
+		SIGNAL sqlstate '45001' set message_text = "Already reported";
+	END IF;	
+END$$
+DELIMITER ; 
 

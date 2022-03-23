@@ -9,7 +9,15 @@ import { GiCardRandom } from 'react-icons/gi'
 import { FaUserFriends } from 'react-icons/fa'
 import classNames from 'classnames'
 
-function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; defaultInterests: InterestChip[] }) {
+function Index({
+   userProfile,
+   defaultInterests,
+   role,
+}: {
+   userProfile: UserProfile
+   defaultInterests: InterestChip[]
+   role: string
+}) {
    const [userProfiles, setUserProfile] = useState<UserProfile[]>([])
 
    const socket = io('/match', {
@@ -96,7 +104,7 @@ function Index({ userProfile, defaultInterests }: { userProfile: UserProfile; de
                className="w-screen min-w-screen md:w-[30rem] md:min-w-[30rem] h-full z-50 bg-slate-100"
                ref={matchListRef}
             >
-               <SidebarHeader userProfile={userProfile} tab="matches" />
+               <SidebarHeader userProfile={userProfile} tab="matches" role={role} />
                <div className="grid w-full grid-cols-2 pt-6 mx-2 md:mx-0 md:grid-cols-3 md:gap-x-1 gap-y-5">
                   {userProfiles.map((match) => (
                      <div key={match.userId} className="flex items-center justify-center w-full h-full">
@@ -184,6 +192,7 @@ export async function getServerSideProps({ res }) {
                description: el['description'],
             }
          }),
+         role: userInfo.role,
       },
    }
 }

@@ -17,10 +17,9 @@ const NotificationForm = ({ notification, socket }: { notification: Notification
       notification = {
          ...notification,
          message: 'It’s seem someone liked you!',
-         avatar: '/static/images/pickme.png',
       }
 
-   console.log(notification)
+   if (notification.avatar === null) notification.avatar = '/static/images/pickme.png'
 
    return (
       <button

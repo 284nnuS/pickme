@@ -232,13 +232,13 @@ function ChatBox({
                         </div>
                         <div className="flex justify-around w-full">
                            <button
-                              className="w-32 h-10 text-lg font-semibold text-white bg-red-600 rounded-md"
+                              className="w-32 h-10 text-lg font-semibold text-white bg-red-700 rounded-md hover:bg-red-500 focus:outline-none"
                               onClick={() => unMatchCallback(conversation.conversationId)}
                            >
                               Yes
                            </button>
                            <button
-                              className="w-32 h-10 text-lg font-semibold border-2 rounded-md text-slate-500 border-slate-500 hover:bg-slate-500 hover:text-white"
+                              className="w-32 h-10 text-lg font-semibold border-2 rounded-md text-slate-500 border-slate-500 hover:bg-slate-500 hover:text-white focus:outline-none"
                               onClick={() => setUnmatchModalOpened(false)}
                            >
                               No

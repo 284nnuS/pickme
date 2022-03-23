@@ -1,10 +1,10 @@
 import { setupCache } from 'axios-cache-adapter'
 import GoogleProvider from 'next-auth/providers/google'
 import FacebookProvider from 'next-auth/providers/facebook'
-import { NextAuthOptions } from 'next-auth'
+import { NextAuthOptions, User } from 'next-auth'
 import axios from 'axios'
 
-const cache = setupCache({
+export const cache = setupCache({
    maxAge: 15 * 60 * 100,
 })
 
@@ -37,11 +37,18 @@ const nextAuthOptions: NextAuthOptions = {
    ],
    pages: {
       signIn: '/auth/signIn',
+      error: '/auth/error',
    },
    callbacks: {
-      // async signIn({ user }: { user: User }) {
-      //    return true
-      // },
+      async signIn({ user }: { user: User }) {
+         try {
+            const res = await getUserInfo(user.email)
+            if (res && 'data' in res && !!res['data']['disabled']) return false
+         } catch (err) {
+            //
+         }
+         return true
+      },
       async redirect({ url, baseUrl }) {
          if (url.startsWith(baseUrl)) return url
          else if (url.startsWith('/')) return new URL(url, baseUrl).toString()

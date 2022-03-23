@@ -13,6 +13,7 @@ public class User extends Entity {
 	private String email;
 	private String role;
 	private Integer cautionTimes;
+	private Boolean disabled;
 
 	@Override
 	public boolean isEmpty() {

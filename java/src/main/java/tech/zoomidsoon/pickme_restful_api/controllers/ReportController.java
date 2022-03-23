@@ -23,7 +23,6 @@ import tech.zoomidsoon.pickme_restful_api.utils.DBContext;
 @SuppressWarnings({ "unchecked" })
 @Path("/report")
 public class ReportController {
-
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response listAllReport() {
@@ -45,29 +44,8 @@ public class ReportController {
 		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
 	}
 
-	@Path("/get")
-	@POST
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getMessages(ReportRepository.FindByTimeAndReportedId findByTimeAndUserId) {
-		try {
-			try (Connection conn = DBContext.getConnection()) {
-				List<Report> reports = ReportRepository.getInstance().read(conn, findByTimeAndUserId);
-				return JsonAPIResponse.ok(reports);
-			} catch (SQLException e) {
-				Response response = JsonAPIResponse.handleSQLError(e);
-				if (response != null)
-					return response;
-			}
-		} catch (Exception e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}
-
-		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
-	}
-
 	@GET
-	@Path("/id/{id}")
+	@Path("/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response findById(@PathParam("id") Long reportId) {
 		try {
@@ -78,31 +56,6 @@ public class ReportController {
 				if (reports.isEmpty())
 					return JsonAPIResponse.handleError(404, "Report does not exist", "");
 				return JsonAPIResponse.ok(reports.get(0));
-			} catch (SQLException e) {
-				Response response = JsonAPIResponse.handleSQLError(e);
-				if (response != null)
-					return response;
-			}
-		} catch (Exception e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}
-
-		return JsonAPIResponse.handleError(JsonAPIResponse.SERVER_ERROR);
-	}
-
-	@GET
-	@Path("/status/{done}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response findById(@PathParam("done") Boolean done) {
-		try {
-			try (Connection conn = DBContext.getConnection()) {
-				ReportRepository.FindByDone findByDone = new ReportRepository.FindByDone(done);
-				List<Report> reports = ReportRepository.getInstance().read(conn, findByDone);
-
-				if (reports.isEmpty())
-					return JsonAPIResponse.handleError(404, "Report does not exist", "");
-				return JsonAPIResponse.ok(reports);
 			} catch (SQLException e) {
 				Response response = JsonAPIResponse.handleSQLError(e);
 				if (response != null)
@@ -129,7 +82,8 @@ public class ReportController {
 			Response response = JsonAPIResponse.handleSQLError(e,
 					SQLErrors.DATA_TRUNCATED,
 					SQLErrors.INCORRECT_DATA_TYPE,
-					SQLErrors.CHECK_CONSTANT);
+					SQLErrors.CHECK_CONSTANT,
+					SQLErrors.TRIGGER_EXCEPTION);
 			if (response != null)
 				return response;
 		} catch (Exception e) {
@@ -140,10 +94,14 @@ public class ReportController {
 	}
 
 	@PUT
+	@Path("/{reportId}/{resolved}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response updateReport(Report report) {
+	public Response updateReport(@PathParam("reportId") long reportId, @PathParam("resolved") String resolved) {
 		try {
 			try (Connection conn = DBContext.getConnection()) {
+				Report report = new Report();
+				report.setReportId(reportId);
+				report.setResolved(resolved);
 				Result<Report, JsonAPIResponse.Error> result = ReportRepository.getInstance().update(conn, report);
 				return JsonAPIResponse.handleResult(result);
 			} catch (SQLException e) {
