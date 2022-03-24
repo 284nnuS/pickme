@@ -12,9 +12,9 @@
       "start:server": "NODE_ENV=production pm2-runtime dist/server/index.js",
       "start:java": "java -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 -jar java/target/pickme_restful_api-thorntail.jar",
       "self:start": "run-p self:start:server self:start:java self:start:db",
-      "self:start:server": "NODE_ENV=production env-cmd --silent -f configs/nextjs.env pm2-runtime dist/server/index.js",
+      "self:start:server": "NODE_ENV=production env-cmd --silent -f configs/nextjs.env yarn start:server",
       "self:start:db": "docker compose up database",
-      "self:start:java": "env-cmd --silent -f configs/java.env java -Djava.net.preferIPv4Stack=true -Dthorntail.http.port=3001 -jar java/target/pickme_restful_api-thorntail.jar",
+      "self:start:java": "env-cmd --silent -f configs/java.env yarn start:java",
       "test": "run-s test:java",
       "test:java": "env-cmd --silent -f configs/java.env mvn -f java/pom.xml clean test",
       "postinstall": "husky install"
