@@ -16,7 +16,7 @@ export async function authorize(req: Request, res: Response, next: NextFunction)
       nextAuthOptions,
    )
 
-   const skipCheck = ['/_next', '/static', '/api/auth', '/auth'].some((el) => req.url.startsWith(el))
+   const skipCheck = ['/_next', '/static', '/api/auth', '/auth', '/api/signUp'].some((el) => req.url.startsWith(el))
 
    if (!skipCheck && has(session, 'userInfo.disabled') && session.userInfo['disabled']) {
       res.redirect('/auth/error/?error=AccessDenied')

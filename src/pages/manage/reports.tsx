@@ -142,7 +142,7 @@ function Reports({
 export async function getServerSideProps({ res }) {
    const { locals } = res
 
-   if (!locals.session) {
+   if (!locals.session || !locals.session.userInfo) {
       return {
          notFound: true,
       }

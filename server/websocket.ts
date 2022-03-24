@@ -95,8 +95,8 @@ sio.of('/match')
                )
 
                socket.to('match-' + socket['userId']).emit('cards', cards)
-            } catch {
-               //
+            } catch (err) {
+               console.log(err)
             }
          })
          .on('card:swipe', async ({ id, like }: { id: number; like: boolean }) => {

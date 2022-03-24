@@ -170,7 +170,7 @@ function Index({
 export async function getServerSideProps({ query, res }) {
    const { locals } = res
 
-   if (!locals.session) {
+   if (!locals.session || !locals.session.userInfo) {
       return {
          notFound: true,
       }
