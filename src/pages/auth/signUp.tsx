@@ -57,15 +57,6 @@ export function SignUp({ allInterests, name }) {
          return
       }
 
-      if (!voice.dataUrl || voice.dataUrl.match(reg).length !== 3) {
-         notifications.showNotification({
-            title: 'Error',
-            message: 'Please add your voice to continue',
-            color: 'red',
-         })
-         return
-      }
-
       if (interests.length === 0) {
          notifications.showNotification({
             title: 'Error',
@@ -99,14 +90,17 @@ export function SignUp({ allInterests, name }) {
             }),
          ])
 
-         const obj = convert(voice.dataUrl)
+         if (voice.dataUrl) {
+            const obj = convert(voice.dataUrl)
 
-         await axios.post(
-            `${window.location.origin}/api/restful/file/${userId}/voice/${encodeURIComponent(obj.type)}`,
-            {
-               payload: obj.payload,
-            },
-         )
+            await axios.post(
+               `${window.location.origin}/api/restful/file/${userId}/voice/${encodeURIComponent(obj.type)}`,
+               {
+                  payload: obj.payload,
+               },
+            )
+         }
+
          router.replace(`${window.location.origin}/app`)
       })
    }
