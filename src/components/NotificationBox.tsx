@@ -1,4 +1,4 @@
-import { Popover } from '@mantine/core'
+import { LoadingOverlay, Popover } from '@mantine/core'
 import { useNotifications } from '@mantine/notifications'
 import classNames from 'classnames'
 import React, { useEffect, useState } from 'react'
@@ -104,6 +104,7 @@ function NotificationBox({ yourId, inProfile = false, gutter = 16 }) {
          }
       >
          <div className="flex flex-col w-full">
+            <LoadingOverlay visible={!init} />
             <div className="flex w-full border-b border-teal-500">
                <button
                   className={classNames(

@@ -1,4 +1,4 @@
-import { Modal } from '@mantine/core'
+import { LoadingOverlay, Modal } from '@mantine/core'
 import classNames from 'classnames'
 import { useEffect, useState } from 'react'
 import { AiFillMessage, AiFillWarning } from 'react-icons/ai'
@@ -82,6 +82,7 @@ function ReportButton({ reported, inCard }: { reported: number; inCard: boolean 
                close: 'hidden',
             }}
          >
+            <LoadingOverlay visible={!init} />
             {submitted ? (
                <div className="text-xl font-bold text-center text-slate-700">You already have reported this user</div>
             ) : (
