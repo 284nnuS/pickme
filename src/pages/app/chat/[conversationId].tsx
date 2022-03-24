@@ -1,9 +1,6 @@
-import { Image } from '@mantine/core'
 import axios from 'axios'
 import Head from 'next/head'
-import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { FaUserAlt } from 'react-icons/fa'
 import { io } from 'socket.io-client'
 import env from '~/shared/env'
 import { ChatBox, ConversationItem, SidebarHeader } from '~/src/components'
@@ -22,7 +19,7 @@ function Index({
    role: string
 }) {
    const socket = io('/match', {
-      forceNew: true,
+      timeout: 5000,
       transports: ['websocket'],
       upgrade: false,
    })

@@ -37,6 +37,7 @@
       "emoji-picker-react": "^3.5.1",
       "express": "^4.17.3",
       "express-http-proxy": "^1.6.3",
+      "framer-motion": "^6.2.8",
       "fuse.js": "^6.5.3",
       "helmet": "^5.0.1",
       "js-base64": "^3.7.2",

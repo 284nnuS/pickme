@@ -445,11 +445,6 @@ sio.of('/report')
                         delete userCache.store['store'][
                            `${env.javaServerUrl}/user/email/${report.reportedUserInfo.email}`
                         ]
-                        console.log(
-                           userCache.store['store'],
-                           userCache.store['store'][`${env.javaServerUrl}/user/email/${report.reportedUserInfo.email}`],
-                           `${env.javaServerUrl}/user/email/${report.reportedUserInfo.email}`,
-                        )
                         break
                      case 'warn':
                         await axios.put(`${env.javaServerUrl}/user`, {

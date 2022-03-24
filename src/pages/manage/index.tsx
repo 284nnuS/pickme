@@ -1,6 +1,4 @@
-import axios from 'axios'
 import Head from 'next/head'
-import env from '~/shared/env'
 
 function Index() {
    return (

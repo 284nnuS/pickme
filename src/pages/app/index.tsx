@@ -8,6 +8,7 @@ import { useRouter } from 'next/router'
 import { GiCardRandom } from 'react-icons/gi'
 import { FaUserFriends } from 'react-icons/fa'
 import classNames from 'classnames'
+import { LoadingOverlay } from '@mantine/core'
 
 function Index({
    userProfile,
@@ -21,7 +22,7 @@ function Index({
    const [userProfiles, setUserProfile] = useState<UserProfile[]>([])
 
    const socket = io('/match', {
-      forceNew: true,
+      timeout: 5000,
       transports: ['websocket'],
       upgrade: false,
    })
@@ -100,6 +101,7 @@ function Index({
             <title>Pickme | Match</title>
          </Head>
          <div className="flex w-[200%] md:w-screen h-full pb-16 md:pb-0 overflow-hidden">
+            <LoadingOverlay visible={!init} />
             <div
                className="w-screen min-w-screen md:w-[30rem] md:min-w-[30rem] h-full z-50 bg-slate-100"
                ref={matchListRef}

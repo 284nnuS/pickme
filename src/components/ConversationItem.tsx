@@ -25,7 +25,7 @@ function ConversationItem({
             selected && 'rounded-2xl bg-slate-300',
          )}
          onClick={async () => {
-            if (!selected) await router.push(`/app/chat/${conversationId}`)
+            if (!selected) await router.replace(`/app/chat/${conversationId}`)
             else scrollCallback()
          }}
       >

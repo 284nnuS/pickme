@@ -59,9 +59,9 @@ function Card({
    return (
       <div
          className="relative z-50 flex flex-col justify-center w-full h-full cursor-pointer bg-slate-700 rounded-2xl"
-         onTouchStart={() => setDragging(false)}
-         onTouchMove={() => setDragging(true)}
-         onTouchEnd={() => {
+         onMouseDown={() => setDragging(false)}
+         onMouseMove={() => setDragging(true)}
+         onMouseUp={() => {
             if (dragging) return
             onNavigate()
             router.push(

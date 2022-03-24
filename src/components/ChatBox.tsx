@@ -4,7 +4,7 @@ import { MdEmojiEmotions, MdSend } from 'react-icons/md'
 import { io, Socket } from 'socket.io-client'
 import { useThrottle, useThrottleCallback } from '@react-hook/throttle'
 import { ReactSelect } from '.'
-import { Avatar, Image, Modal, Popover, Tooltip } from '@mantine/core'
+import { Avatar, Image, LoadingOverlay, Modal, Popover, Tooltip } from '@mantine/core'
 import { AiOutlineRollback } from 'react-icons/ai'
 import Link from 'next/link'
 import { IEmojiPickerProps } from 'emoji-picker-react'
@@ -40,7 +40,7 @@ function ChatBox({
       query: {
          conversationId: conversation.conversationId,
       },
-      forceNew: true,
+      timeout: 5000,
       transports: ['websocket'],
       upgrade: false,
    })
@@ -169,6 +169,7 @@ function ChatBox({
 
    return (
       <div className="w-full h-full overflow-hidden">
+         <LoadingOverlay visible={!init} />
          <div className="flex items-center h-16 px-2 py-2 border-b-2 md:px-6 gap-x-2 md:gap-x-5 border-slate-200">
             <button className="w-7 h-7 md:hidden" onClick={() => scrollToConversationList()}>
                <IoMdArrowBack className="w-full h-full text-emerald-500" />

@@ -1,13 +1,7 @@
-import { Avatar, Divider, Menu } from '@mantine/core'
+import { Avatar } from '@mantine/core'
 import classNames from 'classnames'
-import { signOut } from 'next-auth/react'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
-import { AiFillInfoCircle, AiFillWarning } from 'react-icons/ai'
-import { FaUserAlt } from 'react-icons/fa'
-import { IoIosHelpCircle } from 'react-icons/io'
-import { RiMoreFill, RiSettings4Fill } from 'react-icons/ri'
-import { VscSignOut } from 'react-icons/vsc'
+import { RiMoreFill } from 'react-icons/ri'
 import AvatarMenu from './AvatarMenu'
 
 function SidebarHeader({ userProfile, tab, role }: { userProfile: UserProfile; tab: string; role: string }) {

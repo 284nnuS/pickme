@@ -1,10 +1,9 @@
-import { Accordion, Anchor, Avatar } from '@mantine/core'
+import { Accordion, Avatar } from '@mantine/core'
 import axios from 'axios'
 import classNames from 'classnames'
 import Head from 'next/head'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { RiMoreFill } from 'react-icons/ri'
 import { io } from 'socket.io-client'
 import env from '~/shared/env'
@@ -25,7 +24,7 @@ function Reports({
    const [reportList, setReportList] = useState(initReportList)
 
    const socket = io('/report', {
-      forceNew: true,
+      timeout: 5000,
       transports: ['websocket'],
       upgrade: false,
    })
@@ -101,18 +100,18 @@ function Reports({
                         <div className="flex flex-col">
                            {Object.values(['unresolved', 'resolved', 'all']).map((el) => {
                               return (
-                                 <Link key={el} href={`/manage/reports/?display=${el}`} passHref>
-                                    <a
-                                       className={classNames(
-                                          'border-l-[0.3rem] capitalize px-3 py-1 w-full font-bold rounded-r-full',
-                                          display === el
-                                             ? 'border-emerald-500 bg-emerald-100 text-emerald-600'
-                                             : 'border-transparent text-slate-600 hover:bg-slate-200',
-                                       )}
-                                    >
-                                       {el}
-                                    </a>
-                                 </Link>
+                                 <button
+                                    key={el}
+                                    onClick={() => router.replace(`/manage/reports/?display=${el}`)}
+                                    className={classNames(
+                                       'border-l-[0.3rem] capitalize px-3 py-1 w-full font-bold rounded-r-full text-left',
+                                       display === el
+                                          ? 'border-emerald-500 bg-emerald-100 text-emerald-600'
+                                          : 'border-transparent text-slate-600 hover:bg-slate-200',
+                                    )}
+                                 >
+                                    {el}
+                                 </button>
                               )
                            })}
                         </div>

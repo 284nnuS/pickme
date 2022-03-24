@@ -3,8 +3,9 @@ import { SessionProvider } from 'next-auth/react'
 import { MantineProvider } from '@mantine/core'
 import { NotificationsProvider } from '@mantine/notifications'
 import Head from 'next/head'
+import { motion } from 'framer-motion'
 
-const App = ({ Component, pageProps: { session, ...pageProps } }) => {
+const App = ({ Component, pageProps: { session, ...pageProps }, router }) => {
    return (
       <>
          <Head>
@@ -13,7 +14,21 @@ const App = ({ Component, pageProps: { session, ...pageProps } }) => {
          <SessionProvider session={session}>
             <MantineProvider>
                <NotificationsProvider>
-                  <Component {...pageProps} />{' '}
+                  <motion.div
+                     key={router.route}
+                     initial="pageInitial"
+                     animate="pageAnimate"
+                     variants={{
+                        pageInitial: {
+                           opacity: 0,
+                        },
+                        pageAnimate: {
+                           opacity: 1,
+                        },
+                     }}
+                  >
+                     <Component {...pageProps} />
+                  </motion.div>
                </NotificationsProvider>
             </MantineProvider>
          </SessionProvider>

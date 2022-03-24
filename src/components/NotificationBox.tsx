@@ -10,7 +10,7 @@ function NotificationBox({ yourId, inProfile = false, gutter = 16 }) {
    const [notificationList, setNotificationList] = useState([])
 
    const socket = io('/notify', {
-      forceNew: true,
+      timeout: 5000,
       transports: ['websocket'],
       upgrade: false,
    })

@@ -1,6 +1,6 @@
 import { Modal } from '@mantine/core'
 import classNames from 'classnames'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AiFillMessage, AiFillWarning } from 'react-icons/ai'
 import { BsFillFlagFill } from 'react-icons/bs'
 import { GiRobberMask } from 'react-icons/gi'
@@ -16,7 +16,7 @@ function ReportButton({ reported, inCard }: { reported: number; inCard: boolean 
    const [submitted, setSubmitted] = useState(false)
 
    const socket = io('/report', {
-      forceNew: true,
+      timeout: 5000,
       transports: ['websocket'],
       upgrade: false,
    })
@@ -56,7 +56,7 @@ function ReportButton({ reported, inCard }: { reported: number; inCard: boolean 
    return (
       <>
          <button
-            className="w-10 h-10 p-1.5 rounded-full hover:bg-slate-300/60 bg-slate-400"
+            className={classNames('w-10 h-10 p-2 rounded-full hover:bg-slate-300/60 ', inCard && 'bg-slate-400')}
             onClick={() => setOpened(true)}
          >
             <BsFillFlagFill className={classNames('w-full h-full', inCard ? 'text-white' : 'text-red-700')} />

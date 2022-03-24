@@ -7,12 +7,6 @@ import { has } from '../shared/utils'
 import nextAuthOptions from '../shared/nextAuthOptions'
 
 export async function authorize(req: Request, res: Response, next: NextFunction) {
-   const skipCheck =
-      req.url.startsWith('/_next') ||
-      req.url.startsWith('/static') ||
-      req.url.startsWith('/api/auth') ||
-      req.url.startsWith('/auth/error')
-
    const token = await getToken({ req: req as unknown as NextApiRequest, secret: process.env.SECRET_KEY })
 
    if (!token) return next()
@@ -22,17 +16,14 @@ export async function authorize(req: Request, res: Response, next: NextFunction)
       nextAuthOptions,
    )
 
+   const skipCheck = ['/_next', '/static', '/api/auth', '/auth'].some((el) => req.url.startsWith(el))
+
    if (!skipCheck && has(session, 'userInfo.disabled') && session.userInfo['disabled']) {
       res.redirect('/auth/error/?error=AccessDenied')
       return
    }
 
-   if (
-      !skipCheck &&
-      !req.url.startsWith('/auth/signUp') &&
-      !req.url.startsWith('/api/signUp') &&
-      !has(session, 'userInfo.userId')
-   ) {
+   if (!skipCheck && !has(session, 'userInfo.userId')) {
       res.redirect('/auth/signUp')
       return
    }
